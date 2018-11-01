@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2005
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GUI", "SearchEngine\GUI.csproj", "{F30E4098-D795-4A50-88BE-CF20BBB27490}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfoRetrieval", "InfoRetrieval\InfoRetrieval.csproj", "{1AB06236-B974-42BD-9FB3-CCBF8D8232CF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F30E4098-D795-4A50-88BE-CF20BBB27490} = {F30E4098-D795-4A50-88BE-CF20BBB27490}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F30E4098-D795-4A50-88BE-CF20BBB27490}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F30E4098-D795-4A50-88BE-CF20BBB27490}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F30E4098-D795-4A50-88BE-CF20BBB27490}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F30E4098-D795-4A50-88BE-CF20BBB27490}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AB06236-B974-42BD-9FB3-CCBF8D8232CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AB06236-B974-42BD-9FB3-CCBF8D8232CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AB06236-B974-42BD-9FB3-CCBF8D8232CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AB06236-B974-42BD-9FB3-CCBF8D8232CF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7666EEA6-CE5C-4271-A9DA-627AEF5E132D}
+	EndGlobalSection
+EndGlobal
