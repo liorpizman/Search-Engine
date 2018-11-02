@@ -12,7 +12,7 @@ namespace InfoRetrieval
         public Dictionary<string, masterFile> m_files;
         public string m_mainPath;
         public int m_filesAmount;
-        public string[] m_paths;
+        //public string[] m_paths;
 
 
         public ReadFile(string m_mainPath)
@@ -36,7 +36,6 @@ namespace InfoRetrieval
         private void subRead(string[] directories)
         {
             //Console.WriteLine("----------files:--------------");
-
             foreach (string directory in directories)
             {
                 string[] files = Directory.GetFiles(directory);
@@ -47,7 +46,7 @@ namespace InfoRetrieval
                     m_filesAmount++;
                 }
             }
-            Console.WriteLine("----------totatl files : " + m_filesAmount + "--------------");
+            // Console.WriteLine("----------totatl files : " + m_filesAmount + "--------------");
         }
 
         private void readFile(string file)
@@ -118,13 +117,13 @@ namespace InfoRetrieval
             return result[0];
         }
 
-
+        /*
         static void Main(string[] args)
         {
-            ReadFile r = new ReadFile(@"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\corpus\corpus");
+            ReadFile r = new ReadFile(@"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder");
             r.mainRead();
-            int a = 1;
             Console.ReadLine();
         }
+        */
     }
 }
