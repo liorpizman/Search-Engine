@@ -16,22 +16,20 @@ namespace InfoRetrieval
 
         public Rules()
         {
-            rulesList = new Regex[17];
+            rulesList = new Regex[15];
+            //Regex numbersCase1 = new Regex(@"^(\d{1,3},(\d{3},)*\d{3}(\.\d+)?)(\s\d+\/\d+)? *((?i:Thousand)|(?i:thousand)|(?i:Million)|(?i:million)|(?i:Billion)|(?i:billion)|(?i:Trillion)|(?i:trillion))?$");
+            // Regex percentsCase1 = new Regex(@"^(\d{1,3},(\d{3},)*\d{3}(\.\d+)?)(\s\d+\/\d+)? +((?i:Percents)|(?i:percents)|(?i:Percent)|(?i:percent)|(?i:Percentage)|(?i:percentage)|(?i:%))?$");
 
-            //include all numbers in a format: {1-3},***,***.*** or  {1-3},***,***  **/**  Thousand /etc.
-            Regex numbersCase1 = new Regex(@"^(\d{1,3},(\d{3},)*\d{3}(\.\d+)?)(\s\d+\/\d+)? *((?i:Thousand)|(?i:thousand)|(?i:Million)|(?i:million)|(?i:Billion)|(?i:billion)|(?i:Trillion)|(?i:trillion))?$");
-            //include all numbers in a format: *****.*** or ***  **/**  Thousand /etc.
-            Regex numbersCase2 = new Regex(@"^(\d+)(\.\d+)?(\s\d+\/\d+)? *((?i:Thousand)|(?i:thousand)|(?i:Million)|(?i:million)|(?i:Billion)|(?i:billion)|(?i:Trillion)|(?i:trillion))?$");
+            //include all numbers in a format: *****.*** or ***  **/**  Thousand /etc. and {1-3},***,***.*** or  {1-3},***,***  **/**  Thousand /etc.
+            Regex numbersCase = new Regex(@"^(\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)? *((?i:Thousand)|(?i:thousand)|(?i:Million)|(?i:million)|(?i:Billion)|(?i:billion)|(?i:Trillion)|(?i:trillion))?$");
 
-            //include all percents in a format: {1-3},***,***.*** or  {1-3},***,***  **/**  Percents /etc.
-            Regex percentsCase1 = new Regex(@"^(\d{1,3},(\d{3},)*\d{3}(\.\d+)?)(\s\d+\/\d+)? +((?i:Percents)|(?i:percents)|(?i:Percent)|(?i:percent)|(?i:Percentage)|(?i:percentage)|(?i:%))?$");
-            //include all percents in a format: *****.*** or ***  **/**  Percents /etc.
-            Regex percentsCase2 = new Regex(@"^(\d+)(\.\d+)?(\s\d+\/\d+)? +((?i:Percents)|(?i:percents)|(?i:Percent)|(?i:percent)|(?i:Percentage)|(?i:percentage)|(?i:%))?$");
+            //include all percents in a format: *****.*** or ***  **/**  Percents /etc. and {1-3},***,***.*** or  {1-3},***,***  **/**  Percents /etc.
+            Regex percentsCase = new Regex(@"^(\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)? +((?i:Percents)|(?i:percents)|(?i:Percent)|(?i:percent)|(?i:Percentage)|(?i:percentage)|(?i:%))?$");
 
             //include all prices in a format: {1-3},***,***.*** or  {1-3},***,***  **/**  dollars /etc.
-            Regex pricesCase1 = new Regex(@"^\d{1,3}(,\d{3})*(\.\d+)?(\s\d+\/\d+)? *((?i:m)|(?i:bn)|(?i:billion U.S.)|(?i:million U.S.)|(?i:trillion U.S.))? +((?i:dollars)|(?i:Dollars))?$");
+            Regex pricesCase1 = new Regex(@"^(\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)? *((?i:m)|(?i:bn)|(?i:billion U.S.)|(?i:million U.S.)|(?i:trillion U.S.))? +((?i:dollars)|(?i:Dollars))?$");
             //include all prices in a format: $ {1-3},***,***.*** or  $ {1-3},***,***  **/** 
-            Regex pricesCase2 = new Regex(@"^\$\d{1,3}(,\d{3})*(\.\d+)?(\s\d+\/\d+)? *((?i:million)|(?i:billion)|(?i:trillion))?$");
+            Regex pricesCase2 = new Regex(@"^\$(\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)? *((?i:million)|(?i:billion)|(?i:trillion))?$");
 
             //	January February March April May June July August September October November December
             //	Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
@@ -66,29 +64,27 @@ namespace InfoRetrieval
             Regex measureTime = new Regex(@"^((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)\s(s|sec|second|seconds|ms|nanosecond|nanoseconds|ns|minute|hour|day|week|month|year|decade|century|millennium|mega-anuum)$");
             Regex measureElectric = new Regex(@"^((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)\s(ampere|volt|Ohm|Siemen|Farad|Coulomb|Henry|Watts|Hertz)$");
 
-            rulesList[0] = numbersCase1;
-            rulesList[1] = numbersCase2;
+            rulesList[0] = numbersCase;
 
-            rulesList[2] = percentsCase1;
-            rulesList[3] = percentsCase2;
+            rulesList[1] = percentsCase;
 
-            rulesList[4] = pricesCase1;
-            rulesList[5] = pricesCase2;
+            rulesList[2] = pricesCase1;
+            rulesList[3] = pricesCase2;
 
-            rulesList[6] = datesCase1;
-            rulesList[7] = datesCase2;
+            rulesList[4] = datesCase1;
+            rulesList[5] = datesCase2;
 
-            rulesList[8] = rangesCase1;
-            rulesList[9] = rangesCase2;
-            rulesList[10] = rangesCase3;
-            rulesList[11] = rangesCase4;
+            rulesList[6] = rangesCase1;
+            rulesList[7] = rangesCase2;
+            rulesList[8] = rangesCase3;
+            rulesList[9] = rangesCase4;
 
-            rulesList[12] = namesCase;
+            rulesList[10] = namesCase;
 
-            rulesList[13] = measureLength;
-            rulesList[14] = measureMass;
-            rulesList[15] = measureTime;
-            rulesList[16] = measureElectric;
+            rulesList[11] = measureLength;
+            rulesList[12] = measureMass;
+            rulesList[13] = measureTime;
+            rulesList[14] = measureElectric;
         }
 
         /*
@@ -105,4 +101,5 @@ namespace InfoRetrieval
         }
         */
     }
+
 }
