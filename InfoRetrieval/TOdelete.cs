@@ -19,18 +19,26 @@ namespace InfoRetrieval
             aCase2 = new Regex(@"^\$(\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)? *((?i:million)|(?i:billion)|(?i:trillion))?$");
         }
 
-        /*
+        
         static void Main(string[] args)
         {
             TOdelete t = new TOdelete();
 
+            /*
             //test
-            if (!t.aCase2.IsMatch("1234$123"))
+            if (!t.aCase2.IsMatch("dsfsdfd $123 sfdsf"))
                 Console.WriteLine("fail!");
             else
                 Console.WriteLine("sucess!");
             Console.ReadLine();
+            */
+            MatchCollection m = t.aCase2.Matches("$123");
+            foreach (Match match in t.aCase2.Matches("$123"))
+            {
+                Console.WriteLine("sucess! " + match.Value);
+                Console.ReadLine();
+            }
         }
-        */
+        
     }
 }

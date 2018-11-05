@@ -37,17 +37,20 @@ namespace InfoRetrieval
             //check in the function that the day in under or equal 31
             //include all dates in a format: */**/**** month
             Regex datesCase1 = new Regex(@"^(\d\d\d\d|\d\d|\d) +((?i:January)|(?i:February)|(?i:March)|(?i:April)|(?i:May)|(?i:June)|(?i:July)|(?i:August)|(?i:September)|(?i:October)|(?i:November)|(?i:December)|
-                                        (?i:Jan)|(?i:Feb)|(?i:Mar)|(?i:Apr)|(?i:May)|(?i:Jun)|(?i:Jul)|(?i:Aug)|(?i:Sep)|(?i:Oct)|(?i:Nov)|(?i:Dec))$");
+                                        (?i:Jan)|(?i:Feb)|(?i:Mar)|(?i:Apr)|(?i:May)|(?i:Jun)|(?i:Jul)|(?i:Aug)|(?i:Sep)|(?i:Oct)|(?i:Nov)|(?i:Dec)|(?i:JANUARY)|(?i:FEBRUARY)|(?i:MARCH)|(?i:APRIL)|(?i:MAY)|
+                                        (?i:JUNE)|(?i:JULY)|(?i:AUGUST)|(?i:SEPTEMBER)|(?i:OCTOBER)|(?i:NOVEMBER)|(?i:DECEMBER))$");
             //include all dates in a format: month */**/****
             Regex datesCase2 = new Regex(@"^((?i:January)|(?i:February)|(?i:March)|(?i:April)|(?i:May)|(?i:June)|(?i:July)|(?i:August)|(?i:September)|(?i:October)|(?i:November)|(?i:December)|
-                                        (?i:Jan)|(?i:Feb)|(?i:Mar)|(?i:Apr)|(?i:May)|(?i:Jun)|(?i:Jul)|(?i:Aug)|(?i:Sep)|(?i:Oct)|(?i:Nov)|(?i:Dec)) +(\d\d\d\d|\d\d|\d)$");
+                                        (?i:Jan)|(?i:Feb)|(?i:Mar)|(?i:Apr)|(?i:May)|(?i:Jun)|(?i:Jul)|(?i:Aug)|(?i:Sep)|(?i:Oct)|(?i:Nov)|(?i:Dec)|(?i:JANUARY)|(?i:FEBRUARY)|(?i:MARCH)|
+                                        (?i:APRIL)|(?i:MAY)|(?i:JUNE)|(?i:JULY)|(?i:AUGUST)|(?i:SEPTEMBER)|(?i:OCTOBER)|(?i:NOVEMBER)|(?i:DECEMBER)) +(\d\d\d\d|\d\d|\d)$");
 
             //((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?) ---> add it if we want to accept 4325.32 and  4,325.32
             // (check in dateCase2 and upper)
 
             //include all ranges in a format: number-number
-            Regex rangesCase1 = new Regex(@"^((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)-((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)$");//((\d{1,3},(\d{3},)*\d{3}(\.\d+)?)(\s\d+\/\d+)?-(\d{1,3},(\d{3},)*\d{3}(\.\d+)?)(\s\d+\/\d+)?)|((\d+)(\.\d+)?(\s\d+\/\d+)?-(\d+)(\.\d+)?(\s\d+\/\d+)?)$");
-                                                                                                                                                //include all ranges in a format: word-word or word-word-word
+            Regex rangesCase1 = new Regex(@"^((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)-((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)$");
+            //((\d{1,3},(\d{3},)*\d{3}(\.\d+)?)(\s\d+\/\d+)?-(\d{1,3},(\d{3},)*\d{3}(\.\d+)?)(\s\d+\/\d+)?)|((\d+)(\.\d+)?(\s\d+\/\d+)?-(\d+)(\.\d+)?(\s\d+\/\d+)?)$");
+            //include all ranges in a format: word-word or word-word-word
             Regex rangesCase2 = new Regex(@"^[A-Za-z]+?-[A-Za-z]+?$|^[A-Za-z]+?-[A-Za-z]+?-[A-Za-z]+?$");
             //include all ranges in a format: number-word or word-number
             Regex rangesCase3 = new Regex(@"^((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)-[A-Za-z]+?$|^[A-Za-z]+?-((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)$");
@@ -55,7 +58,7 @@ namespace InfoRetrieval
             Regex rangesCase4 = new Regex(@"^(?i:Between) +((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?) +(?i:and) +((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)$");
 
 
-            //our rule: include all names in a format: Aaaaa Aaaaa  (A - Capital letter , a - lower-case letter)- FirsName LastName
+            //our rule: include all names in a format: Aaaaa Aaaaa  (A - Capital letter , a - lower-case letter)- FirstName LastName
             Regex namesCase = new Regex(@"^[A-Z][A-Za-z']+\s?[A-Z][A-Za-z']+$");
 
             //our rule: include all measure Units in a format: Number MeasureUnit

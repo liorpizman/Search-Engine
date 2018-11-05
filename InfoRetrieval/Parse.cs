@@ -84,12 +84,89 @@ namespace InfoRetrieval
             Console.ReadLine();
         }
         */
-        public string numberAfterParse(Match match, int toDecrease, string tail, double multiple)
+        public string numberAfterParse(string matchValue, int toDecrease, string tail, double multiple)
         {
-            string current = match.Value.Substring(0, match.Value.Length - toDecrease);
+            string current = matchValue.Substring(0, matchValue.Length - toDecrease);
             double number = FractionToDouble(current) * multiple;
             current = number.ToString() + tail;
             return current;
+        }
+
+        public string convertDate(Match match, int indexOfMonth, bool includesYear) //indexOfMonth - means the index of the word in document
+        {
+            string[] splitted = match.Value.Split(' ');
+            string convertedDate = "";
+            if (includesYear)  // for year 1994-05
+            {
+                if (indexOfMonth == 0)
+                {
+                    convertedDate += splitted[1] + "-";
+                }
+                else
+                {
+                    convertedDate += splitted[0] + "-";
+                }
+            }
+            if (splitted[indexOfMonth].Equals("Jan") || splitted[indexOfMonth].Equals("January") || splitted[indexOfMonth].Equals("JANUARY"))
+            {
+                convertedDate += "01";
+            }
+            else if (splitted[indexOfMonth].Equals("Feb") || splitted[indexOfMonth].Equals("February") || splitted[indexOfMonth].Equals("FEBRUARY"))
+            {
+                convertedDate += "02";
+            }
+            else if (splitted[indexOfMonth].Equals("Mar") || splitted[indexOfMonth].Equals("March") || splitted[indexOfMonth].Equals("MARCH"))
+            {
+                convertedDate += "03";
+            }
+            else if (splitted[indexOfMonth].Equals("Apr") || splitted[indexOfMonth].Equals("April") || splitted[indexOfMonth].Equals("APRIL"))
+            {
+                convertedDate += "04";
+            }
+            else if (splitted[indexOfMonth].Equals("May") || splitted[indexOfMonth].Equals("MAY"))
+            {
+                convertedDate += "05";
+            }
+            else if (splitted[indexOfMonth].Equals("Jun") || splitted[indexOfMonth].Equals("June") || splitted[indexOfMonth].Equals("JUNE"))
+            {
+                convertedDate += "06";
+            }
+            else if (splitted[indexOfMonth].Equals("Jul") || splitted[indexOfMonth].Equals("July") || splitted[indexOfMonth].Equals("JULY"))
+            {
+                convertedDate += "07";
+            }
+            else if (splitted[indexOfMonth].Equals("Aug") || splitted[indexOfMonth].Equals("August") || splitted[indexOfMonth].Equals("AUGUST"))
+            {
+                convertedDate += "08";
+            }
+            else if (splitted[indexOfMonth].Equals("Sep") || splitted[indexOfMonth].Equals("September") || splitted[indexOfMonth].Equals("SEPTEMBER"))
+            {
+                convertedDate += "09";
+            }
+            else if (splitted[indexOfMonth].Equals("Oct") || splitted[indexOfMonth].Equals("October") || splitted[indexOfMonth].Equals("OCTOBER"))
+            {
+                convertedDate += "10";
+            }
+            else if (splitted[indexOfMonth].Equals("Nov") || splitted[indexOfMonth].Equals("November") || splitted[indexOfMonth].Equals("NOVEMBER"))
+            {
+                convertedDate += "11";
+            }
+            else if (splitted[indexOfMonth].Equals("Dec") || splitted[indexOfMonth].Equals("December") || splitted[indexOfMonth].Equals("DECEMBER"))
+            {
+                convertedDate += "12";
+            }
+            if (!includesYear)  // for month 05-14
+            {
+                if (indexOfMonth == 0)
+                {
+                    convertedDate += "-" + splitted[1];
+                }
+                else
+                {
+                    convertedDate += "-" + splitted[0];
+                }
+            }
+            return convertedDate;
         }
 
         public void addNumberTerm(string DOCNO, string current, int index)
@@ -115,11 +192,78 @@ namespace InfoRetrieval
             }
         }
 
+        public string convertNumberToTerm(string matchValue, string current, string DOCNO, double number, int matchIndex)
+        {
+            if (matchValue.Contains("Thousand") || matchValue.Contains("thousand"))
+            {
+                current = numberAfterParse(matchValue, 9, "K", 1);
+                addNumberTerm(DOCNO, current, matchIndex);
+                return current;
+            }
+            else if (matchValue.Contains("Million") || matchValue.Contains("million"))
+            {
+                current = numberAfterParse(matchValue, 8, "M", 1);
+                addNumberTerm(DOCNO, current, matchIndex);
+                return current;
+            }
+            else if (matchValue.Contains("Billion") || matchValue.Contains("billion"))
+            {
+                current = numberAfterParse(matchValue, 8, "B", 1);
+                addNumberTerm(DOCNO, current, matchIndex);
+                return current;
+            }
+            else if (matchValue.Contains("Trillion") || matchValue.Contains("trillion"))
+            {
+                current = numberAfterParse(matchValue, 9, "B", 1000);
+                addNumberTerm(DOCNO, current, matchIndex);
+                return current;
+            }
+            else
+            {
+                number = FractionToDouble(matchValue.Replace(",", ""));
+                if (number >= 1000 && number < 1000000)
+                {
+                    addNumberTerm(DOCNO, (number / 1000).ToString() + "K", matchIndex);
+                    return (number / 1000).ToString() + "K";
+                }
+                else if (number >= 1000000 && number < 1000000000)
+                {
+                    addNumberTerm(DOCNO, (number / 1000000).ToString() + "M", matchIndex);
+                    return (number / 1000000).ToString() + "M";
+                }
+                else if (number >= 1000000000)
+                {
+                    addNumberTerm(DOCNO, (number / 1000000000).ToString() + "B", matchIndex);
+                    return (number / 1000000000).ToString() + "B";
+                }
+                else //number under 1000
+                {
+                    addNumberTerm(DOCNO, number.ToString(), matchIndex);
+                    return number.ToString();
+                }
+            }
+        }
+
+        public static bool IsNumeric(string str)
+        {
+            try
+            {
+                str = str.Trim();
+                int foo = int.Parse(str);
+                return (true);
+            }
+            catch (FormatException)
+            {
+                return (false);
+            }
+        }
+
         public void parseDocuments(masterFile file)
         {
             Stemmer stemmer = new Stemmer();
-            double number;
-            string current;
+            double number = 0;
+            string current = "";
+            string[] splittedRange;
             foreach (Document document in file.m_documents.Values)
             {
                 foreach (Regex regex in m_rules.rulesList)
@@ -130,60 +274,21 @@ namespace InfoRetrieval
                         {
                             if (regex == m_rules.rulesList[0])        //numbersCase
                             {
-                                if (match.Value.Contains("Thousand") || match.Value.Contains("thousand"))
-                                {
-                                    current = numberAfterParse(match, 9, "K", 1);
-                                    addNumberTerm(document.m_DOCNO, current, match.Index);
-                                }
-                                else if (match.Value.Contains("Million") || match.Value.Contains("million"))
-                                {
-                                    current = numberAfterParse(match, 8, "M", 1);
-                                    addNumberTerm(document.m_DOCNO, current, match.Index);
-                                }
-                                else if (match.Value.Contains("Billion") || match.Value.Contains("billion"))
-                                {
-                                    current = numberAfterParse(match, 8, "B", 1);
-                                    addNumberTerm(document.m_DOCNO, current, match.Index);
-                                }
-                                else if (match.Value.Contains("Trillion") || match.Value.Contains("trillion"))
-                                {
-                                    current = numberAfterParse(match, 9, "B", 1000);
-                                    addNumberTerm(document.m_DOCNO, current, match.Index);
-                                }
-                                else
-                                {
-                                    number = FractionToDouble(match.Value.Replace(",", ""));
-                                    if (number >= 1000 && number < 1000000)
-                                    {
-                                        addNumberTerm(document.m_DOCNO, (number / 1000).ToString() + "K", match.Index);
-                                    }
-                                    else if (number >= 1000000 && number < 1000000000)
-                                    {
-                                        addNumberTerm(document.m_DOCNO, (number / 1000000).ToString() + "M", match.Index);
-                                    }
-                                    else if (number >= 1000000000)
-                                    {
-                                        addNumberTerm(document.m_DOCNO, (number / 1000000000).ToString() + "B", match.Index);
-                                    }
-                                    else //number under 1000
-                                    {
-                                        addNumberTerm(document.m_DOCNO, number.ToString(), match.Index);
-                                    }
-                                }
+                                convertNumberToTerm(match.Value, current, document.m_DOCNO, number, match.Index);
                             }
                             else if (regex == m_rules.rulesList[1])  //percentsCase
                             {
                                 if (match.Value.Contains("Percents") || match.Value.Contains("percents"))
                                 {
-                                    current = numberAfterParse(match, 9, "%", 1);
+                                    current = numberAfterParse(match.Value, 9, "%", 1);
                                 }
                                 else if (match.Value.Contains("Percent") || match.Value.Contains("percent"))
                                 {
-                                    current = numberAfterParse(match, 8, "%", 1);
+                                    current = numberAfterParse(match.Value, 8, "%", 1);
                                 }
                                 else if (match.Value.Contains("Percentage") || match.Value.Contains("percentage"))
                                 {
-                                    current = numberAfterParse(match, 11, "%", 1);
+                                    current = numberAfterParse(match.Value, 11, "%", 1);
                                 }
                                 else //if (match.Value.Contains("%"))
                                 {
@@ -198,23 +303,23 @@ namespace InfoRetrieval
                                     current = match.Value.Substring(0, match.Value.Length - 8);
                                     if (match.Value.Contains("m"))
                                     {
-                                        current = numberAfterParse(match, 1, " M Dollars", 1);  // if the m is close to number
+                                        current = numberAfterParse(match.Value, 1, " M Dollars", 1);  // if the m is close to number
                                     }
                                     else if (match.Value.Contains("million U.S."))
                                     {
-                                        current = numberAfterParse(match, 13, " M Dollars", 1);
+                                        current = numberAfterParse(match.Value, 13, " M Dollars", 1);
                                     }
                                     else if (match.Value.Contains("bn"))
                                     {
-                                        current = numberAfterParse(match, 2, " M Dollars", 1000); // if the m is close to number
+                                        current = numberAfterParse(match.Value, 2, " M Dollars", 1000); // if the m is close to number
                                     }
                                     else if (match.Value.Contains("billion U.S."))
                                     {
-                                        current = numberAfterParse(match, 13, " M Dollars", 1000);
+                                        current = numberAfterParse(match.Value, 13, " M Dollars", 1000);
                                     }
                                     else if (match.Value.Contains("trillion U.S."))
                                     {
-                                        current = numberAfterParse(match, 14, " M Dollars", 1000000);
+                                        current = numberAfterParse(match.Value, 14, " M Dollars", 1000000);
                                     }
                                     addNumberTerm(document.m_DOCNO, current, match.Index);
                                 }
@@ -226,17 +331,17 @@ namespace InfoRetrieval
                                     current = match.Value.Substring(1);
                                     if (match.Value.Contains("Million") || match.Value.Contains("million"))
                                     {
-                                        current = numberAfterParse(match, 8, " M Dollars", 1);
+                                        current = numberAfterParse(match.Value, 8, " M Dollars", 1);
                                         addNumberTerm(document.m_DOCNO, current, match.Index);
                                     }
                                     else if (match.Value.Contains("Billion") || match.Value.Contains("billion"))
                                     {
-                                        current = numberAfterParse(match, 8, " M Dollars", 1000);
+                                        current = numberAfterParse(match.Value, 8, " M Dollars", 1000);
                                         addNumberTerm(document.m_DOCNO, current, match.Index);
                                     }
                                     else if (match.Value.Contains("Trillion") || match.Value.Contains("trillion"))
                                     {
-                                        current = numberAfterParse(match, 9, " M Dollars", 1000000);
+                                        current = numberAfterParse(match.Value, 9, " M Dollars", 1000000);
                                         addNumberTerm(document.m_DOCNO, current, match.Index);
                                     }
                                     else
@@ -253,33 +358,89 @@ namespace InfoRetrieval
                                     }
                                 }
                             }
-                            else if (regex == m_rules.rulesList[4])   //datesCase1
+                            else if (regex == m_rules.rulesList[4] || regex == m_rules.rulesList[5])   //datesCase1 && datesCase2
                             {
-
-                            }
-                            else if (regex == m_rules.rulesList[5])   //datesCase2
-                            {
-
+                                if (regex == m_rules.rulesList[4])
+                                {
+                                    if (match.Value.Split(' ')[0].Length == 4) // checks whether it is year
+                                    {
+                                        current = convertDate(match, 1, true);
+                                    }
+                                    else
+                                    {
+                                        current = convertDate(match, 1, false);
+                                    }
+                                }
+                                else
+                                {
+                                    if (match.Value.Split(' ')[0].Length == 4) // checks whether it is year
+                                    {
+                                        current = convertDate(match, 0, true);
+                                    }
+                                    else
+                                    {
+                                        current = convertDate(match, 0, false);
+                                    }
+                                }
+                                addNumberTerm(document.m_DOCNO, current, match.Index);
                             }
                             else if (regex == m_rules.rulesList[6])   //rangesCase1
                             {
+                                //addNumberTerm(document.m_DOCNO, match.Value, match.Index); // to save 4000-8000
+                                splittedRange = match.Value.Split('-');
+                                //addNumberTerm(document.m_DOCNO, splittedRange[0], match.Index); //to save 4000
+                                //addNumberTerm(document.m_DOCNO, splittedRange[1], match.Index); //to save 8000
+                                current = convertNumberToTerm(match.Value, splittedRange[0], document.m_DOCNO, number, match.Index); //4K
+                                current += "-";
+                                current += convertNumberToTerm(match.Value, splittedRange[1], document.m_DOCNO, number, match.Index); //8K
+                                convertNumberToTerm(match.Value, current, document.m_DOCNO, number, match.Index); //4k-8k
 
                             }
-                            else if (regex == m_rules.rulesList[7])   //rangesCase2
+                            else if (regex == m_rules.rulesList[7])   //rangesCase2  word1-word2 or word1-word2-word3
                             {
-
+                                addNumberTerm(document.m_DOCNO, match.Value, match.Index); //word1-word2 or word1-word2-word3
+                                splittedRange = match.Value.Split('-');
+                                addNumberTerm(document.m_DOCNO, splittedRange[0], match.Index); //word1
+                                addNumberTerm(document.m_DOCNO, splittedRange[1], match.Index); //word2
+                                if (splittedRange.Length == 3)
+                                {
+                                    addNumberTerm(document.m_DOCNO, splittedRange[2], match.Index); //word3
+                                }
                             }
                             else if (regex == m_rules.rulesList[8])  //rangesCase3
                             {
+                                //addNumberTerm(document.m_DOCNO, current, match.Index); //4000-word or word-4000
+                                splittedRange = match.Value.Split('-');
+                                if (IsNumeric(splittedRange[0])) ////4000-word
+                                {
+                                    addNumberTerm(document.m_DOCNO, splittedRange[1], match.Index); //word
+                                    current = convertNumberToTerm(match.Value, splittedRange[0], document.m_DOCNO, number, match.Index); //4K
+                                    addNumberTerm(document.m_DOCNO, current + "-" + splittedRange[1], match.Index); //4000-word
 
+                                }
+                                else  //word-4000
+                                {
+                                    addNumberTerm(document.m_DOCNO, splittedRange[0], match.Index); //word
+                                    current = convertNumberToTerm(match.Value, splittedRange[1], document.m_DOCNO, number, match.Index); //4K
+                                    addNumberTerm(document.m_DOCNO, splittedRange[0] + "-" + current, match.Index); //word-4000
+                                }
                             }
                             else if (regex == m_rules.rulesList[9])  //rangesCase4
                             {
-
+                                addNumberTerm(document.m_DOCNO, match.Value, match.Index); //Between 4000 and 8000
+                                // check if we need to save Between 4k and 8k
+                                splittedRange = match.Value.Split(' ');
+                                current = convertNumberToTerm(match.Value, splittedRange[1], document.m_DOCNO, number, match.Index); //4K -number1
+                                current += "-";
+                                current += convertNumberToTerm(match.Value, splittedRange[3], document.m_DOCNO, number, match.Index); //8K -number2
+                                convertNumberToTerm(match.Value, current, document.m_DOCNO, number, match.Index); //4k-8k
                             }
                             else if (regex == m_rules.rulesList[10])  //namesCase
                             {
-
+                                addNumberTerm(document.m_DOCNO, match.Value, match.Index); //FirstName LastName
+                                splittedRange = match.Value.Split(' ');
+                                addNumberTerm(document.m_DOCNO, splittedRange[0], match.Index); //FirstName 
+                                addNumberTerm(document.m_DOCNO, splittedRange[1], match.Index); //LastName
                             }
                             else if (regex == m_rules.rulesList[11])  //measureLength
                             {
@@ -295,7 +456,7 @@ namespace InfoRetrieval
                             }
                             else if (regex == m_rules.rulesList[14])  //measureElectric
                             {
-
+                                addNumberTerm(document.m_DOCNO, match.Value, match.Index); 
                             }
                         }
                     }
@@ -305,3 +466,45 @@ namespace InfoRetrieval
     }
 
 }
+/* numbers case 1
+if (match.Value.Contains("Thousand") || match.Value.Contains("thousand"))
+{
+    current = numberAfterParse(match, 9, "K", 1);
+    addNumberTerm(document.m_DOCNO, current, match.Index);
+}
+else if (match.Value.Contains("Million") || match.Value.Contains("million"))
+{
+    current = numberAfterParse(match, 8, "M", 1);
+    addNumberTerm(document.m_DOCNO, current, match.Index);
+}
+else if (match.Value.Contains("Billion") || match.Value.Contains("billion"))
+{
+    current = numberAfterParse(match, 8, "B", 1);
+    addNumberTerm(document.m_DOCNO, current, match.Index);
+}
+else if (match.Value.Contains("Trillion") || match.Value.Contains("trillion"))
+{
+    current = numberAfterParse(match, 9, "B", 1000);
+    addNumberTerm(document.m_DOCNO, current, match.Index);
+}
+else
+{
+    number = FractionToDouble(match.Value.Replace(",", ""));
+    if (number >= 1000 && number < 1000000)
+    {
+        addNumberTerm(document.m_DOCNO, (number / 1000).ToString() + "K", match.Index);
+    }
+    else if (number >= 1000000 && number < 1000000000)
+    {
+        addNumberTerm(document.m_DOCNO, (number / 1000000).ToString() + "M", match.Index);
+    }
+    else if (number >= 1000000000)
+    {
+        addNumberTerm(document.m_DOCNO, (number / 1000000000).ToString() + "B", match.Index);
+    }
+    else //number under 1000
+    {
+        addNumberTerm(document.m_DOCNO, number.ToString(), match.Index);
+    }
+}
+*/
