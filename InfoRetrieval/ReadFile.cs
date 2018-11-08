@@ -117,13 +117,21 @@ namespace InfoRetrieval
             return result[0];
         }
 
-        /*
+
+
+
         static void Main(string[] args)
         {
             ReadFile r = new ReadFile(@"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder");
             r.mainRead();
+            //string file = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder";
+            //int pos = file.LastIndexOf("\\") + 1;
+            //string currFileName = file.Substring(pos, file.Length - pos);
+            //masterFile masterFile = new masterFile(currFileName, file);
+            Parse parse = new Parse(true);
+            parse.parseDocuments(r.m_files["FB396001"]);
             Console.ReadLine();
         }
-        */
+        
     }
 }

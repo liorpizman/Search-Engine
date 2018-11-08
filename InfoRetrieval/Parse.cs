@@ -34,6 +34,8 @@ namespace InfoRetrieval
                 while (line != null)
                 {
                     line = sr.ReadLine();
+                    if (line.Contains("\n"))
+                        line = line.Replace("\n", "");
                     m_stopWords.Add(line);
                 }
                 sr.Close();
@@ -73,6 +75,8 @@ namespace InfoRetrieval
                         return a + (double)b / c;
                 }
             }
+            string f = fraction;                                                                        // for test
+            Console.WriteLine(fraction);                                                                // for test
             throw new FormatException("Parse.FractionToDouble exception");
         }
 
@@ -194,54 +198,65 @@ namespace InfoRetrieval
 
         public string convertNumberToTerm(string matchValue, string current, string DOCNO, double number, int matchIndex)
         {
-            if (matchValue.Contains("Thousand") || matchValue.Contains("thousand"))
+            matchValue = matchValue.ToLower();
+            if (matchValue.Contains("Thousand") || matchValue.Contains("thousand"))        // can remove upper case First Case
             {
                 current = numberAfterParse(matchValue, 9, "K", 1);
                 addNumberTerm(DOCNO, current, matchIndex);
                 return current;
-            }
-            else if (matchValue.Contains("Million") || matchValue.Contains("million"))
+            } 
+            else if (matchValue.Contains("Million") || matchValue.Contains("million"))      // can remove upper case First Case
             {
                 current = numberAfterParse(matchValue, 8, "M", 1);
                 addNumberTerm(DOCNO, current, matchIndex);
                 return current;
             }
-            else if (matchValue.Contains("Billion") || matchValue.Contains("billion"))
+            else if (matchValue.Contains("Billion") || matchValue.Contains("billion"))       // can remove upper case First Case
             {
                 current = numberAfterParse(matchValue, 8, "B", 1);
                 addNumberTerm(DOCNO, current, matchIndex);
                 return current;
             }
-            else if (matchValue.Contains("Trillion") || matchValue.Contains("trillion"))
+            else if (matchValue.Contains("Trillion") || matchValue.Contains("trillion"))       // can remove upper case First Case
             {
                 current = numberAfterParse(matchValue, 9, "B", 1000);
                 addNumberTerm(DOCNO, current, matchIndex);
                 return current;
             }
-            else
+            number = FractionToDouble(matchValue.Replace(",", ""));
+            if (number >= 1000 && number < 1000000)
             {
-                number = FractionToDouble(matchValue.Replace(",", ""));
-                if (number >= 1000 && number < 1000000)
-                {
-                    addNumberTerm(DOCNO, (number / 1000).ToString() + "K", matchIndex);
-                    return (number / 1000).ToString() + "K";
-                }
-                else if (number >= 1000000 && number < 1000000000)
-                {
-                    addNumberTerm(DOCNO, (number / 1000000).ToString() + "M", matchIndex);
-                    return (number / 1000000).ToString() + "M";
-                }
-                else if (number >= 1000000000)
-                {
-                    addNumberTerm(DOCNO, (number / 1000000000).ToString() + "B", matchIndex);
-                    return (number / 1000000000).ToString() + "B";
-                }
-                else //number under 1000
-                {
-                    addNumberTerm(DOCNO, number.ToString(), matchIndex);
-                    return number.ToString();
-                }
+                addNumberTerm(DOCNO, (number / 1000).ToString() + "K", matchIndex);
+                return (number / 1000).ToString() + "K";
             }
+            else if (number >= 1000000 && number < 1000000000)
+            {
+                addNumberTerm(DOCNO, (number / 1000000).ToString() + "M", matchIndex);
+                return (number / 1000000).ToString() + "M";
+            }
+            else if (number >= 1000000000)
+            {
+                addNumberTerm(DOCNO, (number / 1000000000).ToString() + "B", matchIndex);
+                return (number / 1000000000).ToString() + "B";
+            }
+            else //number under 1000
+            {
+                addNumberTerm(DOCNO, number.ToString(), matchIndex);
+                return number.ToString();
+            }
+        }
+
+        public string convertNumberForRange(string currNumber)
+        {
+            double number = FractionToDouble(currNumber.Replace(",", ""));
+            if (number >= 1000 && number < 1000000)
+                return (number / 1000).ToString() + "K";
+            else if (number >= 1000000 && number < 1000000000)
+                return (number / 1000000).ToString() + "M";
+            else if (number >= 1000000000)
+                return (number / 1000000000).ToString() + "B";
+            else //number under 1000
+                return number.ToString();
         }
 
         public static bool IsNumeric(string str)
@@ -250,6 +265,20 @@ namespace InfoRetrieval
             {
                 str = str.Trim();
                 int foo = int.Parse(str);
+                return (true);
+            }
+            catch (FormatException)
+            {
+                return (false);
+            }
+        }
+
+        public static bool isDouble(string str)
+        {
+            try
+            {
+                str = str.Trim();
+                Convert.ToDouble(str);
                 return (true);
             }
             catch (FormatException)
@@ -272,6 +301,14 @@ namespace InfoRetrieval
                     {
                         if (!m_stopWords.Contains(match.Value))
                         {
+                            // --------------------------------------------- > For Debug Purpose
+
+                            if (match.Value.Contains("$100 MILLION")) //15 MILLION--According
+                            {
+                                Console.WriteLine(match.Value);
+                            }
+
+                            //----------------------------------------------- > For Debug Purpose
                             if (regex == m_rules.rulesList[0])        //numbersCase
                             {
                                 convertNumberToTerm(match.Value, current, document.m_DOCNO, number, match.Index);
@@ -329,19 +366,20 @@ namespace InfoRetrieval
                                 if (match.Value.Contains("$"))
                                 {
                                     current = match.Value.Substring(1);
-                                    if (match.Value.Contains("Million") || match.Value.Contains("million"))
+                                    current = current.ToLower();
+                                    if (current.Contains("Million") || current.Contains("million"))             // can remove upper case First Case
                                     {
-                                        current = numberAfterParse(match.Value, 8, " M Dollars", 1);
+                                        current = numberAfterParse(current, 8, " M Dollars", 1); // match.Value ---> current
                                         addNumberTerm(document.m_DOCNO, current, match.Index);
                                     }
-                                    else if (match.Value.Contains("Billion") || match.Value.Contains("billion"))
+                                    else if (current.Contains("Billion") || current.Contains("billion"))        // can remove upper case First Case
                                     {
-                                        current = numberAfterParse(match.Value, 8, " M Dollars", 1000);
+                                        current = numberAfterParse(current, 8, " M Dollars", 1000); // match.Value ---> current
                                         addNumberTerm(document.m_DOCNO, current, match.Index);
                                     }
-                                    else if (match.Value.Contains("Trillion") || match.Value.Contains("trillion"))
+                                    else if (current.Contains("Trillion") || current.Contains("trillion"))      // can remove upper case First Case
                                     {
-                                        current = numberAfterParse(match.Value, 9, " M Dollars", 1000000);
+                                        current = numberAfterParse(current, 9, " M Dollars", 1000000); // match.Value ---> current
                                         addNumberTerm(document.m_DOCNO, current, match.Index);
                                     }
                                     else
@@ -390,10 +428,11 @@ namespace InfoRetrieval
                                 splittedRange = match.Value.Split('-');
                                 //addNumberTerm(document.m_DOCNO, splittedRange[0], match.Index); //to save 4000
                                 //addNumberTerm(document.m_DOCNO, splittedRange[1], match.Index); //to save 8000
-                                current = convertNumberToTerm(match.Value, splittedRange[0], document.m_DOCNO, number, match.Index); //4K
+
+                                current = convertNumberForRange(splittedRange[0]); //4K //current = convertNumberToTerm(splittedRange[0], splittedRange[0], document.m_DOCNO, number, match.Index, false); //4K
                                 current += "-";
-                                current += convertNumberToTerm(match.Value, splittedRange[1], document.m_DOCNO, number, match.Index); //8K
-                                convertNumberToTerm(match.Value, current, document.m_DOCNO, number, match.Index); //4k-8k
+                                current += convertNumberForRange(splittedRange[1]); //8k //current += convertNumberToTerm(splittedRange[1], splittedRange[1], document.m_DOCNO, number, match.Index, false); //8K
+                                addNumberTerm(document.m_DOCNO, current, match.Index); ////4k-8k 
 
                             }
                             else if (regex == m_rules.rulesList[7])   //rangesCase2  word1-word2 or word1-word2-word3
@@ -410,18 +449,24 @@ namespace InfoRetrieval
                             else if (regex == m_rules.rulesList[8])  //rangesCase3
                             {
                                 //addNumberTerm(document.m_DOCNO, current, match.Index); //4000-word or word-4000
-                                splittedRange = match.Value.Split('-');
-                                if (IsNumeric(splittedRange[0])) ////4000-word
+                                if (match.Value[0] == ' ')
+                                    splittedRange= match.Value.Substring(1).Split('-'); /// correct for (space)86.3-percent
+                                else
+                                    splittedRange = match.Value.Split('-');
+                                splittedRange[0] = splittedRange[0].Replace(",", "");
+                                splittedRange[1] = splittedRange[1].Replace(",", "");
+
+                                if (IsNumeric(splittedRange[0]) || isDouble(splittedRange[0])) ////4000-word
                                 {
                                     addNumberTerm(document.m_DOCNO, splittedRange[1], match.Index); //word
-                                    current = convertNumberToTerm(match.Value, splittedRange[0], document.m_DOCNO, number, match.Index); //4K
+                                    current = convertNumberForRange(splittedRange[0]);  //4k current = convertNumberToTerm(match.Value, splittedRange[0], document.m_DOCNO, number, match.Index, false); //4K
                                     addNumberTerm(document.m_DOCNO, current + "-" + splittedRange[1], match.Index); //4000-word
 
                                 }
                                 else  //word-4000
                                 {
                                     addNumberTerm(document.m_DOCNO, splittedRange[0], match.Index); //word
-                                    current = convertNumberToTerm(match.Value, splittedRange[1], document.m_DOCNO, number, match.Index); //4K
+                                    current = convertNumberForRange(splittedRange[1]);  //4k current = convertNumberToTerm(match.Value, splittedRange[1], document.m_DOCNO, number, match.Index, false); //4K
                                     addNumberTerm(document.m_DOCNO, splittedRange[0] + "-" + current, match.Index); //word-4000
                                 }
                             }
@@ -430,10 +475,11 @@ namespace InfoRetrieval
                                 addNumberTerm(document.m_DOCNO, match.Value, match.Index); //Between 4000 and 8000
                                 // check if we need to save Between 4k and 8k
                                 splittedRange = match.Value.Split(' ');
-                                current = convertNumberToTerm(match.Value, splittedRange[1], document.m_DOCNO, number, match.Index); //4K -number1
+                                current = convertNumberForRange(splittedRange[1]); //4K -number1 //current = convertNumberToTerm(match.Value, splittedRange[1], document.m_DOCNO, number, match.Index, false); //4K -number1
                                 current += "-";
-                                current += convertNumberToTerm(match.Value, splittedRange[3], document.m_DOCNO, number, match.Index); //8K -number2
-                                convertNumberToTerm(match.Value, current, document.m_DOCNO, number, match.Index); //4k-8k
+                                current += convertNumberForRange(splittedRange[3]); //8K -number2 //current += convertNumberToTerm(match.Value, splittedRange[3], document.m_DOCNO, number, match.Index, false); //8K -number2
+                                //convertNumberToTerm(match.Value, current, document.m_DOCNO, number, match.Index, false); //4k-8k
+                                addNumberTerm(document.m_DOCNO, current, match.Index); ////4k-8k 
                             }
                             else if (regex == m_rules.rulesList[10])  //namesCase
                             {
@@ -456,7 +502,11 @@ namespace InfoRetrieval
                             }
                             else if (regex == m_rules.rulesList[14])  //measureElectric
                             {
-                                addNumberTerm(document.m_DOCNO, match.Value, match.Index); 
+                                addNumberTerm(document.m_DOCNO, match.Value, match.Index);
+                            }
+                            else if (regex == m_rules.rulesList[15])  //all words
+                            {
+                                addNumberTerm(document.m_DOCNO, match.Value, match.Index);
                             }
                         }
                     }
