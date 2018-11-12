@@ -12,30 +12,35 @@ namespace InfoRetrieval
         public Dictionary<string, masterFile> m_files;
         public string m_mainPath;
         public int m_filesAmount;
+        public bool m_doStem;
         //public string[] m_paths;
 
 
-        public ReadFile(string m_mainPath)
+        public ReadFile(string m_mainPath, bool doStem)
         {
             this.m_files = new Dictionary<string, masterFile>();
             this.m_mainPath = m_mainPath;
             this.m_filesAmount = 0;
+            this.m_doStem = doStem;
         }
 
         public void mainRead()
         {
-            string[] directories = Directory.GetDirectories(m_mainPath);
-            //Console.WriteLine("----------directories:--------------");
+            string corpusMainDIrectory = Directory.GetDirectories(m_mainPath)[0];
+            string[] directories = Directory.GetDirectories(corpusMainDIrectory);
+            /*
             foreach (string directory in directories)
             {
                 //Console.WriteLine(directory);
             }
+            */
             subRead(directories);
         }
 
         private void subRead(string[] directories)
         {
             //Console.WriteLine("----------files:--------------");
+            Parse parse = new Parse(m_doStem, m_mainPath);
             foreach (string directory in directories)
             {
                 string[] files = Directory.GetFiles(directory);
@@ -45,6 +50,8 @@ namespace InfoRetrieval
                     //Console.WriteLine(file);
                     m_filesAmount++;
                 }
+                //////////////////////////////////////////////////////////////////////////////here we need to save data from prev file and clear m_files
+                parse.parseFiles(m_files, m_mainPath);
             }
             // Console.WriteLine("----------totatl files : " + m_filesAmount + "--------------");
         }
@@ -122,16 +129,12 @@ namespace InfoRetrieval
 
         static void Main(string[] args)
         {
-            ReadFile r = new ReadFile(@"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder");
-            r.mainRead();
-            //string file = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder";
-            //int pos = file.LastIndexOf("\\") + 1;
-            //string currFileName = file.Substring(pos, file.Length - pos);
-            //masterFile masterFile = new masterFile(currFileName, file);
-            Parse parse = new Parse(true);
-            parse.parseDocuments(r.m_files["FB396001"]);
+            ReadFile r = new ReadFile(@"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder", true);
+            //r.mainRead();
+            Indexer indexer = new Indexer();
+            indexer.writeToStream();
             Console.ReadLine();
         }
-        
+
     }
 }

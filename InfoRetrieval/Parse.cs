@@ -15,28 +15,28 @@ namespace InfoRetrieval
         public bool m_doStemming;
         public Dictionary<string, DocumentTerms> m_allTerms;
 
-        public Parse(bool doStem)
+         
+        public Parse(bool doStem, string stopWordsPath)
         {
             m_rules = new Rules();
             m_stopWords = new HashSet<string>();
             m_doStemming = doStem;
             m_allTerms = new Dictionary<string, DocumentTerms>();
+            addStopWords(stopWordsPath);
         }
 
-        public void addStopWords()
+        public void addStopWords(string filePath)
         {
             String line;
             try
             {
-                string path = Directory.GetCurrentDirectory();
-                StreamReader sr = new StreamReader(path + "\\stop_words.txt");
+                //string path = Directory.GetCurrentDirectory();
+                StreamReader sr = new StreamReader(filePath + "\\stop_words.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
-                    line = sr.ReadLine();
-                    if (line.Contains("\n"))
-                        line = line.Replace("\n", "");
                     m_stopWords.Add(line);
+                    line = sr.ReadLine();
                 }
                 sr.Close();
             }
@@ -47,9 +47,8 @@ namespace InfoRetrieval
         }
 
 
-        public void parseFiles(Dictionary<string, masterFile> m_files)
+        public void parseFiles(Dictionary<string, masterFile> m_files, string stopWordsPath)
         {
-            addStopWords();
             foreach (masterFile file in m_files.Values)
             {
                 parseDocuments(file);
@@ -204,7 +203,7 @@ namespace InfoRetrieval
                 current = numberAfterParse(matchValue, 9, "K", 1);
                 addNumberTerm(DOCNO, current, matchIndex);
                 return current;
-            } 
+            }
             else if (matchValue.Contains("Million") || matchValue.Contains("million"))      // can remove upper case First Case
             {
                 current = numberAfterParse(matchValue, 8, "M", 1);
@@ -302,12 +301,16 @@ namespace InfoRetrieval
                         if (!m_stopWords.Contains(match.Value))
                         {
                             // --------------------------------------------- > For Debug Purpose
-
+                            /*
+                            if (match.Value[0] == ' ')
+                            {
+                                Console.WriteLine("_" + match.Value + "_");
+                            }
                             if (match.Value.Contains("$100 MILLION")) //15 MILLION--According
                             {
                                 Console.WriteLine(match.Value);
                             }
-
+                            */
                             //----------------------------------------------- > For Debug Purpose
                             if (regex == m_rules.rulesList[0])        //numbersCase
                             {
@@ -450,7 +453,7 @@ namespace InfoRetrieval
                             {
                                 //addNumberTerm(document.m_DOCNO, current, match.Index); //4000-word or word-4000
                                 if (match.Value[0] == ' ')
-                                    splittedRange= match.Value.Substring(1).Split('-'); /// correct for (space)86.3-percent
+                                    splittedRange = match.Value.Substring(1).Split('-'); /// correct for (space)86.3-percent
                                 else
                                     splittedRange = match.Value.Split('-');
                                 splittedRange[0] = splittedRange[0].Replace(",", "");
@@ -506,7 +509,12 @@ namespace InfoRetrieval
                             }
                             else if (regex == m_rules.rulesList[15])  //all words
                             {
-                                addNumberTerm(document.m_DOCNO, match.Value, match.Index);
+                                current = match.Value;
+                                if (m_doStemming)
+                                {
+                                    current = stemmer.stemTerm(current.ToLower());
+                                }
+                                addNumberTerm(document.m_DOCNO, current, match.Index);
                             }
                         }
                     }

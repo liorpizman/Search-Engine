@@ -51,9 +51,11 @@ namespace InfoRetrieval
             Regex rangesCase1 = new Regex(@"((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)-((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)");
             //((\d{1,3},(\d{3},)*\d{3}(\.\d+)?)(\s\d+\/\d+)?-(\d{1,3},(\d{3},)*\d{3}(\.\d+)?)(\s\d+\/\d+)?)|((\d+)(\.\d+)?(\s\d+\/\d+)?-(\d+)(\.\d+)?(\s\d+\/\d+)?)$");
             //include all ranges in a format: word-word or word-word-word
-            Regex rangesCase2 = new Regex(@"(\s)([A-Za-z]+-[A-Za-z]+-[A-Za-z]+)(\s)|(\s)([A-Za-z]+-[A-Za-z]+)(\s)");
+            //Regex rangesCase2 = new Regex(@"(\s)([A-Za-z]+-[A-Za-z]+-[A-Za-z]+)(\s)|(\s)([A-Za-z]+-[A-Za-z]+)(\s)");
+            Regex rangesCase2 = new Regex(@"([A-Za-z]+-[A-Za-z]+-[A-Za-z]+)|([A-Za-z]+-[A-Za-z]+)");
             //include all ranges in a format: number-word or word-number
-            Regex rangesCase3 = new Regex(@"(\s)((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)-[A-Za-z]+?(\s)|(\s)[A-Za-z]+?-((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)(\s)");
+            //Regex rangesCase3 = new Regex(@"(\s)((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)-[A-Za-z]+?(\s)|(\s)[A-Za-z]+?-((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)(\s)");
+            Regex rangesCase3 = new Regex(@"((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)-[A-Za-z]+?|[A-Za-z]+?-((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)");
             //include all ranges in a format: Between number and number
             Regex rangesCase4 = new Regex(@"(?i:Between) +((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?) +(?i:and) +((\d+|(\d{1,3}(,\d{3})*))(\.\d+)?(\s\d+\/\d+)?)");
 
