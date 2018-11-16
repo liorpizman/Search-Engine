@@ -14,9 +14,8 @@ namespace InfoRetrieval
         public HashSet<string> m_stopWords;
         public bool m_doStemming;
         public Dictionary<string, DocumentTerms> m_allTerms;
-        Dictionary<string, int> m_tmpDictionary;
 
-
+         
         public Parse(bool doStem, string stopWordsPath)
         {
             m_rules = new Rules();
@@ -47,20 +46,15 @@ namespace InfoRetrieval
             }
         }
 
-        /*
+
         public void parseFiles(Dictionary<string, masterFile> m_files, string stopWordsPath)
         {
-            foreach (masterFile file in m_files.Values)  // we need to send a specific masterFile
+            foreach (masterFile file in m_files.Values)
             {
                 parseDocuments(file);
             }
         }
-        */
 
-        public void parseFiles(masterFile file, string stopWordsPath)
-        {
-            parseDocuments(file);
-        }
 
         public double FractionToDouble(string fraction)
         {
@@ -178,18 +172,15 @@ namespace InfoRetrieval
             return convertedDate;
         }
 
-        public void addNumberTerm(string DOCNO, string current, int index) //Document document
+        public void addNumberTerm(string DOCNO, string current, int index)
         {
             if (m_allTerms.ContainsKey(current))
             {
-                m_allTerms[current].m_tfc++;
+                m_allTerms[current].m_totalAmount++;
                 if (m_allTerms[current].m_Terms.ContainsKey(DOCNO))
                 {
-                    /*
-                    m_allTerms[current].m_Terms[DOCNO].m_positions.Append(index);
+                    m_allTerms[current].m_Terms[DOCNO].m_positions.Add(index);
                     m_allTerms[current].m_Terms[DOCNO].m_amount++;
-                    */
-                    m_allTerms[current].m_Terms[DOCNO].addNewIndex(index.ToString());
                 }
                 else
                 {
@@ -198,45 +189,34 @@ namespace InfoRetrieval
             }
             else
             {
-                //DocumentTerms documentTerms = new DocumentTerms(DOCNO);
-                DocumentTerms documentTerms = new DocumentTerms(current);
+                DocumentTerms documentTerms = new DocumentTerms(DOCNO);
                 documentTerms.addToDocumentDictionary(new Term(current, DOCNO));
                 m_allTerms.Add(current, documentTerms);
             }
-            ///////////////////////////////////////////////////////////
-            if (m_tmpDictionary.ContainsKey(current))
-            {
-                m_tmpDictionary[current]++;
-            }
-            else
-            {
-                m_tmpDictionary.Add(current, 1);
-            }
-            //////////////////////////////////////////////////////
         }
 
         public string convertNumberToTerm(string matchValue, string current, string DOCNO, double number, int matchIndex)
         {
             matchValue = matchValue.ToLower();
-            if (matchValue.Contains("thousand"))     //matchValue.Contains("Thousand") ||    // can remove upper case First Case
+            if (matchValue.Contains("Thousand") || matchValue.Contains("thousand"))        // can remove upper case First Case
             {
                 current = numberAfterParse(matchValue, 9, "K", 1);
                 addNumberTerm(DOCNO, current, matchIndex);
                 return current;
             }
-            else if (matchValue.Contains("million"))   //matchValue.Contains("Million") ||   // can remove upper case First Case
+            else if (matchValue.Contains("Million") || matchValue.Contains("million"))      // can remove upper case First Case
             {
                 current = numberAfterParse(matchValue, 8, "M", 1);
                 addNumberTerm(DOCNO, current, matchIndex);
                 return current;
             }
-            else if (matchValue.Contains("billion"))   //matchValue.Contains("Billion") ||    // can remove upper case First Case
+            else if (matchValue.Contains("Billion") || matchValue.Contains("billion"))       // can remove upper case First Case
             {
                 current = numberAfterParse(matchValue, 8, "B", 1);
                 addNumberTerm(DOCNO, current, matchIndex);
                 return current;
             }
-            else if (matchValue.Contains("trillion"))   //matchValue.Contains("Trillion") ||    // can remove upper case First Case
+            else if (matchValue.Contains("Trillion") || matchValue.Contains("trillion"))       // can remove upper case First Case
             {
                 current = numberAfterParse(matchValue, 9, "B", 1000);
                 addNumberTerm(DOCNO, current, matchIndex);
@@ -314,7 +294,6 @@ namespace InfoRetrieval
             string[] splittedRange;
             foreach (Document document in file.m_documents.Values)
             {
-                m_tmpDictionary = new Dictionary<string, int>();
                 foreach (Regex regex in m_rules.rulesList)
                 {
                     foreach (Match match in regex.Matches(document.m_TEXT))
@@ -339,16 +318,15 @@ namespace InfoRetrieval
                             }
                             else if (regex == m_rules.rulesList[1])  //percentsCase
                             {
-                                current = match.Value.ToLower();
-                                if (current.Contains("percents")) //match.Value.Contains("Percents") ||
+                                if (match.Value.Contains("Percents") || match.Value.Contains("percents"))
                                 {
                                     current = numberAfterParse(match.Value, 9, "%", 1);
                                 }
-                                else if (current.Contains("percent")) //match.Value.Contains("Percent") ||
+                                else if (match.Value.Contains("Percent") || match.Value.Contains("percent"))
                                 {
                                     current = numberAfterParse(match.Value, 8, "%", 1);
                                 }
-                                else if (current.Contains("percentage")) //match.Value.Contains("Percentage") ||
+                                else if (match.Value.Contains("Percentage") || match.Value.Contains("percentage"))
                                 {
                                     current = numberAfterParse(match.Value, 11, "%", 1);
                                 }
@@ -360,8 +338,7 @@ namespace InfoRetrieval
                             }
                             else if (regex == m_rules.rulesList[2])  //pricesCase1
                             {
-                                current = match.Value.ToLower();
-                                if (current.Contains("dollars")) //match.Value.Contains("Dollars") ||
+                                if (match.Value.Contains("Dollars") || match.Value.Contains("dollars"))
                                 {
                                     current = match.Value.Substring(0, match.Value.Length - 8);
                                     if (match.Value.Contains("m"))
@@ -393,17 +370,17 @@ namespace InfoRetrieval
                                 {
                                     current = match.Value.Substring(1);
                                     current = current.ToLower();
-                                    if (current.Contains("million")) //current.Contains("Million") ||             // can remove upper case First Case
+                                    if (current.Contains("Million") || current.Contains("million"))             // can remove upper case First Case
                                     {
                                         current = numberAfterParse(current, 8, " M Dollars", 1); // match.Value ---> current
                                         addNumberTerm(document.m_DOCNO, current, match.Index);
                                     }
-                                    else if (current.Contains("billion"))  //current.Contains("Billion") ||      // can remove upper case First Case
+                                    else if (current.Contains("Billion") || current.Contains("billion"))        // can remove upper case First Case
                                     {
                                         current = numberAfterParse(current, 8, " M Dollars", 1000); // match.Value ---> current
                                         addNumberTerm(document.m_DOCNO, current, match.Index);
                                     }
-                                    else if (current.Contains("trillion"))  //current.Contains("Trillion") ||    // can remove upper case First Case
+                                    else if (current.Contains("Trillion") || current.Contains("trillion"))      // can remove upper case First Case
                                     {
                                         current = numberAfterParse(current, 9, " M Dollars", 1000000); // match.Value ---> current
                                         addNumberTerm(document.m_DOCNO, current, match.Index);
@@ -542,7 +519,6 @@ namespace InfoRetrieval
                         }
                     }
                 }
-                document.m_termsInDictionary = m_tmpDictionary;
             }
         }
     }

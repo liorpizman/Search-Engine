@@ -14,7 +14,7 @@ namespace InfoRetrieval
         public int m_filesAmount;
         public bool m_doStem;
         //public string[] m_paths;
-
+        public Parse tmpP;                                                                                                  //// test now ?????????
 
         public ReadFile(string m_mainPath, bool doStem)
         {
@@ -22,6 +22,7 @@ namespace InfoRetrieval
             this.m_mainPath = m_mainPath;
             this.m_filesAmount = 0;
             this.m_doStem = doStem;
+            tmpP = new Parse(m_doStem, m_mainPath); ;                                                                            //// test now ?????????
         }
 
         public void mainRead()
@@ -41,28 +42,33 @@ namespace InfoRetrieval
         {
             //Console.WriteLine("----------files:--------------");
             Parse parse = new Parse(m_doStem, m_mainPath);
+            masterFile currMasterFile = null;
             foreach (string directory in directories)
             {
                 string[] files = Directory.GetFiles(directory);
                 foreach (string file in files)
                 {
-                    readFile(file);
+
+                    currMasterFile = readFile(file);
                     //Console.WriteLine(file);
                     m_filesAmount++;
                 }
                 //////////////////////////////////////////////////////////////////////////////here we need to save data from prev file and clear m_files
-                parse.parseFiles(m_files, m_mainPath);
+                parse.parseFiles(currMasterFile, m_mainPath);
             }
+            tmpP = parse;                                                                                                  //// test now ?????????
             // Console.WriteLine("----------totatl files : " + m_filesAmount + "--------------");
         }
 
-        private void readFile(string file)
+        private masterFile readFile(string file)
         {
             int pos = file.LastIndexOf("\\") + 1;
             string currFileName = file.Substring(pos, file.Length - pos);
             masterFile masterFile = new masterFile(currFileName, file);
             readDocuments(file, masterFile);
             m_files.Add(currFileName, masterFile);
+            return masterFile;
+            /// we can return masterFile and send it to parser and do not sent the whole dictionary
         }
 
         private void readDocuments(string file, masterFile masterFile)
@@ -129,11 +135,16 @@ namespace InfoRetrieval
 
         static void Main(string[] args)
         {
-            ReadFile r = new ReadFile(@"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder", true);
-            //r.mainRead();
-            Indexer indexer = new Indexer();
-            indexer.writeToStream();
-            Console.ReadLine();
+            string path = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder";
+            ReadFile r = new ReadFile(path, true);
+            r.mainRead();
+            Indexer indexer = new Indexer(true, path);
+            indexer.writeToDocumentsFile(r.m_files);
+            indexer.writeToIndexFile(r.tmpP.m_allTerms);
+            indexer.writeToPostingFile(r.tmpP.m_allTerms);
+            //Indexer indexer = new Indexer();
+            //indexer.createTxtFile(path);
+            //Console.ReadLine();
         }
 
     }
