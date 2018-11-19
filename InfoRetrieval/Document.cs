@@ -8,13 +8,13 @@ namespace InfoRetrieval
 {
     class Document
     {
-        public string m_DOCNO;
-        public string m_DATE1;
-        public string m_TI;
-        public string m_TEXT;
+        public StringBuilder m_DOCNO;
+        public StringBuilder m_DATE1;
+        public StringBuilder m_TI;
+        public StringBuilder m_TEXT;
         public Dictionary<string, int> m_termsInDictionary; // all terms (strings) in document with (int) counter of instances
 
-        public Document(string m_DOCNO, string m_DATE1, string m_TI, string m_TEXT)
+        public Document(StringBuilder m_DOCNO, StringBuilder m_DATE1, StringBuilder m_TI, StringBuilder m_TEXT)
         {
             this.m_DOCNO = m_DOCNO;
             this.m_DATE1 = m_DATE1;

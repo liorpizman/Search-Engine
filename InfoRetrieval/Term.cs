@@ -12,20 +12,20 @@ namespace InfoRetrieval
         public string m_value;
         public int m_amount;  // num of instances of m_value in current m_DOCNO
         public string m_DOCNO;
-        public StringBuilder m_positions;
+        public StringBuilder m_positions; //maybe list
 
         public Term(string m_value, string docno)
         {
             this.m_value = m_value;
-            this.m_amount = 1;     
+            this.m_amount = 1;
             this.m_positions = new StringBuilder();
             //add poisition index add in the constructor for the first step
             this.m_DOCNO = docno;
         }
 
-        public void addNewIndex(string newPos)
+        public void addNewIndex(int newPos)
         {
-            m_positions.Append(newPos);
+            m_positions.Append(newPos + " ");
             this.m_amount++;
         }
 
