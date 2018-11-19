@@ -41,7 +41,7 @@ namespace InfoRetrieval
         private void subRead(string[] directories)
         {
             //Console.WriteLine("----------files:--------------");
-            newParser2 parse = new newParser2(m_doStem, m_mainPath);
+            Parse parse = new Parse(m_doStem, m_mainPath);
             masterFile currMasterFile = null;
             foreach (string directory in directories)
             {
@@ -74,29 +74,27 @@ namespace InfoRetrieval
         private void readDocuments(string file, masterFile masterFile)
         {
             string content = File.ReadAllText(file);
+            /*
+            string content = "";
+            using (StreamReader sr = File.OpenText(file))
+            {
+                content = sr.ReadToEnd();
+            }
+            */
             int pos;
-            StringBuilder DOCNO = new StringBuilder();
-            StringBuilder DATE1 = new StringBuilder();
-            StringBuilder TI = new StringBuilder();
-            StringBuilder TEXT = new StringBuilder();
+            string allDocument;
             while (content != String.Empty)
             {
-                DOCNO.Clear();
-                DATE1.Clear();
-                TI.Clear();
-                TEXT.Clear();
-                string allDocument = GetStringInBetween("<DOC>", "</DOC>", content, false, false);
+                StringBuilder DOCNO = new StringBuilder();
+                StringBuilder DATE1 = new StringBuilder();
+                StringBuilder TI = new StringBuilder();
+                StringBuilder TEXT = new StringBuilder();
+                allDocument = GetStringInBetween("<DOC>", "</DOC>", content, false, false);
                 DOCNO.Append(GetStringInBetween("<DOCNO>", "</DOCNO>", allDocument, false, false));
-                //Console.WriteLine("DOCNO : " + DOCNO);
                 DATE1.Append(GetStringInBetween("<DATE1>", "</DATE1>", allDocument, false, false));
-                //Console.WriteLine("DATE1 : " + DATE1);
                 TI.Append(GetStringInBetween("<TI>", "</TI>", allDocument, false, false));
-                //Console.WriteLine("TI : " + TI);
                 TEXT.Append(GetStringInBetween("<TEXT>", "</TEXT>", allDocument, false, false));
-                TEXT = TEXT.Replace('{', ' ').Replace('}', ' ').Replace('(', ' ').Replace(')', ' ').Replace('[', ' ').Replace(']', ' ').Replace('!', ' ').Replace('@', ' ').Replace('#', ' ').Replace('^', ' ').Replace('&', ' ').Replace('*', ' ').Replace('+', ' ').Replace('=', ' ').Replace('_', ' ').Replace('?', ' ').Replace(':', ' ').Replace(';', ' ').Replace('~', ' ').Replace('"', ' ').Replace('`', ' ').Replace('<', ' ').Replace('>', ' ').Replace('\n', ' ').Replace("'", " ");
-                //Console.WriteLine("TEXT : " + TEXT);
-                //Console.WriteLine(content);
-                //Console.ReadLine();
+                //TEXT = TEXT.Replace('{', ' ').Replace('}', ' ').Replace('(', ' ').Replace(')', ' ').Replace('[', ' ').Replace(']', ' ').Replace('!', ' ').Replace('@', ' ').Replace('#', ' ').Replace('^', ' ').Replace('&', ' ').Replace('*', ' ').Replace('+', ' ').Replace('=', ' ').Replace('_', ' ').Replace('?', ' ').Replace(':', ' ').Replace(';', ' ').Replace('~', ' ').Replace('"', ' ').Replace('`', ' ').Replace('<', ' ').Replace('>', ' ').Replace('\n', ' ').Replace("'", " ");
                 Document document = new Document(DOCNO, DATE1, TI, TEXT);
                 masterFile.m_documents.Add(DOCNO.ToString(), document);
                 masterFile.m_docAmount++;
@@ -144,12 +142,22 @@ namespace InfoRetrieval
 
         static void Main(string[] args)
         {
+            /*
+            string s = "intelligence agencies without involving officials at higher\n\n levels:  -- According to";
+            string[] sb = s.Split(' ');
+            for (int i=0; i<sb.Length; i++)
+            {
+                Console.WriteLine(sb[i]);
+            }
+            */
+
             string path = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder";
             var watch = System.Diagnostics.Stopwatch.StartNew();
             ReadFile r = new ReadFile(path, true);
             r.mainRead();
-            //Indexer indexer = new Indexer(true, path);
-            //indexer.writeToDocumentsFile(r.m_files);
+
+            Indexer indexer = new Indexer(true, path);
+            indexer.writeToDocumentsFile(r.m_files);
             //indexer.writeToIndexFile(r.tmpP.m_allTerms);
             //indexer.writeToPostingFile(r.tmpP.m_allTerms);
             /*
@@ -161,7 +169,7 @@ namespace InfoRetrieval
             }
             */
             watch.Stop();
-            var elapesdMs = watch.ElapsedMilliseconds;
+            Console.WriteLine(watch.ElapsedMilliseconds);
             //Console.ReadLine();
             //Indexer indexer = new Indexer();
             //indexer.createTxtFile(path);

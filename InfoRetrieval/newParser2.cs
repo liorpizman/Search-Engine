@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-    class newParser2
+    class Parse
     {
         public bool m_doStemming;
         public HashSet<string> m_stopWords;
         public Dictionary<string, DocumentTerms> m_allTerms;
         public Dictionary<string, string> m_months;
 
-        public newParser2(bool m_doStemming, string stopWordsPath)
+        public Parse(bool m_doStemming, string stopWordsPath)
         {
             this.m_doStemming = m_doStemming;
             this.m_allTerms = new Dictionary<string, DocumentTerms>();
@@ -76,6 +76,36 @@ namespace InfoRetrieval
 
         public static double FractionToDouble(string fraction)// convert 3 4/5 ------------> 3.8
         {
+            /*
+            double result;
+            string[] nums;
+            string[] f;
+            //if (Convert.ToDouble(fraction))
+            //{
+            //
+           // }
+            if (fraction.Contains('/'))
+            {
+                if (fraction.Contains(' '))
+                {
+                    nums = fraction.Split(' ');
+                    result = (double)(Convert.ToInt32(nums[0]));
+                    f = nums[1].Split('/');
+                    result += ((double)(Convert.ToInt32(f[0])) / (double)(Convert.ToInt32(f[1])));
+                }
+                else
+                {
+                    f = fraction.Split('/');
+                    result = ((double)(Convert.ToInt32(f[0])) / (double)(Convert.ToInt32(f[1])));
+                }
+            }
+            else
+            {
+                result = (double)(Convert.ToInt32(fraction));
+            }
+            return result;
+            */
+
             double result;
             if (double.TryParse(fraction, out result))
                 return result;
@@ -92,8 +122,18 @@ namespace InfoRetrieval
                         return a + (double)b / c;
                 }
             }
+            if (fraction.Equals(""))
+            {
+                int a = 1;
+            }
             Console.WriteLine("error : " + fraction);
-            throw new FormatException("Parse.FractionToDouble exception"); //---------------------------// delete when we submit the project!
+            //throw new FormatException("Parse.FractionToDouble exception"); //---------------------------// delete when we submit the project!
+            if (fraction.Contains("3.5."))
+            {
+                int a = 1;
+            }
+            return 0;
+
         }
 
 
@@ -121,6 +161,8 @@ namespace InfoRetrieval
 
         public static bool IsNumeric(string str)
         {
+            return str.Replace(",", "").All(char.IsDigit);
+            /*
             try
             {
                 str = str.Replace(",", "").Trim();
@@ -131,11 +173,16 @@ namespace InfoRetrieval
             {
                 return (false);
             }
+            */
         }
+
 
 
         public static bool isDouble(string str)
         {
+            str = str.Replace(",", "").Replace(".", "");
+            return str.All(char.IsDigit) && !str.Equals("");
+            /*
             try
             {
                 str = str.Replace(",", "").Trim();
@@ -146,6 +193,7 @@ namespace InfoRetrieval
             {
                 return (false);
             }
+            */
         }
 
         public static bool isFraction(string str)
@@ -224,13 +272,15 @@ namespace InfoRetrieval
             double number = 0;
             string[] tokens;
             int countPos = -1;
+            char[] delimiterChars = { ' ', '\n', ':', '\t', '{', '}', '(', ')', '[', ']', '!', '@', '#', '^', '&', '*', '+', '=', '_', '?', ';', '~', '"', '`', '<', '>' };//, "'" };
             foreach (Document document in file.m_documents.Values)
             {
                 //m_tmpDictionary = new Dictionary<string, int>();
-                tokens = document.m_TEXT.ToString().Split(' ');
+                tokens = document.m_TEXT.ToString().Replace("--", " ").Split(delimiterChars);//Split(' ');delimiterChars
+                //var watch = System.Diagnostics.Stopwatch.StartNew();
                 for (int tokenIndex = 0; tokenIndex < tokens.Length; tokenIndex++)
                 {
-                    if (tokens[tokenIndex].Equals(""))
+                    if (tokens[tokenIndex].Equals("") || tokens[tokenIndex].Equals(",") || tokens[tokenIndex].Equals("."))
                     {
                         continue;
                     }
@@ -238,33 +288,28 @@ namespace InfoRetrieval
                     {
                         continue;
                     }
-                    if (tokens[tokenIndex][0] == '-')
+                    if (tokens[tokenIndex][0] == '-' && !(tokens[tokenIndex].Equals("--")))
                     {
                         tokens[tokenIndex] = tokens[tokenIndex].Substring(1);
                     }
+                    //tokens[tokenIndex] = tokens[tokenIndex].Replace("..", "");
                     if (tokens[tokenIndex].Length > 1)
                     {
-                        if (tokens[tokenIndex][tokens[tokenIndex].Length - 1] == '-')
+                        if (tokens[tokenIndex][tokens[tokenIndex].Length - 1] == '-' && !(tokens[tokenIndex].Equals("--")))//|| tokens[tokenIndex][tokens[tokenIndex].Length - 1] == '.')
                         {
                             tokens[tokenIndex] = tokens[tokenIndex].Substring(0, tokens[tokenIndex].Length - 1);
                         }
                     }
-                    /*
+                    /*)
                     Console.WriteLine(tokenIndex + "   :" + tokens[tokenIndex]);
                     if (tokens[tokenIndex].Contains("-733-6534"))
                     {
                         Console.WriteLine("-----");
                     }
                     */
-                    /*
-                    if (tokenIndex == 0)
-                    {
-                        Console.WriteLine("--------------------------Stop--------------------------------");
-                    }
-                    */
                     currentValue = tokens[tokenIndex];
                     countPos++;
-                    if (isAvalidWord(removeWhiteSpaces(currentValue)))                           // case all words - just simple letters
+                    if (isAvalidWord(currentValue = removeWhiteSpaces(currentValue)))                           // case all words - just simple letters
                     {
                         if (m_doStemming)
                         {
@@ -438,6 +483,8 @@ namespace InfoRetrieval
                             }
                             else //here we should add here simple numbers without prefix
                             {
+                                currentValue = getNumberAfterConvertToTerm(currentValue);
+                                addNewTerm(document.m_DOCNO.ToString(), currentValue, countPos);
                                 tokenIndex--;
                             }
                         }
@@ -533,6 +580,14 @@ namespace InfoRetrieval
                     else if (currentValue.Contains("-") && !currentValue.Contains("--"))
                     {
                         words = currentValue.Split('-');
+                        //////////////////////////////////added now
+                        if (words.Length >= 2 && (words[0].Equals("") || words[1].Equals("")))
+                        {
+                            string a = currentValue;
+                            string a1 = words[0];
+                            string a2 = words[1];
+                        }
+                        ////////////////////////////////////
                         if (words.Length == 2)                 // word/number/fraction - word/number/fraction
                         {
                             if (isFraction(words[0]))
@@ -663,7 +718,7 @@ namespace InfoRetrieval
                             }
                             //////////////////////////////////////
                             tokenIndex += 2; // go to "and" term 
-                                             /////////////////////////////////////
+                            /////////////////////////////////////
                             currentValue = tokens[tokenIndex].ToLower();
                             if (IsNumeric(currentValue) || isDouble(currentValue))
                             {
@@ -708,6 +763,8 @@ namespace InfoRetrieval
                         continue;
                     }
                 }
+                //watch.Stop();
+                //Console.WriteLine(watch.ElapsedMilliseconds);
                 //int a = 1;
             }
         }

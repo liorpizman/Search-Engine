@@ -25,7 +25,10 @@ namespace InfoRetrieval
             this.m_tfc++;
         }
 
-
+        // 2 3/4
+        // 4
+        // 46547474 
+        // 3/5
         public StringBuilder writeToPostingFile()
         {
             StringBuilder data = new StringBuilder();
