@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,13 +13,17 @@ namespace InfoRetrieval
         public bool m_doStemming;
         public HashSet<string> m_stopWords;
         public Dictionary<string, DocumentTerms> m_allTerms;
-        public Dictionary<string, string> m_months;
+        //public Hashtable m_allTerms;
+        //public Dictionary<string, string> m_months;
+        public Hashtable m_months;
 
         public Parse(bool m_doStemming, string stopWordsPath)
         {
             this.m_doStemming = m_doStemming;
             this.m_allTerms = new Dictionary<string, DocumentTerms>();
-            this.m_months = new Dictionary<string, string>();
+            //this.m_allTerms = new Hashtable();
+            //this.m_months = new Dictionary<string, string>();
+            this.m_months = new Hashtable();
             addMonths();
             m_stopWords = new HashSet<string>();
             addStopWords(stopWordsPath);
@@ -75,36 +80,32 @@ namespace InfoRetrieval
         }
 
         public static double FractionToDouble(string fraction)// convert 3 4/5 ------------> 3.8
-        {
-            /*
-            double result;
-            string[] nums;
-            string[] f;
-            //if (Convert.ToDouble(fraction))
-            //{
-            //
-           // }
-            if (fraction.Contains('/'))
-            {
-                if (fraction.Contains(' '))
-                {
-                    nums = fraction.Split(' ');
-                    result = (double)(Convert.ToInt32(nums[0]));
-                    f = nums[1].Split('/');
-                    result += ((double)(Convert.ToInt32(f[0])) / (double)(Convert.ToInt32(f[1])));
-                }
-                else
-                {
-                    f = fraction.Split('/');
-                    result = ((double)(Convert.ToInt32(f[0])) / (double)(Convert.ToInt32(f[1])));
-                }
-            }
-            else
-            {
-                result = (double)(Convert.ToInt32(fraction));
-            }
-            return result;
-            */
+        {     //Convert.ToDouble
+              /*
+              double result;
+              string[] nums;
+              string[] f;
+              if (fraction.Contains('/'))
+              {
+                  if (fraction.Contains(' '))
+                  {
+                      nums = fraction.Split(' ');
+                      result = Double.Parse(nums[0]);
+                      f = nums[1].Split('/');
+                      result += (Double.Parse(f[0]) / Double.Parse(f[1]));
+                  }
+                  else
+                  {
+                      f = fraction.Split('/');
+                      result = (Double.Parse(f[0]) / Double.Parse(f[1]));
+                  }
+              }
+              else
+              {
+                  result = Double.Parse(fraction);
+              }
+              return result;
+              */
 
             double result;
             if (double.TryParse(fraction, out result))
@@ -122,18 +123,9 @@ namespace InfoRetrieval
                         return a + (double)b / c;
                 }
             }
-            if (fraction.Equals(""))
-            {
-                int a = 1;
-            }
             Console.WriteLine("error : " + fraction);
             //throw new FormatException("Parse.FractionToDouble exception"); //---------------------------// delete when we submit the project!
-            if (fraction.Contains("3.5."))
-            {
-                int a = 1;
-            }
-            return 0;
-
+            return -345678.34;
         }
 
 
@@ -161,49 +153,44 @@ namespace InfoRetrieval
 
         public static bool IsNumeric(string str)
         {
-            return str.Replace(",", "").All(char.IsDigit);
-            /*
-            try
+            //return str.Replace(",", "").All(char.IsDigit) && !str.Equals("");
+            if (!str.Replace(",", "").All(char.IsDigit) || str.Equals(""))
             {
-                str = str.Replace(",", "").Trim();
-                int foo = int.Parse(str);
-                return (true);
+                return false;
             }
-            catch (FormatException)
-            {
-                return (false);
-            }
-            */
+            return true;
         }
 
 
 
         public static bool isDouble(string str)
         {
+            if (str.Split('.').Length > 2)
+            {
+                return false;
+            }
             str = str.Replace(",", "").Replace(".", "");
             return str.All(char.IsDigit) && !str.Equals("");
-            /*
-            try
+        }
+
+
+        public static bool isNumericOrDouble(string str)
+        {
+            if (str.Equals("") || str.Split('.').Length > 2 || !(str.Replace(",", "").Replace(".", "")).All(char.IsDigit))
             {
-                str = str.Replace(",", "").Trim();
-                Convert.ToDouble(str);
-                return (true);
+                return false;
             }
-            catch (FormatException)
-            {
-                return (false);
-            }
-            */
+            return true;
         }
 
         public static bool isFraction(string str)
         {
-            if (!str.Contains("/"))
+            if (!str.Contains("/") || str.IndexOf('/') == 0 || (str.IndexOf('/') == (str.Length - 1)) || str.Equals(""))
             {
                 return false;
             }
             str = str.Replace("/", "");
-            return IsNumeric(str) || isDouble(str);
+            return isNumericOrDouble(str);//IsNumeric(str) || isDouble(str);
         }
 
         public string getNumberAfterConvertToTerm(string s)
@@ -232,6 +219,11 @@ namespace InfoRetrieval
         public string getNumberAfterConvertToPrice(string currentValue)   // it is removes ',' from number <1000000
         {
             double number = FractionToDouble(currentValue.Replace(",", ""));
+            if (number == -345678.34)
+            {
+                Console.WriteLine("currentValue  Price function : " + currentValue);
+                Console.WriteLine("getNumberAfterConvertTo  Price function");
+            }
             if (number < 1000000)
                 return currentValue + " Dollars";
             else if (number >= 1000000)
@@ -272,19 +264,17 @@ namespace InfoRetrieval
             double number = 0;
             string[] tokens;
             int countPos = -1;
-            char[] delimiterChars = { ' ', '\n', ':', '\t', '{', '}', '(', ')', '[', ']', '!', '@', '#', '^', '&', '*', '+', '=', '_', '?', ';', '~', '"', '`', '<', '>' };//, "'" };
+            char[] delimiterChars = { ' ', '\n', ':', '\t', '{', '}', '(', ')', '[', ']', '!', '@', '#', '^', '&', '*', '+', '=', '_', '?', ';', '~', '"', '`', '<', '>', '|' };//, "'" };
             foreach (Document document in file.m_documents.Values)
             {
-                //m_tmpDictionary = new Dictionary<string, int>();
                 tokens = document.m_TEXT.ToString().Replace("--", " ").Split(delimiterChars);//Split(' ');delimiterChars
-                //var watch = System.Diagnostics.Stopwatch.StartNew();
                 for (int tokenIndex = 0; tokenIndex < tokens.Length; tokenIndex++)
                 {
-                    if (tokens[tokenIndex].Equals("") || tokens[tokenIndex].Equals(",") || tokens[tokenIndex].Equals("."))
+                    if (tokens[tokenIndex].Equals("") || tokens[tokenIndex].Equals(",") || tokens[tokenIndex].Equals(".") || tokens[tokenIndex].Equals("$"))
                     {
                         continue;
                     }
-                    if (!tokens[tokenIndex].ToLower().Contains("between") && m_stopWords.Contains(tokens[tokenIndex]))
+                    if (!tokens[tokenIndex].ToLower().Contains("between") && m_stopWords.Contains(tokens[tokenIndex].ToLower()))
                     {
                         continue;
                     }
@@ -292,24 +282,28 @@ namespace InfoRetrieval
                     {
                         tokens[tokenIndex] = tokens[tokenIndex].Substring(1);
                     }
-                    //tokens[tokenIndex] = tokens[tokenIndex].Replace("..", "");
+                    while (tokens[tokenIndex].EndsWith(".") || tokens[tokenIndex].EndsWith(","))//|| tokens[tokenIndex].EndsWith("-"))
+                    {
+                        tokens[tokenIndex] = tokens[tokenIndex].Substring(0, tokens[tokenIndex].Length - 1);
+                    }
+                    while (tokens[tokenIndex].StartsWith(".") || tokens[tokenIndex].StartsWith(","))//|| tokens[tokenIndex].StartsWith("-"))
+                    {
+                        tokens[tokenIndex] = tokens[tokenIndex].Substring(1, tokens[tokenIndex].Length - 1);
+                    }
                     if (tokens[tokenIndex].Length > 1)
                     {
-                        if (tokens[tokenIndex][tokens[tokenIndex].Length - 1] == '-' && !(tokens[tokenIndex].Equals("--")))//|| tokens[tokenIndex][tokens[tokenIndex].Length - 1] == '.')
+                        if (tokens[tokenIndex][tokens[tokenIndex].Length - 1] == '-' && !(tokens[tokenIndex].Equals("--")))
                         {
                             tokens[tokenIndex] = tokens[tokenIndex].Substring(0, tokens[tokenIndex].Length - 1);
                         }
                     }
-                    /*)
-                    Console.WriteLine(tokenIndex + "   :" + tokens[tokenIndex]);
-                    if (tokens[tokenIndex].Contains("-733-6534"))
+                    if (tokens[tokenIndex].EndsWith("'s"))
                     {
-                        Console.WriteLine("-----");
+                        tokens[tokenIndex] = tokens[tokenIndex].Substring(0, tokens[tokenIndex].Length - 2);
                     }
-                    */
                     currentValue = tokens[tokenIndex];
                     countPos++;
-                    if (isAvalidWord(currentValue = removeWhiteSpaces(currentValue)))                           // case all words - just simple letters
+                    if (isAvalidWord(removeWhiteSpaces(currentValue)))         // case all words - just simple letters
                     {
                         if (m_doStemming)
                         {
@@ -495,10 +489,15 @@ namespace InfoRetrieval
                             addNewTerm(document.m_DOCNO.ToString(), currentValue, countPos);
                         }
                     }/////////////////////////////////////////////////////////////////////////////////////////////////////     
-                    else if (currentValue[0] == '$')// when $ first char we cant remove "," from numbers!!!!
+                    else if (isFraction(currentValue))
+                    {
+                        addNewTerm(document.m_DOCNO.ToString(), currentValue, countPos);
+                    }/////////////////////////////////////////////////////////////////////////////////////////////
+                    else if (currentValue[0] == '$' && !currentValue.Contains('-'))// when $ first char we cant remove "," from numbers!!!!
                     {
                         currentValue = tokens[tokenIndex].Substring(1);
-                        if (IsNumeric(currentValue) || isDouble(currentValue))
+
+                        if (isNumericOrDouble(currentValue))
                         {
                             if ((tokenIndex + 1) < tokens.Length) // we have 2nd index
                             {
@@ -540,7 +539,7 @@ namespace InfoRetrieval
                     else if (currentValue[currentValue.Length - 1] == '%')
                     {
                         currentValue = tokens[tokenIndex].Substring(1, tokens[tokenIndex].Length - 1);
-                        if (IsNumeric(currentValue) || isDouble(currentValue))                            //case 6%
+                        if (isNumericOrDouble(currentValue))                                             //case 6%
                         {
                             addNewTerm(document.m_DOCNO.ToString(), tokens[tokenIndex], countPos);
                         }
@@ -555,7 +554,7 @@ namespace InfoRetrieval
                         {
                             nextValue = tokens[++tokenIndex].ToLower();
                             nextValue = removeWhiteSpaces(nextValue);
-                            if (IsNumeric(nextValue) || isDouble(nextValue))
+                            if (isNumericOrDouble(nextValue))
                             {
                                 if ((Convert.ToDouble(nextValue)) <= 31.0)
                                 {
@@ -580,21 +579,13 @@ namespace InfoRetrieval
                     else if (currentValue.Contains("-") && !currentValue.Contains("--"))
                     {
                         words = currentValue.Split('-');
-                        //////////////////////////////////added now
-                        if (words.Length >= 2 && (words[0].Equals("") || words[1].Equals("")))
-                        {
-                            string a = currentValue;
-                            string a1 = words[0];
-                            string a2 = words[1];
-                        }
-                        ////////////////////////////////////
                         if (words.Length == 2)                 // word/number/fraction - word/number/fraction
                         {
                             if (isFraction(words[0]))
                             {
                                 if (tokenIndex - 1 >= 0) //there is a word before the range
                                 {
-                                    if (IsNumeric(tokens[tokenIndex - 1]) || isDouble(tokens[tokenIndex - 1])) // case  2 3/8 - number/word/fraction
+                                    if (isNumericOrDouble(tokens[tokenIndex - 1])) // case  2 3/8 - number/word/fraction
                                     {
                                         firstTerm.Append(tokens[tokenIndex - 1]);
                                         firstTerm.Append(" ");
@@ -610,7 +601,7 @@ namespace InfoRetrieval
                                     firstTerm.Append(words[0]);
                                 }
                             }
-                            else if (IsNumeric(words[0]) || isDouble(words[0]))
+                            else if (isNumericOrDouble(words[0]))
                             {
                                 firstTerm.Append(getNumberAfterConvertToTerm(words[0]));
                             }
@@ -618,7 +609,7 @@ namespace InfoRetrieval
                             {
                                 firstTerm.Append(words[0]);
                             }
-                            if (IsNumeric(words[1]) || isDouble(words[1]))
+                            if (isNumericOrDouble(words[1]))
                             {
                                 if ((tokenIndex + 1) < tokens.Length) //there is a word atfer the range
                                 {
@@ -630,7 +621,7 @@ namespace InfoRetrieval
                                     }
                                     else
                                     {
-                                        secondTerm.Append(words[0]);
+                                        secondTerm.Append(words[1]);
                                     }
                                 }
                                 else  // no word before range
@@ -638,7 +629,7 @@ namespace InfoRetrieval
                                     secondTerm.Append(words[1]);
                                 }
                             }
-                            else if (IsNumeric(words[1]) || isDouble(words[1]))
+                            else if (isNumericOrDouble(words[1]))
                             {
                                 firstTerm.Append(getNumberAfterConvertToTerm(words[1]));
                             }
@@ -666,18 +657,19 @@ namespace InfoRetrieval
                             else
                             {
                                 //////////////////////////////////////////////////////////////////////// num- num - num all cases we need this???
-                                if (IsNumeric(words[0]) || isDouble(words[0]) || isFraction(words[0]))
+                                if (isNumericOrDouble(words[0]) || isFraction(words[0]))
                                 {
                                     addNewTerm(document.m_DOCNO.ToString(), getNumberAfterConvertToTerm(words[0]), countPos); // case firstTerm
                                 }
-                                if (IsNumeric(words[1]) || isDouble(words[1]) || isFraction(words[1]))
+                                if (isNumericOrDouble(words[1]) || isFraction(words[1]))
                                 {
                                     addNewTerm(document.m_DOCNO.ToString(), getNumberAfterConvertToTerm(words[1]), countPos); // case secondTerm
                                 }
-                                if (IsNumeric(words[2]) || isDouble(words[2]) || isFraction(words[2]))
+                                if (isNumericOrDouble(words[2]) || isFraction(words[2]))
                                 {
-                                    addNewTerm(document.m_DOCNO.ToString(), getNumberAfterConvertToTerm(words[0]), countPos); // case thirsTerm
+                                    addNewTerm(document.m_DOCNO.ToString(), getNumberAfterConvertToTerm(words[2]), countPos); // case thirsTerm
                                 }
+                                addNewTerm(document.m_DOCNO.ToString(), currentValue, countPos);
                                 //////////////////////////////////////////////////////////////////////////////////should we save num-num-num???
                             }
                         }
@@ -689,7 +681,6 @@ namespace InfoRetrieval
                         firstTerm.Clear();
                         secondTerm.Clear();
                     }
-
                     else if (currentValue.ToLower().Equals("between") && (tokenIndex + 3) < tokens.Length)
                     {
                         if (tokens[tokenIndex + 2].ToLower().Equals("and") || tokens[tokenIndex + 3].ToLower().Equals("and"))
@@ -753,21 +744,13 @@ namespace InfoRetrieval
                             thirdTerm.Clear();
                         }
                     }
-                    else if (currentValue.All(char.IsLetterOrDigit))  // add case of flight45
-                    {
-                        addNewTerm(document.m_DOCNO.ToString(), currentValue, countPos);
-                    }
                     else
                     {
-                        //Console.WriteLine("Not included in the dictionary:     ----(" + currentValue + ")----");
+                        addNewTerm(document.m_DOCNO.ToString(), currentValue, countPos);
                         continue;
                     }
                 }
-                //watch.Stop();
-                //Console.WriteLine(watch.ElapsedMilliseconds);
-                //int a = 1;
             }
         }
-
     }
 }
