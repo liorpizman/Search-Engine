@@ -10,7 +10,7 @@ namespace InfoRetrieval
     class Indexer
     {
         public static int m_indexCounter;
-        public string m_outPutPath = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder"; // change to path from GUI
+        public string m_outPutPath = @"C:\Users\Yehuda Pashay\Desktop\שנה ג'\אחזור\עבודה-מנוע חיפוש\מנוע 22.11\corp\output"; // change to path from GUI
         public bool doStem;
 
         public Indexer(bool doStemming, string m_outPutPath)
@@ -77,15 +77,116 @@ namespace InfoRetrieval
             createTxtFile("Dictionary.txt", data);
         }
 
-        public void writeToPostingFile(Dictionary<string, DocumentTerms> documentTermsDic)
+        public void writeToPostingFile(Dictionary<string, DocumentTerms> documentTermsDic, bool hasWritten)
         {
-            StringBuilder data = new StringBuilder();
-            foreach (KeyValuePair<string, DocumentTerms> pair in documentTermsDic)
+            if (!hasWritten)
             {
-                data.Append(pair.Value.m_Terms[pair.Key].writeDocumentToPostingFile()); //writing all terms in current document term
-                data.Append(Environment.NewLine);
+                initDic();
+                int postNum = 0;
+                StringBuilder data = new StringBuilder();
+                foreach (KeyValuePair<string, DocumentTerms> pair in documentTermsDic)
+                {
+                    postNum = pair.Value.m_Terms[pair.Key].postNum;
+                    data.Append(pair.Value.m_Terms[pair.Key].writeDocumentToPostingFile(currentLine[postNum],true)); //writing all terms in current document term
+                    data.Append(Environment.NewLine);
+                    ////////////////////////////////////////////////
+                    dictionarysArray[postNum].Add(pair.Value.m_valueOfTerm, pair.Value.m_Terms[pair.Key]);
+                    currentLine[postNum]++;
+
+                }
+                createTxtFile("Posting.txt", data);
             }
-            createTxtFile("Posting.txt", data);
+            else
+            {
+                UpdatePosting(documentTermsDic);
+            }
+
         }
+
+
+
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        private static int[] currentLine = new int[27];
+        private static Dictionary<string, Term>[] dictionarysArray = new Dictionary<string, Term>[27];
+
+        public void initDic()
+        {
+            for (int i = 0; i < 27; i++)
+            {
+                dictionarysArray[i]= new Dictionary<string, Term>();
+                currentLine[i] = 0;
+            }
+        }
+
+        public void UpdatePosting(Dictionary<string, DocumentTerms> tmpTermsDic)
+        {
+            int PostNumber,LineNumber;
+            StringBuilder data = new StringBuilder();
+            foreach (KeyValuePair<string, DocumentTerms> pair in tmpTermsDic)
+            {
+                //StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, "newPost " + pair.Value.m_Terms[pair.Key].postNum+".txt"));
+                StreamReader Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting.txt")); /////////////////// has to changed
+                string currentLineInFile;
+
+                PostNumber = pair.Value.m_Terms[pair.Key].postNum;
+                if (dictionarysArray[PostNumber].ContainsKey(pair.Value.m_valueOfTerm)){
+                    LineNumber = dictionarysArray[PostNumber][pair.Value.m_valueOfTerm].lineInPost;
+                }
+                else
+                {
+                    dictionarysArray[PostNumber].Add(pair.Key, pair.Value.m_Terms[pair.Key]);
+                    LineNumber = -1;
+                }
+
+                if (LineNumber == -1)
+                {
+                    while((currentLineInFile = Reader.ReadLine()) != null){
+                        data.Append(currentLine);
+                    }
+                    data.Append(pair.Value.m_Terms[pair.Key].writeDocumentToPostingFile(currentLine[PostNumber],true));
+                    data.Append(Environment.NewLine);
+                    currentLine[PostNumber]++;
+
+                    createTxtFile("newPost.txt", data);
+
+                }
+                else
+                {
+                    int i = 0;
+                    for (; i < LineNumber; i++)
+                    {
+                        currentLineInFile = Reader.ReadLine();
+                        data.Append(currentLine);
+                        data.Append(Environment.NewLine);
+
+
+                    }
+                    currentLineInFile = Reader.ReadLine();
+                    data.Append(currentLineInFile = currentLineInFile+( pair.Value.m_Terms[pair.Key].writeDocumentToPostingFile(currentLine[PostNumber],false)));
+                    while ((currentLineInFile = Reader.ReadLine()) != null)
+                    {
+                        data.Append(currentLineInFile);
+                        data.Append(Environment.NewLine);
+                    }
+                    createTxtFile("newPost.txt", data);
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }

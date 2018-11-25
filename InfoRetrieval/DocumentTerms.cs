@@ -19,22 +19,18 @@ namespace InfoRetrieval
             this.m_Terms = new Dictionary<string, Term>();
         }
 
-        public void addToDocumentDictionary(Term term)
+        public void AddToDocumentDictionary(Term term)
         {
-            this.m_Terms.Add(term.m_value, term);
+            this.m_Terms.Add(term.m_DOCNO, term); //this.m_Terms.Add(term.m_value, term);
             this.m_tfc++;
         }
 
-        // 2 3/4
-        // 4
-        // 46547474 
-        // 3/5
-        public StringBuilder writeToPostingFile()
+        public StringBuilder WriteToPostingFile()
         {
             StringBuilder data = new StringBuilder();
             foreach (KeyValuePair<string, Term> pair in m_Terms)
             {
-                pair.Value.writeDocumentToPostingFile();
+                pair.Value.WriteDocumentToPostingFile();
             }
             return data;
         }
