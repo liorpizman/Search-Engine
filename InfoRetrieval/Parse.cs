@@ -13,11 +13,13 @@ namespace InfoRetrieval
         private bool m_doStemming;
         public HashSet<string> m_stopWords;
         public Dictionary<string, DocumentTerms> m_allTerms;
-        public Dictionary<string, DocumentTerms> m_UpperCaseLetter;
         public Hashtable m_months;
         public Hashtable m_nums;
         public Hashtable m_prices;
+        public Hashtable m_times;
+        public Hashtable m_lengths;
         private Stemmer m_stemmer;
+        private static int countPos = 0;
 
         // for test run time
         public static int _count_BigLetter = 0;
@@ -40,14 +42,17 @@ namespace InfoRetrieval
             this.m_doStemming = m_doStemming;
             this.m_stemmer = new Stemmer();
             this.m_allTerms = new Dictionary<string, DocumentTerms>();
-            this.m_UpperCaseLetter = new Dictionary<string, DocumentTerms>();
             this.m_months = new Hashtable();
             this.m_prices = new Hashtable();
             this.m_nums = new Hashtable();
+            this.m_times = new Hashtable();
+            this.m_lengths = new Hashtable();
             this.m_stopWords = new HashSet<string>();
             AddMonths();
             AddPrices();
             AddNums();
+            AddTimes();
+            AddLengths();
             AddStopWords(stopWordsPath);
         }
 
@@ -69,6 +74,18 @@ namespace InfoRetrieval
         public void AddNums()
         {
             m_nums.Add("million", "M"); m_nums.Add("billion", "B"); m_nums.Add("trillion", "000B"); m_nums.Add("thousand", "K");
+        }
+
+        public void AddTimes()
+        {
+            m_times.Add("second", "sec"); m_times.Add("seconds", "sec"); m_times.Add("minutes", "min"); m_times.Add("minute", "min");
+            m_times.Add("hours", "hr"); m_times.Add("hour", "hr");
+        }
+
+        public void AddLengths()
+        {
+            m_lengths.Add("meters", "meter"); m_lengths.Add("meter", "meter"); m_lengths.Add("foot", "ft"); m_lengths.Add("kilometere", "km");
+            m_lengths.Add("kilometers", "km"); m_lengths.Add("centimeter", "cm"); m_lengths.Add("centimeters", "cm");
         }
 
         public void AddStopWords(string filePath)
@@ -111,41 +128,92 @@ namespace InfoRetrieval
         }
 
 
-        public void AddNewTerm(string DOCNO, string current, int index)
+        public void AddNewTerm(string DOCNO, string current)
         {
             if (m_allTerms.ContainsKey(current))
             {
                 m_allTerms[current].m_tfc++;
                 if (m_allTerms[current].m_Terms.ContainsKey(DOCNO))
-                { m_allTerms[current].m_Terms[DOCNO].AddNewIndex(index); }
+                { m_allTerms[current].m_Terms[DOCNO].AddNewIndex(countPos); }
                 else
                 { m_allTerms[current].m_Terms.Add(DOCNO, new Term(current, DOCNO)); }
+                countPos++;
             }
             else
             {
                 DocumentTerms documentTerms = new DocumentTerms(current);
                 documentTerms.AddToDocumentDictionary(new Term(current, DOCNO));
                 m_allTerms.Add(current, documentTerms);
-                m_allTerms[current].m_Terms[DOCNO].AddNewIndex(index);  // added for adding first position
+                m_allTerms[current].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                countPos++;
             }
         }
 
-        public void AddNewUpperCaseTerm(string DOCNO, string current, int index)
+
+        public void AddNewLowerCaseTerm(string DOCNO, string current)
         {
-            if (m_UpperCaseLetter.ContainsKey(current))
+            string lower, upper;
+            if (m_allTerms.ContainsKey(lower = current.ToLower()))
             {
-                m_UpperCaseLetter[current].m_tfc++;
-                if (m_UpperCaseLetter[current].m_Terms.ContainsKey(DOCNO))
-                { m_UpperCaseLetter[current].m_Terms[DOCNO].AddNewIndex(index); }
+                m_allTerms[lower].m_tfc++;
+                if (m_allTerms[lower].m_Terms.ContainsKey(DOCNO))
+                { m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos); }
                 else
-                { m_UpperCaseLetter[current].m_Terms.Add(DOCNO, new Term(current, DOCNO)); }
+                { m_allTerms[lower].m_Terms.Add(DOCNO, new Term(lower, DOCNO)); }
+                countPos++;
+            }
+            else if (m_allTerms.ContainsKey(upper = current.ToUpper()))
+            {
+                m_allTerms[upper].m_tfc++;
+                if (m_allTerms[upper].m_Terms.ContainsKey(DOCNO))
+                { m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos); }
+                else
+                { m_allTerms[upper].m_Terms.Add(DOCNO, new Term(upper, DOCNO)); }
+                DocumentTerms tmpDocumentTerms = m_allTerms[upper];
+                tmpDocumentTerms.m_valueOfTerm = lower;
+                m_allTerms.Remove(upper);
+                m_allTerms.Add(lower, tmpDocumentTerms);
+                countPos++;
             }
             else
             {
-                DocumentTerms documentTerms = new DocumentTerms(current);
-                documentTerms.AddToDocumentDictionary(new Term(current, DOCNO));
-                m_UpperCaseLetter.Add(current, documentTerms);
-                m_UpperCaseLetter[current].m_Terms[DOCNO].AddNewIndex(index);  // added for adding first position
+                DocumentTerms documentTerms = new DocumentTerms(lower);
+                documentTerms.AddToDocumentDictionary(new Term(lower, DOCNO));
+                m_allTerms.Add(lower, documentTerms);
+                m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                countPos++;
+            }
+        }
+
+
+        public void AddNewUpperCaseTerm(string DOCNO, string lower)
+        {
+            string upper;
+            if (m_allTerms.ContainsKey(lower))
+            {
+                m_allTerms[lower].m_tfc++;
+                if (m_allTerms[lower].m_Terms.ContainsKey(DOCNO))
+                { m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos); }
+                else
+                { m_allTerms[lower].m_Terms.Add(DOCNO, new Term(lower, DOCNO)); }
+                countPos++;
+            }
+            else if (m_allTerms.ContainsKey(upper = lower.ToUpper()))
+            {
+                m_allTerms[upper].m_tfc++;
+                if (m_allTerms[upper].m_Terms.ContainsKey(DOCNO))
+                { m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos); }
+                else
+                { m_allTerms[upper].m_Terms.Add(DOCNO, new Term(upper, DOCNO)); }
+                countPos++;
+            }
+            else
+            {
+                DocumentTerms documentTerms = new DocumentTerms(upper);
+                documentTerms.AddToDocumentDictionary(new Term(upper, DOCNO));
+                m_allTerms.Add(upper, documentTerms);
+                m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                countPos++;
             }
         }
 
@@ -246,8 +314,9 @@ namespace InfoRetrieval
             char[] delimiterChars = { ' ', '\n' };
             char[] toDelete = { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"' };
             string[] tokens = tokens = document.m_TEXT.Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
-            string[] splittedNums;
-            int countPos = -1, tokensSize = tokens.Length;
+            string[] splittedNums, splittedWords;
+            int tokensSize = tokens.Length;
+            countPos = -1;
             for (int tokIndex = 0; tokIndex < tokensSize; tokIndex++)
             {
                 currValue = tokens[tokIndex] = tokens[tokIndex].Trim(toDelete);     // must be before the check of length
@@ -257,7 +326,7 @@ namespace InfoRetrieval
                     {
                         continue;
                     }
-                    countPos++; // must be after all continue commands
+                    //countPos++; // must be after all continue commands
                     if (currValue.Contains('-'))
                     {
                         splittedNums = currValue.Split('-');
@@ -265,33 +334,74 @@ namespace InfoRetrieval
                         {
                             if (IsIntOrDouble(splittedNums[0]))
                             {
-                                AddNewTerm(currDOCNO, splittedNums[0], countPos);
+                                AddNewTerm(currDOCNO, splittedNums[0]);
                             }
                             else if (IsFraction(splittedNums[0]))
                             {
                                 if (tokIndex - 1 >= 0 && IsIntOrDouble(numValue = tokens[tokIndex - 1]))
                                 {
-                                    AddNewTerm(currDOCNO, numValue + " " + splittedNums[0], countPos);
+                                    AddNewTerm(currDOCNO, numValue + " " + splittedNums[0]);
                                 }
                             }
                             if (IsIntOrDouble(splittedNums[1]) || IsFraction(splittedNums[1]))
                             {
-                                AddNewTerm(currDOCNO, splittedNums[1], countPos);
+                                AddNewTerm(currDOCNO, splittedNums[1]);
                             }
-                            AddNewTerm(currDOCNO, currValue, countPos);
+                            AddNewTerm(currDOCNO, currValue);
                             continue;
                         }
                     }
+                    if (currValue.Contains('/'))
+                    {
+                        splittedWords = currValue.Split('/');
+                        foreach (string word in splittedWords)
+                        {
+                            if (word.Length > 1)
+                            {
+                                if (char.IsUpper(word[0]))
+                                {
+                                    if (m_doStemming)
+                                    {
+                                        stemmedValue = m_stemmer.stemTerm(word.ToLower());
+                                        AddNewUpperCaseTerm(currDOCNO, stemmedValue);
+                                    }
+                                    else
+                                    {
+                                        AddNewUpperCaseTerm(currDOCNO, word.ToLower());
+                                    }
+                                }
+                                else
+                                {
+                                    if (m_doStemming)
+                                    {
+                                        stemmedValue = m_stemmer.stemTerm(word);
+                                        AddNewLowerCaseTerm(currDOCNO, stemmedValue);
+                                    }
+                                    else
+                                    {
+                                        AddNewLowerCaseTerm(currDOCNO, word);
+                                    }
+                                }
+                            }
+                        }
+                        continue;
+                    }
                     if (char.IsUpper(currValue[0]))
                     {
+                        /*
+                        if (tokIndex - 1 >= 0 && char.IsUpper(tokens[tokIndex - 1][0]))       // Two words with upper case letter -- our Rule--
+                        {
+                            AddNewTerm(currDOCNO, tokens[tokIndex - 1] + " " + currValue);
+                        }
+                        */
                         if (m_doStemming)
                         {
-                            stemmedValue = m_stemmer.stemTerm(currValue.ToUpper());
-                            AddNewUpperCaseTerm(currDOCNO, stemmedValue, countPos);
+                            stemmedValue = m_stemmer.stemTerm(currValue.ToLower());
+                            AddNewUpperCaseTerm(currDOCNO, stemmedValue);
                         }
                         else
                         {
-                            AddNewUpperCaseTerm(currDOCNO, currValue.ToUpper(), countPos);
+                            AddNewUpperCaseTerm(currDOCNO, currValue.ToLower());
                         }
                         //_count_BigLetter++;
                         //m_UpperCaseLetter.Add(currValue.ToUpper());                        // there are not duplicates of strings here!
@@ -303,11 +413,11 @@ namespace InfoRetrieval
                         //_count_number++;
                         if (tokIndex + 1 < tokensSize && !m_nums.Contains(tokens[tokIndex + 1].ToLower()))
                         {
-                            AddNewTerm(currDOCNO, getNumberAfterConvertToTerm(currValue), countPos);
+                            AddNewTerm(currDOCNO, getNumberAfterConvertToTerm(currValue));
                         }
                         else if ((tokIndex + 1) == tokensSize)
                         {
-                            AddNewTerm(currDOCNO, getNumberAfterConvertToTerm(currValue), countPos);
+                            AddNewTerm(currDOCNO, getNumberAfterConvertToTerm(currValue));
                         }
                     } // end of number case
                     else if (string.Equals(currValue, "percent", StringComparison.OrdinalIgnoreCase) || string.Equals(currValue, "percentage", StringComparison.OrdinalIgnoreCase))
@@ -315,7 +425,7 @@ namespace InfoRetrieval
                         //_count_percentage++;
                         if (tokIndex - 1 >= 0 && IsIntOrDouble(numValue = tokens[tokIndex - 1]))
                         {
-                            AddNewTerm(currDOCNO, numValue + "%", countPos);
+                            AddNewTerm(currDOCNO, numValue + "%");
                         }
                     } ///////////////// end of percent case
                     else if (string.Equals(currValue, "dollars", StringComparison.OrdinalIgnoreCase))//currValue.Equals("Dollars"))
@@ -325,7 +435,7 @@ namespace InfoRetrieval
                         {
                             if (IsIntOrDouble(tokens[tokIndex - 1]))  //numeric
                             {
-                                AddNewTerm(currDOCNO, GetNumberAfterConvertToPrice(tokens[tokIndex - 1]), countPos);
+                                AddNewTerm(currDOCNO, GetNumberAfterConvertToPrice(tokens[tokIndex - 1]));
                             }
                             else
                             {
@@ -333,21 +443,21 @@ namespace InfoRetrieval
                                 {
                                     if (tokIndex - 2 >= 0 && IsIntOrDouble(tokens[tokIndex - 2]))  //numeric
                                     {
-                                        AddNewTerm(currDOCNO, GetNumFractionAfterConvertToPrice(tokens[tokIndex - 2], tokens[tokIndex - 1]), countPos);
+                                        AddNewTerm(currDOCNO, GetNumFractionAfterConvertToPrice(tokens[tokIndex - 2], tokens[tokIndex - 1]));
                                     }
                                 }
                                 else if (tokens[tokIndex - 1].Equals("m"))
                                 {
                                     if (tokIndex - 2 >= 0 && IsIntOrDouble(tokens[tokIndex - 2]))  //numeric
                                     {
-                                        AddNewTerm(currDOCNO, tokens[tokIndex - 2] + m_prices["m"], countPos);
+                                        AddNewTerm(currDOCNO, tokens[tokIndex - 2] + m_prices["m"]);
                                     }
                                 }
                                 else if (tokens[tokIndex - 1].Equals("bn"))
                                 {
                                     if (tokIndex - 2 >= 0 && IsIntOrDouble(tokens[tokIndex - 2]))  //numeric
                                     {
-                                        AddNewTerm(currDOCNO, tokens[tokIndex - 2] + m_prices["bn"], countPos);
+                                        AddNewTerm(currDOCNO, tokens[tokIndex - 2] + m_prices["bn"]);
                                     }
                                 }
                             }
@@ -363,24 +473,24 @@ namespace InfoRetrieval
                             {
                                 if (string.Equals(tokens[tokIndex + 1], "million", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    AddNewTerm(currDOCNO, currValue + m_prices["million"], countPos);
+                                    AddNewTerm(currDOCNO, currValue + m_prices["million"]);
                                 }
                                 else if (string.Equals(tokens[tokIndex + 1], "billion", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    AddNewTerm(currDOCNO, currValue + m_prices["billion"], countPos);
+                                    AddNewTerm(currDOCNO, currValue + m_prices["billion"]);
                                 }
                                 else if (string.Equals(tokens[tokIndex + 1], "trillion", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    AddNewTerm(currDOCNO, currValue + m_prices["trillion"], countPos);
+                                    AddNewTerm(currDOCNO, currValue + m_prices["trillion"]);
                                 }
                                 else
                                 {
-                                    AddNewTerm(currDOCNO, GetNumberAfterConvertToPrice(currValue), countPos);
+                                    AddNewTerm(currDOCNO, GetNumberAfterConvertToPrice(currValue));
                                 }
                             }
                             else
                             {
-                                AddNewTerm(currDOCNO, GetNumberAfterConvertToPrice(currValue), countPos);
+                                AddNewTerm(currDOCNO, GetNumberAfterConvertToPrice(currValue));
                             }
                         }
                     }///////////////// end of $ case
@@ -389,11 +499,11 @@ namespace InfoRetrieval
                         //_count_fraction++;
                         if (tokIndex - 1 < 0 || !IsInteger(tokens[tokIndex - 1])) // the previous term is not numeric
                         {
-                            AddNewTerm(currDOCNO, currValue, countPos);
+                            AddNewTerm(currDOCNO, currValue);
                         }
                         else
                         {
-                            AddNewTerm(currDOCNO, tokens[tokIndex - 1].Replace(",", "") + " " + currValue, countPos);
+                            AddNewTerm(currDOCNO, tokens[tokIndex - 1].Replace(",", "") + " " + currValue);
                         }
                     } // end of fraction case
                     else if (m_months.Contains(currValue))
@@ -405,12 +515,12 @@ namespace InfoRetrieval
                             num = Int32.Parse(numValue);
                             if (num >= 32)
                             {
-                                AddNewTerm(currDOCNO, num + "-" + m_months[currValue], countPos);
+                                AddNewTerm(currDOCNO, num + "-" + m_months[currValue]);
                             }
                             else
                             {
                                 if (num < 10) { numValue = "0" + num; }
-                                AddNewTerm(currDOCNO, m_months[currValue] + "-" + num, countPos);
+                                AddNewTerm(currDOCNO, m_months[currValue] + "-" + num);
                             }
                         }
                         if (tokIndex - 1 >= 0 && IsInteger(numValue = tokens[tokIndex - 1]))
@@ -418,12 +528,12 @@ namespace InfoRetrieval
                             num = Int32.Parse(numValue);
                             if (num >= 32)
                             {
-                                AddNewTerm(currDOCNO, num + "-" + m_months[currValue], countPos);
+                                AddNewTerm(currDOCNO, num + "-" + m_months[currValue]);
                             }
                             else
                             {
                                 if (num < 10) { numValue = "0" + num; }
-                                AddNewTerm(currDOCNO, m_months[currValue] + "-" + num, countPos);
+                                AddNewTerm(currDOCNO, m_months[currValue] + "-" + num);
                             }
                         }
                     }///////////////// end of months case
@@ -440,16 +550,16 @@ namespace InfoRetrieval
                         switch (m_nums[currValue])
                         {
                             case "M":
-                                AddNewTerm(currDOCNO, numValue + m_nums["million"], countPos);
+                                AddNewTerm(currDOCNO, numValue + m_nums["million"]);
                                 break;
                             case "B":
-                                AddNewTerm(currDOCNO, numValue + m_nums["billion"], countPos);
+                                AddNewTerm(currDOCNO, numValue + m_nums["billion"]);
                                 break;
                             case "K":
-                                AddNewTerm(currDOCNO, numValue + m_nums["thousand"], countPos);
+                                AddNewTerm(currDOCNO, numValue + m_nums["thousand"]);
                                 break;
                             case "000B":
-                                AddNewTerm(currDOCNO, numValue + m_nums["trillion"], countPos);
+                                AddNewTerm(currDOCNO, numValue + m_nums["trillion"]);
                                 break;
                         }
                     }///////////////// end of num+prefix case
@@ -474,7 +584,7 @@ namespace InfoRetrieval
                                 }
                                 if (IsIntOrDouble(tokens[tokIndex - 2]))  //numeric
                                 {
-                                    AddNewTerm(currDOCNO, tokens[tokIndex - 2] + currValue, countPos);
+                                    AddNewTerm(currDOCNO, tokens[tokIndex - 2] + currValue);
                                 }
                             }
                         }
@@ -488,22 +598,36 @@ namespace InfoRetrieval
                             {
                                 if (IsIntOrDouble(secondVal = tokens[tokIndex + 3].Trim(toDelete)))
                                 {
-                                    AddNewTerm(currDOCNO, "between " + firstVal + " and " + secondVal, countPos);
+                                    AddNewTerm(currDOCNO, "between " + firstVal + " and " + secondVal);
                                 }
                             }
                         }
                     }///////////////// end of between case
+                    else if (m_times.Contains(currValue))
+                    {
+                        if (tokIndex - 1 >= 0 && IsIntOrDouble(tokens[tokIndex - 1]))
+                        {
+                            AddNewTerm(currDOCNO, tokens[tokIndex - 1] + " " + m_times[currValue]);
+                        }
+                    }///////////////// end of times case  --------------------------- our Rule ------------------------------
+                    else if (m_lengths.Contains(currValue))
+                    {
+                        if (tokIndex - 1 >= 0 && IsIntOrDouble(tokens[tokIndex - 1]))
+                        {
+                            AddNewTerm(currDOCNO, tokens[tokIndex - 1] + " " + m_lengths[currValue]);
+                        }
+                    }///////////////// end of lengths case  --------------------------- our Rule ------------------------------
                     else //of all cases
                     {
                         //_count_else++;
-                        if (m_doStemming)// && !currValue.Contains('-'))
+                        if (m_doStemming)
                         {
-                            stemmedValue = m_stemmer.stemTerm(currValue.ToLower());
-                            AddNewTerm(currDOCNO, stemmedValue, countPos);
+                            stemmedValue = m_stemmer.stemTerm(currValue);
+                            AddNewLowerCaseTerm(currDOCNO, stemmedValue);
                         }
                         else
                         {
-                            AddNewTerm(currDOCNO, currValue.ToLower(), countPos);
+                            AddNewLowerCaseTerm(currDOCNO, currValue);
                         }
                     } // end of all cases
                 } // end of the if length >=2
@@ -512,53 +636,3 @@ namespace InfoRetrieval
     }
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// external if's
-/*
-else if (tokIndex - 1 >= 0 && string.Equals(currValue, "thousand", StringComparison.OrdinalIgnoreCase))
-{
-    //_count_thousand++;
-    AddNewTerm(currDOCNO, tokens[tokIndex - 1] + m_nums["thousand"], countPos);
-}///////////////// end of Thousand case
-else if (tokIndex - 1 >= 0 && string.Equals(currValue, "million", StringComparison.OrdinalIgnoreCase))
-{
-    //_count_million++;
-    AddNewTerm(currDOCNO, tokens[tokIndex - 1] + m_nums["million"], countPos);
-}///////////////// end of Million case
-else if (tokIndex - 1 >= 0 && string.Equals(currValue, "billion", StringComparison.OrdinalIgnoreCase))
-{
-    //_count_billion++;
-    AddNewTerm(currDOCNO, tokens[tokIndex - 1] + m_nums["billion"], countPos);
-}///////////////// end of Billion case
-else if (tokIndex - 1 >= 0 && string.Equals(currValue, "trillion", StringComparison.OrdinalIgnoreCase))
-{
-    //_count_trillion++;
-    AddNewTerm(currDOCNO, tokens[tokIndex - 1] + m_nums["trillion"], countPos);
-}///////////////// end of Trillion case
-*/
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// internal if's of u.s
-
-/*
-if (tokIndex - 1 >= 0 && string.Equals(tokens[tokIndex - 1], "million", StringComparison.OrdinalIgnoreCase))
-{
-if (tokIndex - 2 >= 0 && IsIntOrDouble(tokens[tokIndex - 2]))  //numeric
-{
-    AddNewTerm(currDOCNO, tokens[tokIndex - 2] + m_prices["million"], countPos);
-}
-}
-else if (tokIndex - 1 >= 0 && string.Equals(tokens[tokIndex - 1], "billion", StringComparison.OrdinalIgnoreCase))
-{
-if (tokIndex - 2 >= 0 && IsIntOrDouble(tokens[tokIndex - 2]))  //numeric
-{
-    AddNewTerm(currDOCNO, tokens[tokIndex - 2] + m_prices["billion"], countPos);
-}
-}
-else if (tokIndex - 1 >= 0 && string.Equals(tokens[tokIndex - 1], "trillion", StringComparison.OrdinalIgnoreCase))
-{
-if (tokIndex - 2 >= 0 && IsIntOrDouble(tokens[tokIndex - 2]))  //numeric
-{
-    AddNewTerm(currDOCNO, tokens[tokIndex - 2] + m_prices["trillion"], countPos);
-}
-}
-*/
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

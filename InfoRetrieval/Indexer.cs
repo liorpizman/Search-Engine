@@ -52,7 +52,7 @@ namespace InfoRetrieval
             {
                 foreach (Document d in m.m_documents.Values)
                 {
-                    data.Append(d.writeDocumentToIndexFile());
+                    data.Append(d.WriteDocumentToIndexFile());
                     data.Append(Environment.NewLine);
                     //data.Append(Environment.NewLine);
                 }
@@ -87,7 +87,7 @@ namespace InfoRetrieval
                 foreach (KeyValuePair<string, DocumentTerms> pair in documentTermsDic)
                 {
                     postNum = pair.Value.m_Terms[pair.Key].postNum;
-                    data.Append(pair.Value.m_Terms[pair.Key].writeDocumentToPostingFile(currentLine[postNum],true)); //writing all terms in current document term
+                   // data.Append(pair.Value.m_Terms[pair.Key].WriteDocumentToPostingFile(currentLine[postNum],true)); //writing all terms in current document term
                     data.Append(Environment.NewLine);
                     ////////////////////////////////////////////////
                     dictionarysArray[postNum].Add(pair.Value.m_valueOfTerm, pair.Value.m_Terms[pair.Key]);
@@ -144,7 +144,7 @@ namespace InfoRetrieval
                     while((currentLineInFile = Reader.ReadLine()) != null){
                         data.Append(currentLine);
                     }
-                    data.Append(pair.Value.m_Terms[pair.Key].writeDocumentToPostingFile(currentLine[PostNumber],true));
+         //           data.Append(pair.Value.m_Terms[pair.Key].WriteDocumentToPostingFile(currentLine[PostNumber],true));
                     data.Append(Environment.NewLine);
                     currentLine[PostNumber]++;
 
@@ -163,7 +163,7 @@ namespace InfoRetrieval
 
                     }
                     currentLineInFile = Reader.ReadLine();
-                    data.Append(currentLineInFile = currentLineInFile+( pair.Value.m_Terms[pair.Key].writeDocumentToPostingFile(currentLine[PostNumber],false)));
+         //           data.Append(currentLineInFile = currentLineInFile+( pair.Value.m_Terms[pair.Key].WriteDocumentToPostingFile(currentLine[PostNumber],false)));
                     while ((currentLineInFile = Reader.ReadLine()) != null)
                     {
                         data.Append(currentLineInFile);

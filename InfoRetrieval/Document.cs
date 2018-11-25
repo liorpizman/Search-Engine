@@ -12,15 +12,17 @@ namespace InfoRetrieval
         public string m_DOCNO { get; private set; }
         public StringBuilder m_DATE1 { get; private set; }
         public StringBuilder m_TI { get; private set; }
+        public StringBuilder m_CITY { get; private set; }
         public string m_TEXT { get; private set; }
 
 
-        public Document(string m_DOCNO, StringBuilder m_DATE1, StringBuilder m_TI, string m_TEXT)
+        public Document(string m_DOCNO, StringBuilder m_DATE1, StringBuilder m_TI, string m_TEXT, StringBuilder m_CITY)
         {
             this.m_DOCNO = m_DOCNO;
             this.m_DATE1 = m_DATE1;
             this.m_TI = m_TI;
             this.m_TEXT = m_TEXT;
+            this.m_CITY = m_CITY;
             this.m_termsInDictionary = new Dictionary<string, int>();
         }
 

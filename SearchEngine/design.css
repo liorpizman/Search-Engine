@@ -1,0 +1,26 @@
+.root {
+    -fx-background-image: url("logo.jpg");
+    -fx-background-size: stretch;
+}
+
+#runButton:hover {
+    -fx-background-color: #ffff99;
+    -fx-text-fill: #000000;
+}
+
+#browseInputButton:hover {
+    -fx-background-color: #ffff99;
+    -fx-text-fill: #000000;
+}
+
+#browseOutputButton:hover {
+    -fx-background-color: #ffff99;
+    -fx-text-fill: #000000;
+}
+
+#exitButton:hover {
+    -fx-background-color: #ffff99;
+    -fx-text-fill: #000000;
+}
+
+

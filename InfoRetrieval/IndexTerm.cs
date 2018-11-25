@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,62 +6,42 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-    class Term
+    class IndexTerm
     {
-        public string m_value;
-        public int m_amount;  // num of instances of m_value in current m_DOCNO
-        public string m_DOCNO;
-        public StringBuilder m_positions; //maybe list
+        public int df; //number of documents that contain the term
+        public int tf; //total frequency in corpus
+        public string m_value; //value of the term
         public int postNum;
         public int lineInPost;
+        //public bool updated;
 
-        public Term(string m_value, string docno)
+        public IndexTerm(string m_value, int postNum, int lineInPost)
         {
+            this.df = 0;
+            this.tf = 0;
+            //updated = true;
+            //initPostNumer();
             this.m_value = m_value;
-            this.m_amount = 1;
-            this.m_positions = new StringBuilder();
-            //add poisition index add in the constructor for the first step
-            this.m_DOCNO = docno;
-            InitPostNumer();  //////////////////// check if we need it
-            lineInPost = 0;   //////////////////// check if we need it
+            this.postNum = postNum;
+            this.lineInPost = lineInPost;
         }
 
-        public void AddNewIndex(int newPos)
+        public void IncreaseTf(int increase)
         {
-            m_positions.Append(newPos + " ");
-            this.m_amount++;
+            this.tf += increase;
         }
-
-        public StringBuilder WriteDocumentToPostingFileTerm()
+        public void IncreaseDf()
         {
-            StringBuilder data = new StringBuilder();
-            /*
-            if (set)
-            {
-                SetLine(line);
-                data.Append(m_value);                      //term value
-            }
-            */
-            //data.Append(m_value);
-            data.Append("\t");
-            data.Append(m_DOCNO);                      //document num of current term 
-            data.Append("\t");
-            data.Append(m_amount);                     // tf - term frequency in current doc
-            data.Append("\tpositions: ");
-            data.Append(m_positions);                  //all the indexes of the current term
-            return data;
+            this.df++;
         }
 
-        public void SetLine(int line)
-        {
-            lineInPost = line;
-        }
 
-        public void InitPostNumer()
+
+        public void initPostNumer()
         {
             if (m_value == "")
             {
-                postNum = 26;
+                postNum = 0;
             }
             else
             {
@@ -121,7 +100,7 @@ namespace InfoRetrieval
                     postNum = 25;
                 else
                 {
-                    postNum = 26;
+                    postNum = 0;
                 }
             }
 

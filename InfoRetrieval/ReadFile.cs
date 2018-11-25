@@ -41,7 +41,7 @@ namespace InfoRetrieval
                     parse.ParseMasterFile(currMasterFile);
                     i++;
                 }
-                //parse.m_allTerms.Clear();
+                parse.m_allTerms.Clear();
             }
         }
 
@@ -65,10 +65,11 @@ namespace InfoRetrieval
             {
                 allDocument = "<DOC>" + docs[i];
                 DOCNO = GetStringInBetween("<DOCNO>", "</DOCNO>", docs[i]);
-                StringBuilder DATE1 = new StringBuilder(GetStringInBetween("<DATE1>", "</DATE1>", docs[i]));  // add condition with DATE
+                StringBuilder DATE1 = new StringBuilder(GetDateInBetween(docs[i]));  // add condition with DATE
                 StringBuilder TI = new StringBuilder(GetStringInBetween("<TI>", "</TI>", docs[i]));
                 TEXT = GetStringInBetween("<TEXT>", "</TEXT>", docs[i]);                                     // add condition when TEXT does not exist
-                masterFile.m_documents.Add(DOCNO.ToString(), new Document(DOCNO, DATE1, TI, TEXT));
+                StringBuilder City = new StringBuilder(GetCityInBetween(docs[i]));
+                masterFile.m_documents.Add(DOCNO.ToString(), new Document(DOCNO, DATE1, TI, TEXT, City));
                 masterFile.m_docAmount++;
             }
         }
@@ -77,10 +78,41 @@ namespace InfoRetrieval
         {
             string[] firstSplit, secondSplit;
             firstSplit = strSource.Split(new[] { strBegin }, StringSplitOptions.None);
+            if (firstSplit.Length < 2)
+            {
+                return "";
+            }
             secondSplit = firstSplit[1].Split(new[] { strEnd }, StringSplitOptions.None);
             return secondSplit[0];
         }
 
+        public static string GetDateInBetween(string strSource)
+        {
+            string[] firstSplit, secondSplit;
+            if (strSource.Contains("<DATE1>"))
+            {
+                firstSplit = strSource.Split(new[] { "<DATE1>" }, StringSplitOptions.None);
+                secondSplit = firstSplit[1].Split(new[] { "</DATE1>" }, StringSplitOptions.None);
+            }
+            else
+            {
+                firstSplit = strSource.Split(new[] { "<DATE>" }, StringSplitOptions.None);
+                secondSplit = firstSplit[1].Split(new[] { "</DATE>" }, StringSplitOptions.None);
+            }
+            return secondSplit[0];
+        }
+
+        public static string GetCityInBetween(string strSource)
+        {
+            string[] firstSplit, secondSplit;
+            firstSplit = strSource.Split(new[] { "<F P=104>" }, StringSplitOptions.None);
+            if (firstSplit.Length < 2)
+            {
+                return "";
+            }
+            secondSplit = firstSplit[1].Split(new[] { "</F>" }, StringSplitOptions.None);
+            return secondSplit[0].Trim(' ').Split(' ')[0].ToUpper();
+        }
     }
 }
 

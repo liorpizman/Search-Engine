@@ -6,7 +6,36 @@
         xmlns:local="clr-namespace:SearchEngine"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
+    <Grid RenderTransformOrigin="0.5,0.5" Margin="0,0,-49,-45" HorizontalAlignment="Left" Width="566">
+        <Grid.RenderTransform>
+            <TransformGroup>
+                <ScaleTransform/>
+                <SkewTransform/>
+                <RotateTransform Angle="0.03"/>
+                <TranslateTransform/>
+            </TransformGroup>
+        </Grid.RenderTransform>
+        <Button x:Name="runButton" Content="Run" HorizontalAlignment="Left" Margin="18,138,0,0" VerticalAlignment="Top" Width="69" Height="23" RenderTransformOrigin="0.272,0.45" Click="Run_button_Clicked"/>
+        <CheckBox Content="Stemming" HorizontalAlignment="Left" Height="19" Margin="18,114,0,0" VerticalAlignment="Top" Width="85" Checked="CheckBox_Checked" Unchecked="CheckBox_UnChecked"/>
+        <TextBlock HorizontalAlignment="Left" Height="22" Margin="18,18,0,0" TextWrapping="Wrap" Text="Input Path" VerticalAlignment="Top" Width="62" RenderTransformOrigin="0.5,0.5">
+            <TextBlock.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="0.583"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </TextBlock.RenderTransform>
+        </TextBlock>
+        <TextBlock HorizontalAlignment="Left" Height="23" Margin="18,63,0,0" TextWrapping="Wrap" Text="Output Path" VerticalAlignment="Top" Width="94"/>
+        <TextBox x:Name="inputPathText" HorizontalAlignment="Left" Height="22" Margin="18,34,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="330"/>
+        <TextBox x:Name="outputPathText" HorizontalAlignment="Left" Height="23" Margin="18,79,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="330"/>
+        <Button x:Name="browseInputButton" Content="Browse" HorizontalAlignment="Left" Height="23" Margin="384,34,0,0" VerticalAlignment="Top" Width="91" Click="Input_browse_Clicked"/>
+        <Button x:Name="browseOutputButton" Content="Browse" HorizontalAlignment="Left" Height="23" Margin="384,79,0,0" VerticalAlignment="Top" Width="91" Click="Output_browse_Clicked"/>
+        <Button x:Name="exitButton" Content="Exit" HorizontalAlignment="Left" Height="22" Margin="456,281,0,0" VerticalAlignment="Top" Width="49" Click="Exit_button_Clicked"/>
+        <Button x:Name="displayDicButton" Content="Display dictionary" HorizontalAlignment="Left" Height="23" Margin="376,138,0,0" VerticalAlignment="Top" Width="108"/>
+        <Button x:Name="resetButton" Content="Reset" HorizontalAlignment="Left" Height="23" Margin="125,139,0,0" VerticalAlignment="Top" Width="69"/>
+        <Button x:Name="loadDicButton" Content="Load dictionary" HorizontalAlignment="Left" Height="23" Margin="376,178,0,0" VerticalAlignment="Top" Width="108"/>
+
     </Grid>
 </Window>
