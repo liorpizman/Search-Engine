@@ -37,7 +37,7 @@ namespace InfoRetrieval
 
 
 
-        public void initPostNumer()
+        public void InitPostNumer()
         {
             if (m_value == "")
             {

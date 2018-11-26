@@ -17,8 +17,8 @@ namespace InfoRetrieval
         public static int[] currentLine = new int[27];
         public static Dictionary<string, IndexTerm>[] dictionarys = new Dictionary<string, IndexTerm>[27];
         public Dictionary<string, DocumentTerms> tempDic;
-        StreamWriter Writer ;
-        StreamReader Reader ; /////////////////// has to changed
+        StreamWriter Writer;
+        StreamReader Reader; /////////////////// has to changed
 
         public NewIndexer(bool doStemming, string m_outPutPath)
         {
@@ -41,7 +41,7 @@ namespace InfoRetrieval
         // fileName = "fileNameToCreate.txt" (including .txt)
         // mydocpath = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder"; // change to path from GUI
         // dataToFile = "add here the data structure!"
-        public void createTxtFile(string fileName, StringBuilder dataToFile)
+        public void CreateTxtFile(string fileName, StringBuilder dataToFile)
         {
             if (!Directory.Exists(m_outPutPath))
             {
@@ -61,17 +61,17 @@ namespace InfoRetrieval
             {
                 foreach (Document d in m.m_documents.Values)
                 {
-                    data.Append(d.writeDocumentToIndexFile());
+                    data.Append(d.WriteDocumentToIndexFile());
                     data.Append(Environment.NewLine);
                     //data.Append(Environment.NewLine);
                 }
             }
-            createTxtFile("Documents.txt", data);
+            CreateTxtFile("Documents.txt", data);
 
         }
 
 
-        public void writeToIndexFile(Dictionary<string, DocumentTerms> documentTermsDic)
+        public void WriteToIndexFile(Dictionary<string, DocumentTerms> documentTermsDic)
         {
             StringBuilder data = new StringBuilder();
             foreach (string termValue in documentTermsDic.Keys)
@@ -83,16 +83,16 @@ namespace InfoRetrieval
                 data.Append(documentTermsDic[termValue].m_tfc);           // tfc - num of term instances in all files
                 data.Append(Environment.NewLine);
             }
-            createTxtFile("Dictionary.txt", data);
+            CreateTxtFile("Dictionary.txt", data);
         }
 
         public void CreatePostingFiles()
         {
             StringBuilder data = new StringBuilder();
-            for (int i = 0; i < 27;  i++)
+            for (int i = 0; i < 27; i++)
             {
-                createTxtFile("Posting"+i+".txt", data);
-                createTxtFile("NewPosting" + i + ".txt", data);
+                CreateTxtFile("Posting" + i + ".txt", data);
+                CreateTxtFile("NewPosting" + i + ".txt", data);
             }
 
         }
@@ -125,7 +125,7 @@ namespace InfoRetrieval
                     currentTerm.IncreaseTf(pair.Value.m_tfc);
                     currentTerm.IncreaseDf();
                     dictionarys[postNum].Add(pair.Key, currentTerm);
-                    Writer.WriteLine(pair.Value.writeToPostingFileDocDocTerm(false));
+                    Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));
 
                 }
                 tempDic.Clear();
@@ -149,10 +149,10 @@ namespace InfoRetrieval
             }
         }
 
-        public void currentPosting(int termPost , int currentPos)
+        public void currentPosting(int termPost, int currentPos)
         {
             bool check = Writer != null && Reader != null;
-            if (currentPos ==-1 || termPost!=currentPos)
+            if (currentPos == -1 || termPost != currentPos)
             {
                 if (check)
                 {
@@ -161,8 +161,8 @@ namespace InfoRetrieval
                     Reader.Close();
                 }
 
-                Writer = new StreamWriter(Path.Combine(m_outPutPath, "NewPosting" +termPost+".txt"));
-                Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting"+termPost+".txt")); /////////////////// has to changed
+                Writer = new StreamWriter(Path.Combine(m_outPutPath, "NewPosting" + termPost + ".txt"));
+                Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt")); /////////////////// has to changed
             }
 
         }
@@ -180,14 +180,14 @@ namespace InfoRetrieval
                 }
 
                 Writer = new StreamWriter(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt"));
-               // Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt")); /////////////////// has to changed
+                // Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt")); /////////////////// has to changed
             }
 
         }
 
         public void UpdatePosting()
         {
-            int PostNumber=-1, LineNumber, currentLineNumber = 0;
+            int PostNumber = -1, LineNumber, currentLineNumber = 0;
             StringBuilder data = new StringBuilder();
             //createTxtFile("NewPosting.txt", data);
 
@@ -196,7 +196,7 @@ namespace InfoRetrieval
                 //StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, "newPost " + pair.Value.m_Terms[pair.Key].postNum+".txt"));
 
                 ///////////////////////// here need to add the definition of the file we wrote
-                currentPosting(pair.Value.postNum,PostNumber);
+                currentPosting(pair.Value.postNum, PostNumber);
                 string currentLineInFile;
                 currentLineNumber = currentLine[PostNumber];
 
@@ -214,7 +214,7 @@ namespace InfoRetrieval
                         }
                     }
                     currentLineInFile = Reader.ReadLine();
-                    Writer.WriteLine(currentLineInFile + pair.Value.writeToPostingFileDocDocTerm(true));
+                    Writer.WriteLine(currentLineInFile + pair.Value.WriteToPostingFileDocDocTerm(true));
                     dictionarys[PostNumber][pair.Key].IncreaseTf(pair.Value.m_tfc);
                     dictionarys[PostNumber][pair.Key].IncreaseDf();
                     //currentLineNumber++;
@@ -227,26 +227,13 @@ namespace InfoRetrieval
                     currentTerm.IncreaseTf(pair.Value.m_tfc);
                     currentTerm.IncreaseDf();
                     dictionarys[PostNumber].Add(pair.Key, currentTerm);
-                    Writer.WriteLine(pair.Value.writeToPostingFileDocDocTerm(false));
+                    Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));
 
                 }
 
 
-
-               
-
-
-
-
-
-
-
                 /*
-                
-
-
-
-
+   
                 PostNumber = GetPostNumer(pair.Key);
                 if (dictionarys[PostNumber].ContainsKey(pair.Value.m_valueOfTerm))
                 {
@@ -310,7 +297,6 @@ namespace InfoRetrieval
         }
 
 
-
         private void InitTerms()
         {
             foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
@@ -323,8 +309,6 @@ namespace InfoRetrieval
             }
             this.tempDic = tempDic.OrderBy(i => i.Value.postNum).ThenBy(i => i.Value.line).ToDictionary(p => p.Key, p => p.Value); ;
         }
-
-
 
 
 
