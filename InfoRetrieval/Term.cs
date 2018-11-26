@@ -10,17 +10,17 @@ namespace InfoRetrieval
     class Term
     {
         public string m_value;
-        public int m_amount;  // num of instances of m_value in current m_DOCNO
+        public int m_tf;  // num of instances of m_value in current m_DOCNO
         public string m_DOCNO;
         public StringBuilder m_positions; //maybe list
         public int postNum;
         public int lineInPost;
 
-        public Term(string m_value, string docno)
+        public Term(string m_value, string docno, int newPOS)
         {
             this.m_value = m_value;
-            this.m_amount = 1;
-            this.m_positions = new StringBuilder();
+            this.m_tf = 1;
+            this.m_positions = new StringBuilder(newPOS);
             //add poisition index add in the constructor for the first step
             this.m_DOCNO = docno;
             InitPostNumer();  //////////////////// check if we need it
@@ -30,7 +30,7 @@ namespace InfoRetrieval
         public void AddNewIndex(int newPos)
         {
             m_positions.Append(newPos + " ");
-            this.m_amount++;
+            this.m_tf++;
         }
 
         public StringBuilder WriteDocumentToPostingFileTerm()
@@ -47,7 +47,7 @@ namespace InfoRetrieval
             data.Append("\t");
             data.Append(m_DOCNO);                      //document num of current term 
             data.Append("\t");
-            data.Append(m_amount);                     // tf - term frequency in current doc
+            data.Append(m_tf);                     // tf - term frequency in current doc
             data.Append("\tpositions: ");
             data.Append(m_positions);                  //all the indexes of the current term
             return data;

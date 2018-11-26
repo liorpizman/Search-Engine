@@ -20,6 +20,9 @@ namespace InfoRetrieval
         public Hashtable m_lengths;
         private Stemmer m_stemmer;
         private static int countPos = 0;
+        private Document tmpDoc = null;
+        public Hashtable m_IndexDoc;
+        private int _MAX_TF = 0;
 
         // for test run time
         public static int _count_BigLetter = 0;
@@ -48,6 +51,7 @@ namespace InfoRetrieval
             this.m_times = new Hashtable();
             this.m_lengths = new Hashtable();
             this.m_stopWords = new HashSet<string>();
+            this.m_IndexDoc = new Hashtable();
             AddMonths();
             AddPrices();
             AddNums();
@@ -90,18 +94,16 @@ namespace InfoRetrieval
 
         public void AddStopWords(string filePath)
         {
+            string s = "";
+            char[] delimitersToSplit = { '\r', '\n' };
             try
             {
                 StreamReader sr = new StreamReader(filePath + "\\stop_words.txt");
-                string line = sr.ReadLine();
-                while (line != null)
-                {
-                    m_stopWords.Add(line);
-                    line = sr.ReadLine();
-                }
+                s = sr.ReadToEnd();
                 sr.Close();
             }
             catch (Exception e) { Console.WriteLine("Exception-(Parse.addStopWords): " + e.Message); }
+            m_stopWords = new HashSet<string>(s.Split(delimitersToSplit, StringSplitOptions.RemoveEmptyEntries));
         }
 
         public static double FractionToDouble(string fraction)// convert 3 4/5 ------------> 3.8
@@ -132,20 +134,30 @@ namespace InfoRetrieval
         {
             if (m_allTerms.ContainsKey(current))
             {
-                m_allTerms[current].m_tfc++;
+                //m_allTerms[current].m_tfc++;
                 if (m_allTerms[current].m_Terms.ContainsKey(DOCNO))
-                { m_allTerms[current].m_Terms[DOCNO].AddNewIndex(countPos); }
+                {
+                    m_allTerms[current].m_Terms[DOCNO].AddNewIndex(countPos);
+                }
                 else
-                { m_allTerms[current].m_Terms.Add(DOCNO, new Term(current, DOCNO)); }
+                {
+                    m_allTerms[current].m_Terms.Add(DOCNO, new Term(current, DOCNO, countPos));
+                    tmpDoc.m_uniqueCounter++;
+                }
                 countPos++;
             }
             else
             {
                 DocumentTerms documentTerms = new DocumentTerms(current);
-                documentTerms.AddToDocumentDictionary(new Term(current, DOCNO));
+                documentTerms.AddToDocumentDictionary(new Term(current, DOCNO, countPos));
                 m_allTerms.Add(current, documentTerms);
                 m_allTerms[current].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                tmpDoc.m_uniqueCounter++;
                 countPos++;
+            }
+            if (m_allTerms[current].m_Terms[DOCNO].m_tf > _MAX_TF)
+            {
+                _MAX_TF = m_allTerms[current].m_Terms[DOCNO].m_tf;
             }
         }
 
@@ -155,20 +167,26 @@ namespace InfoRetrieval
             string lower, upper;
             if (m_allTerms.ContainsKey(lower = current.ToLower()))
             {
-                m_allTerms[lower].m_tfc++;
+                //m_allTerms[lower].m_tfc++;
                 if (m_allTerms[lower].m_Terms.ContainsKey(DOCNO))
                 { m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos); }
                 else
-                { m_allTerms[lower].m_Terms.Add(DOCNO, new Term(lower, DOCNO)); }
+                {
+                    m_allTerms[lower].m_Terms.Add(DOCNO, new Term(lower, DOCNO, countPos));
+                    tmpDoc.m_uniqueCounter++;
+                }
                 countPos++;
             }
             else if (m_allTerms.ContainsKey(upper = current.ToUpper()))
             {
-                m_allTerms[upper].m_tfc++;
+                //m_allTerms[upper].m_tfc++;
                 if (m_allTerms[upper].m_Terms.ContainsKey(DOCNO))
                 { m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos); }
                 else
-                { m_allTerms[upper].m_Terms.Add(DOCNO, new Term(upper, DOCNO)); }
+                {
+                    m_allTerms[upper].m_Terms.Add(DOCNO, new Term(upper, DOCNO, countPos));
+                    tmpDoc.m_uniqueCounter++;
+                }
                 DocumentTerms tmpDocumentTerms = m_allTerms[upper];
                 tmpDocumentTerms.m_valueOfTerm = lower;
                 m_allTerms.Remove(upper);
@@ -178,10 +196,15 @@ namespace InfoRetrieval
             else
             {
                 DocumentTerms documentTerms = new DocumentTerms(lower);
-                documentTerms.AddToDocumentDictionary(new Term(lower, DOCNO));
+                documentTerms.AddToDocumentDictionary(new Term(lower, DOCNO, countPos));
                 m_allTerms.Add(lower, documentTerms);
                 m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                tmpDoc.m_uniqueCounter++;
                 countPos++;
+            }
+            if (m_allTerms[lower].m_Terms[DOCNO].m_tf > _MAX_TF)
+            {
+                _MAX_TF = m_allTerms[lower].m_Terms[DOCNO].m_tf;
             }
         }
 
@@ -191,29 +214,48 @@ namespace InfoRetrieval
             string upper;
             if (m_allTerms.ContainsKey(lower))
             {
-                m_allTerms[lower].m_tfc++;
+                //m_allTerms[lower].m_tfc++;
                 if (m_allTerms[lower].m_Terms.ContainsKey(DOCNO))
                 { m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos); }
                 else
-                { m_allTerms[lower].m_Terms.Add(DOCNO, new Term(lower, DOCNO)); }
+                {
+                    m_allTerms[lower].m_Terms.Add(DOCNO, new Term(lower, DOCNO, countPos));
+                    tmpDoc.m_uniqueCounter++;
+                }
                 countPos++;
+                if (m_allTerms[lower].m_Terms[DOCNO].m_tf > _MAX_TF)
+                {
+                    _MAX_TF = m_allTerms[lower].m_Terms[DOCNO].m_tf;
+                }
             }
             else if (m_allTerms.ContainsKey(upper = lower.ToUpper()))
             {
-                m_allTerms[upper].m_tfc++;
+                //m_allTerms[upper].m_tfc++;
                 if (m_allTerms[upper].m_Terms.ContainsKey(DOCNO))
                 { m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos); }
                 else
-                { m_allTerms[upper].m_Terms.Add(DOCNO, new Term(upper, DOCNO)); }
+                {
+                    m_allTerms[upper].m_Terms.Add(DOCNO, new Term(upper, DOCNO, countPos));
+                    tmpDoc.m_uniqueCounter++;
+                }
                 countPos++;
+                if (m_allTerms[upper].m_Terms[DOCNO].m_tf > _MAX_TF)
+                {
+                    _MAX_TF = m_allTerms[upper].m_Terms[DOCNO].m_tf;
+                }
             }
             else
             {
                 DocumentTerms documentTerms = new DocumentTerms(upper);
-                documentTerms.AddToDocumentDictionary(new Term(upper, DOCNO));
+                documentTerms.AddToDocumentDictionary(new Term(upper, DOCNO, countPos));
                 m_allTerms.Add(upper, documentTerms);
                 m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                tmpDoc.m_uniqueCounter++;
                 countPos++;
+                if (m_allTerms[upper].m_Terms[DOCNO].m_tf > _MAX_TF)
+                {
+                    _MAX_TF = m_allTerms[upper].m_Terms[DOCNO].m_tf;
+                }
             }
         }
 
@@ -285,14 +327,6 @@ namespace InfoRetrieval
                 return (number / 1000000).ToString() + "M Dollars";
         }
 
-        public void ParseMasterFile(masterFile file)
-        {
-            foreach (Document document in file.m_documents.Values)
-            {
-                ParseDocuments(document);
-            }
-        }
-
         public bool SuitableToAnyCase(string currValue)
         {
             if (string.Equals(currValue, "u.s", StringComparison.OrdinalIgnoreCase) || string.Equals(currValue, "dollars", StringComparison.OrdinalIgnoreCase) ||
@@ -303,6 +337,17 @@ namespace InfoRetrieval
                 return true;
             }
             return false;
+        }
+
+        public void ParseMasterFile(masterFile file)//
+        {
+            //foreach (masterFile masterFile in ReadFile.m_files.Values)
+            //{
+            foreach (Document document in file.m_documents.Values)
+            {//masterFile.m_documents.Values            
+                ParseDocuments(document);
+            }
+            //}
         }
 
         public void ParseDocuments(Document document)
@@ -316,7 +361,9 @@ namespace InfoRetrieval
             string[] tokens = tokens = document.m_TEXT.Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
             string[] splittedNums, splittedWords;
             int tokensSize = tokens.Length;
+            _MAX_TF = 0;
             countPos = -1;
+            tmpDoc = document;
             for (int tokIndex = 0; tokIndex < tokensSize; tokIndex++)
             {
                 currValue = tokens[tokIndex] = tokens[tokIndex].Trim(toDelete);     // must be before the check of length
@@ -632,6 +679,7 @@ namespace InfoRetrieval
                     } // end of all cases
                 } // end of the if length >=2
             } // end of for loop
+            m_IndexDoc.Add(currDOCNO, new IndexDoc(_MAX_TF, tmpDoc.m_uniqueCounter, tmpDoc.m_CITY));
         } // end of ParseDocuments function
     }
 }

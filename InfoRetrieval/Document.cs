@@ -14,6 +14,8 @@ namespace InfoRetrieval
         public StringBuilder m_TI { get; private set; }
         public StringBuilder m_CITY { get; private set; }
         public string m_TEXT { get; private set; }
+        public int m_uniqueCounter { get; set; }
+        public int m_maxTF { get; private set; }
 
 
         public Document(string m_DOCNO, StringBuilder m_DATE1, StringBuilder m_TI, string m_TEXT, StringBuilder m_CITY)
@@ -23,7 +25,9 @@ namespace InfoRetrieval
             this.m_TI = m_TI;
             this.m_TEXT = m_TEXT;
             this.m_CITY = m_CITY;
-            this.m_termsInDictionary = new Dictionary<string, int>();
+            this.m_uniqueCounter = 0;
+            this.m_maxTF = 0;
+            this.m_termsInDictionary = new Dictionary<string, int>();               // we should check if we need delete this??
         }
 
 

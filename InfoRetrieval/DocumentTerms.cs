@@ -9,8 +9,8 @@ namespace InfoRetrieval
     class DocumentTerms
     {
         public string m_valueOfTerm;
-        public int m_tfc;
-        public Dictionary<string, Term> m_Terms;
+        //public int m_totalFreqCorpus;
+        public Dictionary<string, Term> m_Terms;   // df- m_Terms.length
         public int line;
         public int postNum;
 
@@ -18,7 +18,7 @@ namespace InfoRetrieval
         public DocumentTerms(string value)
         {
             this.m_valueOfTerm = value;
-            this.m_tfc = 0;
+            //this.m_totalFreqCorpus = 0;
             this.m_Terms = new Dictionary<string, Term>();
             initPostNumer();
             line = Int32.MaxValue;
@@ -26,8 +26,8 @@ namespace InfoRetrieval
 
         public void AddToDocumentDictionary(Term term)
         {
-            this.m_Terms.Add(term.m_DOCNO, term); //this.m_Terms.Add(term.m_value, term);
-            this.m_tfc++;
+            this.m_Terms.Add(term.m_DOCNO, term);
+            //this.m_totalFreqCorpus++;
         }
 
         public StringBuilder WriteToPostingFileDocDocTerm(bool printed)

@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Document.cs" />
     <Compile Include="DocumentTerms.cs" />
+    <Compile Include="IndexDoc.cs" />
     <Compile Include="Indexer.cs" />
     <Compile Include="IndexTerm.cs" />
     <Compile Include="masterFile.cs" />

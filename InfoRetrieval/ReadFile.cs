@@ -16,6 +16,7 @@ namespace InfoRetrieval
         public string[] m_paths;
         public int m_indexCurrFile;
         public int m_maxFiles = 16;
+        public bool readerThreadFinished = false;
 
         public ReadFile(string m_mainPath)
         {
@@ -28,20 +29,32 @@ namespace InfoRetrieval
             Parse parse = new Parse(true, m_mainPath);
             string[] directories = Directory.GetDirectories(Directory.GetDirectories(m_mainPath)[0]);
             m_paths = new string[directories.Length];
+            //Thread[] threads = new Thread[10];
             for (int index = 0; index < directories.Length; index++)
             {
-                m_paths[index] = Directory.GetFiles(directories[index])[0];                           /// check wether one file in one folder
+                m_paths[index] = Directory.GetFiles(directories[index])[0];                  /// check wether one file in one folder
             }
             masterFile currMasterFile = null;
+            //Thread readThread = new Thread(new ThreadStart(() => ReadAllFiles()));
+            //readThread.Start();
             for (int i = 0; i < m_paths.Length;)
             {
                 for (int j = 0; j < m_maxFiles && i < m_paths.Length; j++)
                 {
-                    currMasterFile = ReadNewFile(m_paths[i]);
+                    currMasterFile = ReadNewFile(m_paths[i]); //currMasterFile = 
                     parse.ParseMasterFile(currMasterFile);
                     i++;
                 }
                 parse.m_allTerms.Clear();
+            }
+            //readThread.Join();
+        }
+
+        private void ReadAllFiles()
+        {
+            for (int i = 0; i < m_paths.Length; i++)
+            {
+                ReadNewFile(m_paths[i]);
             }
         }
 
@@ -60,10 +73,10 @@ namespace InfoRetrieval
         {
             string content = File.ReadAllText(file);                                      //check run time!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             string[] docs = content.Split(new[] { "<DOC>" }, StringSplitOptions.None);
-            string allDocument, DOCNO, TEXT;
+            string DOCNO, TEXT; //allDocument,
             for (int i = 1; i < docs.Length; i++)
             {
-                allDocument = "<DOC>" + docs[i];
+                //allDocument = "<DOC>" + docs[i];
                 DOCNO = GetStringInBetween("<DOCNO>", "</DOCNO>", docs[i]);
                 StringBuilder DATE1 = new StringBuilder(GetDateInBetween(docs[i]));  // add condition with DATE
                 StringBuilder TI = new StringBuilder(GetStringInBetween("<TI>", "</TI>", docs[i]));

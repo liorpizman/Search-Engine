@@ -24,10 +24,13 @@ namespace SearchEngine
     public partial class MainWindow : Window
     {
         public static bool m_doStemming = false;
+        public static bool isResetOn = false;
 
         public MainWindow()
         {
             InitializeComponent();
+            languagesComboBox.Items.Insert(0, "Choose...");
+            languagesComboBox.SelectedIndex = 0;
         }
 
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
@@ -103,5 +106,28 @@ namespace SearchEngine
             // run all methods here!!!
         }
 
+        private void resetButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (outputPathText.Text.Equals(""))
+            {
+                string message = "The are no dictionary or posting files in the path you specified!";
+                string caption = "Reset Search Engine Process";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+            }
+            else
+            {
+                string pathWithStem = System.IO.Path.Combine(outputPathText.Text, "WithStem");
+                string pathWithOutStem = System.IO.Path.Combine(outputPathText.Text, "WithOutStem");
+                if (Directory.Exists(pathWithStem))
+                    Directory.Delete(pathWithStem, true);
+                if (Directory.Exists(pathWithOutStem))
+                    Directory.Delete(pathWithOutStem, true);
+                string message = "The search engine initialization was successful!";
+                string caption = "Reset Search Engine Process";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+            }
+        }
     }
 }

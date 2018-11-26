@@ -79,8 +79,8 @@ namespace InfoRetrieval
                 data.Append(termValue);                                   // value of the term
                 data.Append("\t");
                 data.Append(documentTermsDic[termValue].m_Terms.Count);   // df - N docs - num of docs the term exists
-                data.Append("\t");
-                data.Append(documentTermsDic[termValue].m_tfc);           // tfc - num of term instances in all files
+               // data.Append("\t");
+               // data.Append(documentTermsDic[termValue].m_tfc);           // tfc - num of term instances in all files
                 data.Append(Environment.NewLine);
             }
             CreateTxtFile("Dictionary.txt", data);
@@ -122,7 +122,7 @@ namespace InfoRetrieval
                     postNum = pair.Value.postNum;
                     IndexTerm currentTerm = new IndexTerm(pair.Key, postNum, currentLine[postNum]);
                     currentLine[postNum]++;
-                    currentTerm.IncreaseTf(pair.Value.m_tfc);
+                    //currentTerm.IncreaseTf(pair.Value.m_tfc);
                     currentTerm.IncreaseDf();
                     dictionarys[postNum].Add(pair.Key, currentTerm);
                     Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));
@@ -215,7 +215,7 @@ namespace InfoRetrieval
                     }
                     currentLineInFile = Reader.ReadLine();
                     Writer.WriteLine(currentLineInFile + pair.Value.WriteToPostingFileDocDocTerm(true));
-                    dictionarys[PostNumber][pair.Key].IncreaseTf(pair.Value.m_tfc);
+                    //dictionarys[PostNumber][pair.Key].IncreaseTf(pair.Value.m_tfc);
                     dictionarys[PostNumber][pair.Key].IncreaseDf();
                     //currentLineNumber++;
                 }
@@ -224,7 +224,7 @@ namespace InfoRetrieval
                     IndexTerm currentTerm = new IndexTerm(pair.Key, PostNumber, currentLine[PostNumber]);
                     LineNumber = currentLine[PostNumber];
                     currentLine[PostNumber]++;
-                    currentTerm.IncreaseTf(pair.Value.m_tfc);
+                   // currentTerm.IncreaseTf(pair.Value.m_tfc);
                     currentTerm.IncreaseDf();
                     dictionarys[PostNumber].Add(pair.Key, currentTerm);
                     Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));

@@ -70,8 +70,8 @@ namespace InfoRetrieval
                 data.Append(termValue);                                   // value of the term
                 data.Append("\t");
                 data.Append(documentTermsDic[termValue].m_Terms.Count);   // df - N docs - num of docs the term exists
-                data.Append("\t");
-                data.Append(documentTermsDic[termValue].m_tfc);           // tfc - num of term instances in all files
+                //data.Append("\t");
+                //data.Append(documentTermsDic[termValue].m_tfc);           // tfc - num of term instances in all files
                 data.Append(Environment.NewLine);
             }
             createTxtFile("Dictionary.txt", data);
@@ -87,7 +87,7 @@ namespace InfoRetrieval
                 foreach (KeyValuePair<string, DocumentTerms> pair in documentTermsDic)
                 {
                     postNum = pair.Value.m_Terms[pair.Key].postNum;
-                   // data.Append(pair.Value.m_Terms[pair.Key].WriteDocumentToPostingFile(currentLine[postNum],true)); //writing all terms in current document term
+                    // data.Append(pair.Value.m_Terms[pair.Key].WriteDocumentToPostingFile(currentLine[postNum],true)); //writing all terms in current document term
                     data.Append(Environment.NewLine);
                     ////////////////////////////////////////////////
                     dictionarysArray[postNum].Add(pair.Value.m_valueOfTerm, pair.Value.m_Terms[pair.Key]);
@@ -114,14 +114,14 @@ namespace InfoRetrieval
         {
             for (int i = 0; i < 27; i++)
             {
-                dictionarysArray[i]= new Dictionary<string, Term>();
+                dictionarysArray[i] = new Dictionary<string, Term>();
                 currentLine[i] = 0;
             }
         }
 
         public void UpdatePosting(Dictionary<string, DocumentTerms> tmpTermsDic)
         {
-            int PostNumber,LineNumber;
+            int PostNumber, LineNumber;
             StringBuilder data = new StringBuilder();
             foreach (KeyValuePair<string, DocumentTerms> pair in tmpTermsDic)
             {
@@ -130,7 +130,8 @@ namespace InfoRetrieval
                 string currentLineInFile;
 
                 PostNumber = pair.Value.m_Terms[pair.Key].postNum;
-                if (dictionarysArray[PostNumber].ContainsKey(pair.Value.m_valueOfTerm)){
+                if (dictionarysArray[PostNumber].ContainsKey(pair.Value.m_valueOfTerm))
+                {
                     LineNumber = dictionarysArray[PostNumber][pair.Value.m_valueOfTerm].lineInPost;
                 }
                 else
@@ -141,10 +142,11 @@ namespace InfoRetrieval
 
                 if (LineNumber == -1)
                 {
-                    while((currentLineInFile = Reader.ReadLine()) != null){
+                    while ((currentLineInFile = Reader.ReadLine()) != null)
+                    {
                         data.Append(currentLine);
                     }
-         //           data.Append(pair.Value.m_Terms[pair.Key].WriteDocumentToPostingFile(currentLine[PostNumber],true));
+                    //           data.Append(pair.Value.m_Terms[pair.Key].WriteDocumentToPostingFile(currentLine[PostNumber],true));
                     data.Append(Environment.NewLine);
                     currentLine[PostNumber]++;
 
@@ -163,7 +165,7 @@ namespace InfoRetrieval
 
                     }
                     currentLineInFile = Reader.ReadLine();
-         //           data.Append(currentLineInFile = currentLineInFile+( pair.Value.m_Terms[pair.Key].WriteDocumentToPostingFile(currentLine[PostNumber],false)));
+                    //data.Append(currentLineInFile = currentLineInFile+( pair.Value.m_Terms[pair.Key].WriteDocumentToPostingFile(currentLine[PostNumber],false)));
                     while ((currentLineInFile = Reader.ReadLine()) != null)
                     {
                         data.Append(currentLineInFile);
