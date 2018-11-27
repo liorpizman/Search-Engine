@@ -37,7 +37,7 @@ namespace InfoRetrieval
 
         public StringBuilder PrintTerm()
         {
-            return new StringBuilder(m_value + "\t" + "df: " + df + "\t" + "tf: " + tf);
+            return new StringBuilder(m_value + "#" + "df: " + df + "#" + "tf: " + tf);
         }
 
         /*
@@ -48,8 +48,6 @@ namespace InfoRetrieval
             return data;
         }
         */
-
-
 
         public void InitPostNumer()
         {

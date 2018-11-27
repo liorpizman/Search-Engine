@@ -11,22 +11,58 @@ namespace InfoRetrieval
 {
     class Parse
     {
-        private bool m_doStemming;
-        public HashSet<string> m_stopWords;
         public Dictionary<string, DocumentTerms> m_allTerms;
+        public Hashtable m_IndexDoc;
+        public bool m_doStemming;
+        private int _MAX_TF = 0;
+        private int countPos = 0;
+        private Document tmpDoc = null;
+        public HashSet<string> m_stopWords;
         public Hashtable m_months;
         public Hashtable m_nums;
         public Hashtable m_prices;
         public Hashtable m_times;
         public Hashtable m_lengths;
         private Stemmer m_stemmer;
+        /*
+        public static bool m_doStemming;
+        private static int _MAX_TF = 0;
         private static int countPos = 0;
-        private Document tmpDoc = null;
-        public Hashtable m_IndexDoc;
-        private int _MAX_TF = 0;
+        private static Document tmpDoc = null;
+        public static HashSet<string> m_stopWords = new HashSet<string>();
+        public static Hashtable m_months = new Hashtable()
+        {
+            { "jan", "01" }, {"feb", "02" }, {"mar", "03" }, {"apr", "04" },{"may", "05" },
+            { "jun", "06" }, {"jul", "07" }, {"aug", "08" }, {"sep", "09" },{"oct", "10" },
+            { "nov", "11" }, {"dec", "12" }, {"january", "01" }, {"february", "02" }, {"march", "03" },
+            {"april", "04" }, {"june", "06" },{"july", "07" },{"august", "08" }, {"september", "09" },
+            {"october", "10" }, {"november", "11" },{"december", "12" } // ("may", "05");}
+        };
+        public static Hashtable m_nums = new Hashtable()
+        {
+            { "million", "M" },{"billion", "B" }, {"trillion", "000B" },{"thousand", "K" }
+        };
+        public static Hashtable m_prices = new Hashtable()
+        {
+            { "million", " M Dollars" },{"billion", "000 M Dollars" },{"trillion", "000000 M Dollars" },
+            {"m", " M Dollars" }, {"bn", "000 M Dollars" }
+        };
+        public static Hashtable m_times = new Hashtable()
+        {
+            { "second", "sec" },{"seconds", "sec"}, {"minutes", "min"}, {"minute", "min"},
+            {"hours", "hr"}, {"hour", "hr"}
+        };
+        public static Hashtable m_lengths = new Hashtable()
+        {
+            { "meters", "meter" },{"meter", "meter"}, {"foot", "ft"},{"kilometere", "km"},
+            {"kilometers", "km"}, {"centimeter", "cm"}, {"centimeters", "cm"}
+        };
+        private static Stemmer m_stemmer = new Stemmer();
+        */
         //public Dictionary<string, DocumentTerms> m_tmp = new Dictionary<string, DocumentTerms>();
 
         // for test run time
+        /*
         public static int _count_BigLetter = 0;
         public static int _count_percentage = 0;
         public static int _count_Dollars = 0;
@@ -41,6 +77,7 @@ namespace InfoRetrieval
         public static int _count_number = 0;
         public static int _count_fraction = 0;
         public static int _count_else = 0;
+        */
 
         public Parse(bool m_doStemming, string stopWordsPath) //
         {
@@ -61,6 +98,7 @@ namespace InfoRetrieval
             AddLengths();
             AddStopWords(stopWordsPath);
         }
+
 
         public void AddMonths()
         {
@@ -382,11 +420,8 @@ namespace InfoRetrieval
         public void ParseDocuments(Document document)
         {
             string currValue = "", numValue = "", stemmedValue = "", firstVal = "", secondVal = "", currDOCNO = document.m_DOCNO.Trim(' ');
-            StringBuilder firstTerm = new StringBuilder();
-            StringBuilder secondTerm = new StringBuilder();
-            StringBuilder thirdTerm = new StringBuilder();
             char[] delimiterChars = { ' ', '\n' };
-            char[] toDelete = { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"' };
+            char[] toDelete = { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"', '?', '!', '@', '\'' }; // add all trim delimiters
             string[] tokens = tokens = document.m_TEXT.Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
             string[] splittedNums, splittedWords;
             int tokensSize = tokens.Length;

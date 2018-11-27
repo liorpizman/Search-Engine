@@ -18,5 +18,10 @@ namespace InfoRetrieval
             this.m_uniqueCouner = m_uniqueCouner;
             this.m_City = m_City;
         }
+
+        public StringBuilder PrintDocumentData()
+        {
+            return new StringBuilder("#" + "mxTF: " + m_mxTF + "#" + "unique: " + m_uniqueCouner + "#" + "city: " + m_City);
+        }
     }
 }

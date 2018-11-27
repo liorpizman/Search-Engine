@@ -30,23 +30,13 @@ namespace InfoRetrieval
             this.m_termsInDictionary = new Dictionary<string, int>();               // we should check if we need delete this??
         }
 
-
-
         public StringBuilder WriteDocumentToIndexFile()
         {
-            StringBuilder data = new StringBuilder();
-            string pair = "";
-            data.Append(m_DOCNO);
-            data.Append("\t");
-            data.Append(m_DATE1);
-            data.Append("\t");
-            data.Append(m_TI);
-            //data.Append("\t");
+            StringBuilder data = new StringBuilder(m_DOCNO + "#" + m_DATE1 + "#" + m_TI);
             data.Append(Environment.NewLine);
             foreach (string key in m_termsInDictionary.Keys)
             {
-                pair = key + "\t" + m_termsInDictionary[key];// + "\t";
-                data.Append(pair);
+                data.Append(key + "#" + m_termsInDictionary[key]);
                 data.Append(Environment.NewLine);
             }
             return data;

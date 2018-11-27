@@ -36,14 +36,14 @@ namespace InfoRetrieval
         public StringBuilder WriteToPostingFileDocDocTerm(bool printed)
         {
             StringBuilder data = new StringBuilder();
+            if (!printed)
+            {
+                data.Append(m_valueOfTerm);
+                //printed = true;
+            }
             foreach (KeyValuePair<string, Term> pair in m_Terms)
             {
-                if (!printed)
-                {
-                    data.Append(m_valueOfTerm);
-                }
-                data.Append("\t");
-                data.Append(pair.Value.WriteDocumentToPostingFileTerm());
+                data.Append("#" + pair.Value.WriteDocumentToPostingFileTerm());
             }
             return data;
         }

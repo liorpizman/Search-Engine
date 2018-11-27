@@ -31,7 +31,7 @@ namespace InfoRetrieval
 
         public StringBuilder WriteDocumentToPostingFileTerm()
         {
-            return new StringBuilder("\t" + m_DOCNO + "\t" + m_tf + "\t" + m_positions);
+            return new StringBuilder("#" + m_DOCNO + "#" + m_tf + "#" + m_positions);
             //document num of current term 
             //tf - term frequency in current doc
             //all the indexes of the current term
