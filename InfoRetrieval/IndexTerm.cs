@@ -30,10 +30,24 @@ namespace InfoRetrieval
         {
             this.tf += increase;
         }
-        public void IncreaseDf()
+        public void IncreaseDf(int increase)
         {
-            this.df++;
+            this.df += increase;
         }
+
+        public StringBuilder PrintTerm()
+        {
+            return new StringBuilder(m_value + "\t" + "df: " + df + "\t" + "tf: " + tf);
+        }
+
+        /*
+        public string PrintTermString()
+        {
+            string data = "";
+            data = m_value + "\tdf: " + df + "\ttf: " + tf;
+            return data;
+        }
+        */
 
 
 

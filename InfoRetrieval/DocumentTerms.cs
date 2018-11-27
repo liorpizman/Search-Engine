@@ -26,7 +26,10 @@ namespace InfoRetrieval
 
         public void AddToDocumentDictionary(Term term)
         {
+            //lock (this)
+            //{
             this.m_Terms.Add(term.m_DOCNO, term);
+            //}
             //this.m_totalFreqCorpus++;
         }
 
@@ -45,7 +48,7 @@ namespace InfoRetrieval
             return data;
         }
 
-        public void initPostNumer()
+        public void initPostNumer()                                //check if we need it 
         {
             if (m_valueOfTerm == "")
             {

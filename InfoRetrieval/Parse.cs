@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,6 +24,7 @@ namespace InfoRetrieval
         private Document tmpDoc = null;
         public Hashtable m_IndexDoc;
         private int _MAX_TF = 0;
+        //public Dictionary<string, DocumentTerms> m_tmp = new Dictionary<string, DocumentTerms>();
 
         // for test run time
         public static int _count_BigLetter = 0;
@@ -132,6 +134,8 @@ namespace InfoRetrieval
 
         public void AddNewTerm(string DOCNO, string current)
         {
+            //lock (m_allTerms)
+            //{
             if (m_allTerms.ContainsKey(current))
             {
                 //m_allTerms[current].m_tfc++;
@@ -155,21 +159,28 @@ namespace InfoRetrieval
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
             }
+            /*
             if (m_allTerms[current].m_Terms[DOCNO].m_tf > _MAX_TF)
             {
                 _MAX_TF = m_allTerms[current].m_Terms[DOCNO].m_tf;
             }
+            */
+            //}
         }
 
 
         public void AddNewLowerCaseTerm(string DOCNO, string current)
         {
+            //lock (m_allTerms)
+            //{
             string lower, upper;
             if (m_allTerms.ContainsKey(lower = current.ToLower()))
             {
                 //m_allTerms[lower].m_tfc++;
                 if (m_allTerms[lower].m_Terms.ContainsKey(DOCNO))
-                { m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos); }
+                {
+                    m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos);
+                }
                 else
                 {
                     m_allTerms[lower].m_Terms.Add(DOCNO, new Term(lower, DOCNO, countPos));
@@ -202,47 +213,60 @@ namespace InfoRetrieval
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
             }
+            /*
             if (m_allTerms[lower].m_Terms[DOCNO].m_tf > _MAX_TF)
             {
                 _MAX_TF = m_allTerms[lower].m_Terms[DOCNO].m_tf;
             }
+            */
+            //}
         }
 
 
         public void AddNewUpperCaseTerm(string DOCNO, string lower)
         {
+            // lock (m_allTerms)
+            //{
             string upper;
             if (m_allTerms.ContainsKey(lower))
             {
                 //m_allTerms[lower].m_tfc++;
                 if (m_allTerms[lower].m_Terms.ContainsKey(DOCNO))
-                { m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos); }
+                {
+                    m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos);
+                }
                 else
                 {
                     m_allTerms[lower].m_Terms.Add(DOCNO, new Term(lower, DOCNO, countPos));
                     tmpDoc.m_uniqueCounter++;
                 }
                 countPos++;
+                /*
                 if (m_allTerms[lower].m_Terms[DOCNO].m_tf > _MAX_TF)
                 {
                     _MAX_TF = m_allTerms[lower].m_Terms[DOCNO].m_tf;
                 }
+                */
             }
             else if (m_allTerms.ContainsKey(upper = lower.ToUpper()))
             {
                 //m_allTerms[upper].m_tfc++;
                 if (m_allTerms[upper].m_Terms.ContainsKey(DOCNO))
-                { m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos); }
+                {
+                    m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);
+                }
                 else
                 {
                     m_allTerms[upper].m_Terms.Add(DOCNO, new Term(upper, DOCNO, countPos));
                     tmpDoc.m_uniqueCounter++;
                 }
                 countPos++;
+                /*
                 if (m_allTerms[upper].m_Terms[DOCNO].m_tf > _MAX_TF)
                 {
                     _MAX_TF = m_allTerms[upper].m_Terms[DOCNO].m_tf;
                 }
+                */
             }
             else
             {
@@ -252,11 +276,14 @@ namespace InfoRetrieval
                 m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
+                /*
                 if (m_allTerms[upper].m_Terms[DOCNO].m_tf > _MAX_TF)
                 {
                     _MAX_TF = m_allTerms[upper].m_Terms[DOCNO].m_tf;
                 }
+                */
             }
+            // }
         }
 
         public static bool IsIntOrDouble(string str)
@@ -347,12 +374,14 @@ namespace InfoRetrieval
             {//masterFile.m_documents.Values            
                 ParseDocuments(document);
             }
+            string[] fields = file.m_path.Split('\\');
+            //////////////////////////////////////Console.WriteLine(fields[fields.Length - 1]);
             //}
         }
 
         public void ParseDocuments(Document document)
         {
-            string currValue = "", numValue = "", stemmedValue = "", firstVal = "", secondVal = "", currDOCNO = document.m_DOCNO;
+            string currValue = "", numValue = "", stemmedValue = "", firstVal = "", secondVal = "", currDOCNO = document.m_DOCNO.Trim(' ');
             StringBuilder firstTerm = new StringBuilder();
             StringBuilder secondTerm = new StringBuilder();
             StringBuilder thirdTerm = new StringBuilder();
@@ -362,7 +391,7 @@ namespace InfoRetrieval
             string[] splittedNums, splittedWords;
             int tokensSize = tokens.Length;
             _MAX_TF = 0;
-            countPos = -1;
+            countPos = 0;
             tmpDoc = document;
             for (int tokIndex = 0; tokIndex < tokensSize; tokIndex++)
             {
@@ -409,7 +438,10 @@ namespace InfoRetrieval
                                 {
                                     if (m_doStemming)
                                     {
-                                        stemmedValue = m_stemmer.stemTerm(word.ToLower());
+                                        lock (m_stemmer)
+                                        {
+                                            stemmedValue = m_stemmer.stemTerm(word.ToLower());
+                                        }
                                         AddNewUpperCaseTerm(currDOCNO, stemmedValue);
                                     }
                                     else
@@ -421,7 +453,10 @@ namespace InfoRetrieval
                                 {
                                     if (m_doStemming)
                                     {
-                                        stemmedValue = m_stemmer.stemTerm(word);
+                                        lock (m_stemmer)
+                                        {
+                                            stemmedValue = m_stemmer.stemTerm(word);
+                                        }
                                         AddNewLowerCaseTerm(currDOCNO, stemmedValue);
                                     }
                                     else
@@ -443,7 +478,10 @@ namespace InfoRetrieval
                         */
                         if (m_doStemming)
                         {
-                            stemmedValue = m_stemmer.stemTerm(currValue.ToLower());
+                            lock (m_stemmer)
+                            {
+                                stemmedValue = m_stemmer.stemTerm(currValue.ToLower());
+                            }
                             AddNewUpperCaseTerm(currDOCNO, stemmedValue);
                         }
                         else
@@ -669,7 +707,10 @@ namespace InfoRetrieval
                         //_count_else++;
                         if (m_doStemming)
                         {
-                            stemmedValue = m_stemmer.stemTerm(currValue);
+                            lock (m_stemmer)
+                            {
+                                stemmedValue = m_stemmer.stemTerm(currValue);
+                            }
                             AddNewLowerCaseTerm(currDOCNO, stemmedValue);
                         }
                         else
@@ -679,7 +720,11 @@ namespace InfoRetrieval
                     } // end of all cases
                 } // end of the if length >=2
             } // end of for loop
+
+            //lock (m_IndexDoc)
+            //{
             m_IndexDoc.Add(currDOCNO, new IndexDoc(_MAX_TF, tmpDoc.m_uniqueCounter, tmpDoc.m_CITY));
+            //}
         } // end of ParseDocuments function
     }
 }
