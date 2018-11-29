@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-    class Document
+    public class Document
     {
         public Dictionary<string, int> m_termsInDictionary; // all terms (strings) in document with (int) counter of instances
         public string m_DOCNO { get; private set; }

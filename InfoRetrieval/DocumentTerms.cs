@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace InfoRetrieval
 {
 
-    class DocumentTerms
+    public class DocumentTerms
     {
         public string m_valueOfTerm;
         //public int m_totalFreqCorpus;

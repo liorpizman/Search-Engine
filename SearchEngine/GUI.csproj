@@ -94,5 +94,11 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\InfoRetrieval\InfoRetrieval.csproj">
+      <Project>{1ab06236-b974-42bd-9fb3-ccbf8d8232cf}</Project>
+      <Name>InfoRetrieval</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

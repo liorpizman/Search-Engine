@@ -4,11 +4,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GUI", "SearchEngine\GUI.csproj", "{F30E4098-D795-4A50-88BE-CF20BBB27490}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1AB06236-B974-42BD-9FB3-CCBF8D8232CF} = {1AB06236-B974-42BD-9FB3-CCBF8D8232CF}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfoRetrieval", "InfoRetrieval\InfoRetrieval.csproj", "{1AB06236-B974-42BD-9FB3-CCBF8D8232CF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{F30E4098-D795-4A50-88BE-CF20BBB27490} = {F30E4098-D795-4A50-88BE-CF20BBB27490}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

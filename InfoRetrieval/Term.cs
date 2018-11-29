@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-    class Term
+    public class Term
     {
         public string m_value;
         public int m_tf;  // num of instances of m_value in current m_DOCNO

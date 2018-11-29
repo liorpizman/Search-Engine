@@ -5,8 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SearchEngine"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid RenderTransformOrigin="0.5,0.5" Margin="0,0,-49,-45" HorizontalAlignment="Left" Width="566">
+        Title="MainWindow" Height="468.667" Width="735.667">
+    <Grid RenderTransformOrigin="0.5,0.5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0*"/>
+            <ColumnDefinition Width="14*"/>
+            <ColumnDefinition Width="715*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
         <Grid.RenderTransform>
             <TransformGroup>
                 <ScaleTransform/>
@@ -15,9 +21,9 @@
                 <TranslateTransform/>
             </TransformGroup>
         </Grid.RenderTransform>
-        <Button x:Name="runButton" Content="Run" HorizontalAlignment="Left" Margin="116,184,0,0" VerticalAlignment="Top" Width="69" Height="23" RenderTransformOrigin="0.272,0.45" Click="Run_button_Clicked"/>
-        <CheckBox Content="Stemming" HorizontalAlignment="Left" Height="19" Margin="18,114,0,0" VerticalAlignment="Top" Width="85" Checked="CheckBox_Checked" Unchecked="CheckBox_UnChecked"/>
-        <TextBlock HorizontalAlignment="Left" Height="22" Margin="18,18,0,0" TextWrapping="Wrap" Text="Input and stop-words Path" VerticalAlignment="Top" Width="147" RenderTransformOrigin="0.5,0.5">
+        <Button x:Name="runButton" Content="Run" HorizontalAlignment="Left" Margin="142,236,0,0" VerticalAlignment="Top" Width="109" Height="48" RenderTransformOrigin="0.272,0.45" Click="Run_button_Clicked" Grid.Column="2"/>
+        <CheckBox Content="Stemming" HorizontalAlignment="Left" Height="19" Margin="7,123,0,0" VerticalAlignment="Top" Width="85" Checked="CheckBox_Checked" Unchecked="CheckBox_UnChecked" Grid.Column="2"/>
+        <TextBlock HorizontalAlignment="Left" Height="22" Margin="7,18,0,0" TextWrapping="Wrap" Text="Input and stop-words Path" VerticalAlignment="Top" Width="147" RenderTransformOrigin="0.5,0.5" Grid.Column="2">
             <TextBlock.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -27,17 +33,17 @@
                 </TransformGroup>
             </TextBlock.RenderTransform>
         </TextBlock>
-        <TextBlock HorizontalAlignment="Left" Height="23" Margin="18,63,0,0" TextWrapping="Wrap" Text="Output Path" VerticalAlignment="Top" Width="94"/>
-        <TextBox x:Name="inputPathText" HorizontalAlignment="Left" Height="22" Margin="18,34,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="349"/>
-        <TextBox x:Name="outputPathText" HorizontalAlignment="Left" Height="23" Margin="18,79,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="349"/>
-        <Button x:Name="browseInputButton" Content="Browse" HorizontalAlignment="Left" Height="23" Margin="384,34,0,0" VerticalAlignment="Top" Width="91" Click="Input_browse_Clicked"/>
-        <Button x:Name="browseOutputButton" Content="Browse" HorizontalAlignment="Left" Height="23" Margin="384,79,0,0" VerticalAlignment="Top" Width="91" Click="Output_browse_Clicked"/>
-        <Button x:Name="exitButton" Content="Exit" HorizontalAlignment="Left" Height="22" Margin="456,281,0,0" VerticalAlignment="Top" Width="49" Click="Exit_button_Clicked"/>
-        <Button x:Name="displayDicButton" Content="Display dictionary" HorizontalAlignment="Left" Height="23" Margin="376,134,0,0" VerticalAlignment="Top" Width="108"/>
-        <Button x:Name="resetButton" Content="Reset" HorizontalAlignment="Left" Height="23" Margin="18,184,0,0" VerticalAlignment="Top" Width="69" RenderTransformOrigin="0.368,1.309" Click="resetButton_Click"/>
-        <Button x:Name="loadDicButton" Content="Load dictionary" HorizontalAlignment="Left" Height="23" Margin="376,178,0,0" VerticalAlignment="Top" Width="108"/>
-        <ComboBox x:Name="languagesComboBox" HorizontalAlignment="Left" Height="23" Margin="18,151,0,0" VerticalAlignment="Top" Width="129" />
-        <TextBlock HorizontalAlignment="Left" Height="17" Margin="21,134,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="100" Text="Select Language:"/>
+        <TextBlock HorizontalAlignment="Left" Height="23" Margin="7,63,0,0" TextWrapping="Wrap" Text="Output Path" VerticalAlignment="Top" Width="94" Grid.Column="2"/>
+        <TextBox x:Name="inputPathText" HorizontalAlignment="Left" Height="22" Margin="7,34,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="549" Grid.Column="2"/>
+        <TextBox x:Name="outputPathText" HorizontalAlignment="Left" Height="23" Margin="7,79,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="549" Grid.Column="2"/>
+        <Button x:Name="browseInputButton" Content="Browse" HorizontalAlignment="Left" Height="23" Margin="588,33,0,0" VerticalAlignment="Top" Width="91" Click="Input_browse_Clicked" Grid.Column="2"/>
+        <Button x:Name="browseOutputButton" Content="Browse" HorizontalAlignment="Left" Height="23" Margin="588,79,0,0" VerticalAlignment="Top" Width="91" Click="Output_browse_Clicked" Grid.Column="2"/>
+        <Button x:Name="exitButton" Content="Exit" HorizontalAlignment="Left" Height="36" Margin="597,371,0,0" VerticalAlignment="Top" Width="72" Click="Exit_button_Clicked" Grid.Column="2"/>
+        <Button x:Name="displayDicButton" Content="Display dictionary" HorizontalAlignment="Left" Height="56" Margin="402,151,0,0" VerticalAlignment="Top" Width="162" Grid.Column="2"/>
+        <Button x:Name="resetButton" Content="Reset" HorizontalAlignment="Left" Height="48" Margin="7,236,0,0" VerticalAlignment="Top" Width="109" RenderTransformOrigin="0.368,1.309" Click="resetButton_Click" Grid.Column="2"/>
+        <Button x:Name="loadDicButton" Content="Load dictionary" HorizontalAlignment="Left" Height="56" Margin="402,228,0,0" VerticalAlignment="Top" Width="166" Grid.Column="2"/>
+        <ComboBox x:Name="languagesComboBox" HorizontalAlignment="Left" Height="23" Margin="7,184,0,0" VerticalAlignment="Top" Width="167" Grid.Column="2" />
+        <TextBlock HorizontalAlignment="Left" Height="17" Margin="10,162,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="100" Text="Select Language:" Grid.Column="2"/>
 
     </Grid>
 </Window>

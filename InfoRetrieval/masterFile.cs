@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-    class masterFile
+    public class masterFile
     {
         public Dictionary<string, Document> m_documents;
         public string m_fileName;

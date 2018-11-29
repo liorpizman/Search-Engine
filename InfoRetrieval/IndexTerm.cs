@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-    class IndexTerm
+    public class IndexTerm
     {
         public int df; //number of documents that contain the term
         public int tf; //total frequency in corpus

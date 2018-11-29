@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-    class ReadFile
+    public class ReadFile
     {
         //public Dictionary<string, masterFile> m_files;
         public string m_mainPath;

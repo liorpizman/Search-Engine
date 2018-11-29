@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-    class Indexer
+    public class Indexer
     {
         public int m_indexCounter;
         public string m_outPutPath;
@@ -354,14 +354,15 @@ namespace InfoRetrieval
         {
             StringBuilder data = new StringBuilder();
             CreateTxtFile("Dictionary.txt", data);
-            string current;
+            //string current;
             Writer = new StreamWriter(Path.Combine(m_outPutPath, "Dictionary.txt"));
             /// here add sort of the dictionary by keys
             //Dictionary<string, IndexTerm> temp;
-            
+
             foreach (Dictionary<string, IndexTerm> dic in dictionaries)
             {
                 //temp = dic.OrderBy(i => i.Key).ToDictionary(p => p.Key, p => p.Value);
+                this.tempDic = tempDic.OrderBy(i => i.Value.m_valueOfTerm).ToDictionary(p => p.Key, p => p.Value);
                 foreach (KeyValuePair<string, IndexTerm> currentTerm in dic)
                 {
                     Writer.WriteLine(currentTerm.Value.PrintTerm());  ////////check whose function has the best time 
@@ -456,6 +457,40 @@ namespace InfoRetrieval
             Writer.Close();
             Writer = null;
         }
+
+
+        public void LoadDictionary()
+        {
+            if (!File.Exists(Path.Combine(m_outPutPath, "Dictionary.txt")))
+            {
+                return;
+            }
+            else
+            {
+                Reader = new StreamReader(Path.Combine(m_outPutPath, "Dictionary.txt"));
+            }
+            for (int i = 0; i < dictionaries.Length; i++)
+            {
+                dictionaries[i].Clear();
+            }
+            int postNum = 0;
+            string[] allLines = System.IO.File.ReadAllLines(Path.Combine(m_outPutPath, "Dictionary.txt"));
+            for (int i = 0; i < allLines.Length; i++)
+            {
+                string currentLine = allLines[i];
+                string[] lineDetails = currentLine.Split('#');
+                ///////////////////////////////// have to add the post number of the index
+                string[] lineNumber = lineDetails[3].Split(':');
+                string[] df = lineDetails[1].Split(':');
+                string[] tf = lineDetails[2].Split(':');
+                IndexTerm currentTerm = new IndexTerm(lineDetails[0], 3, Int32.Parse(lineNumber[1]));
+                Console.WriteLine(allLines[i]);
+                currentTerm.tf = Int32.Parse(df[1]);
+                currentTerm.df = Int32.Parse(tf[1]);
+                dictionaries[postNum].Add(currentTerm.m_value, currentTerm);
+            }
+        }
+
 
 
     }

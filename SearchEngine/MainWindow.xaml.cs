@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Forms;
+using InfoRetrieval;
 
 
 namespace SearchEngine
@@ -24,7 +25,8 @@ namespace SearchEngine
     public partial class MainWindow : Window
     {
         public static bool m_doStemming = false;
-        public static bool isResetOn = false;
+        public static bool m_isResetOn = false;
+        public static Model model = new Model();
 
         public MainWindow()
         {
@@ -51,8 +53,10 @@ namespace SearchEngine
                 if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
                     inputPathText.Text = fbd.SelectedPath;
-                    string[] directories = Directory.GetDirectories(Directory.GetDirectories(fbd.SelectedPath)[0]);
-                    System.Windows.Forms.MessageBox.Show("Directories found: " + directories.Length.ToString(), "Message");
+                    //Model.inputPath = inputPathText.Text;
+                    model.setInputPath(inputPathText.Text);
+                    //string[] directories = Directory.GetDirectories(Directory.GetDirectories(fbd.SelectedPath)[0]);
+                    //System.Windows.Forms.MessageBox.Show("Directories found: " + directories.Length.ToString(), "Message");
                 }
             }
         }
@@ -65,8 +69,10 @@ namespace SearchEngine
                 if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
                     outputPathText.Text = fbd.SelectedPath;
-                    string[] directories = Directory.GetDirectories(Directory.GetDirectories(fbd.SelectedPath)[0]);
-                    System.Windows.Forms.MessageBox.Show("Directories found: " + directories.Length.ToString(), "Message");
+                    //Model.outPutPath = outputPathText.Text;
+                    model.setOutPutPath(outputPathText.Text);
+                    //string[] directories = Directory.GetDirectories(Directory.GetDirectories(fbd.SelectedPath)[0]);
+                    //System.Windows.Forms.MessageBox.Show("Directories found: " + directories.Length.ToString(), "Message");
                 }
             }
         }
@@ -102,8 +108,12 @@ namespace SearchEngine
                 MessageBoxButtons buttons = MessageBoxButtons.OK;
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
             }
-
             // run all methods here!!!
+            model.Run();
+            string message2 = "The execution is finished!";
+            string caption2 = "Mission Completed Successfully";
+            MessageBoxButtons buttons2 = MessageBoxButtons.OK;
+            DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
         }
 
         private void resetButton_Click(object sender, RoutedEventArgs e)

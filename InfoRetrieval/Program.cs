@@ -11,7 +11,7 @@ namespace InfoRetrieval
     {
         static void Main(string[] args)
         {
-
+/*
             string corpusPath = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\corpus";
             string path = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder";
             string pathLab100 = @"D:\documents\users\pezman\newYehuda\test100";
@@ -75,7 +75,7 @@ namespace InfoRetrieval
             indexer.SetCorpusDone();
             indexerTask.Wait();
 
-
+    */
         }
     }
 }
