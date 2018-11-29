@@ -16,26 +16,65 @@ namespace InfoRetrieval
         public string[] m_paths;
         public int m_indexCurrFile;
         //public int m_maxFiles = 10; //16;
-        public bool readerThreadFinished = false;
+        //public bool readerThreadFinished = false;
+
+        public List<string[]> path_Chank;
+        public int ChankSize;
 
         public ReadFile(string m_mainPath)
         {
             this.m_mainPath = m_mainPath;
             this.m_indexCurrFile = 0;
+            path_Chank = new List<string[]>();
+            ChankSize = 75;
+            MainRead();
+            InitList();
             //this.m_files = new Dictionary<string, masterFile>();
         }
-        /*
-        BlockingCollection<string> CreateInputQueue(string[] filesIds)
+
+
+        public void InitList()
         {
-            var inputQueue = new BlockingCollection<string>();
-            foreach (var id in filesIds)
+            //ChankSize
+            int sumFiles = 0;
+            int currentListSize = Math.Min(ChankSize, m_paths.Length - sumFiles);
+            bool doChank = currentListSize != 0;
+            for (int i = 0; currentListSize != 0; i++)
             {
-                inputQueue.Add(id);
+                // path_Chank[i] = new string[currentListSize];
+                path_Chank.Add(new string[currentListSize]);
+                for (int j = 0; j < currentListSize; j++)
+                {
+                    path_Chank[i][j] = m_paths[i + j];
+                }
+                sumFiles += currentListSize;
+                currentListSize = Math.Min(ChankSize, m_paths.Length - sumFiles);
+
             }
-            inputQueue.CompleteAdding();
-            return inputQueue;
         }
-        */
+
+        public masterFile ReadChunk(int i)
+        {
+            string[] currentChunk = path_Chank[i];
+
+            string[] fields = currentChunk[0].Split('\\');
+            string currFileName = fields[fields.Length - 1];
+            masterFile masterFile = new masterFile(currFileName, currentChunk[0]);
+            ReadDocuments(currentChunk[0], masterFile);
+            //Console.WriteLine("--------------------------"+i+ "--------------------------");
+            for (int j=1 ; j< currentChunk.Length; j++)
+            {
+               // Console.WriteLine("+++++++++++++++++++++++" + j + "+++++++++++++++++++++++");
+                ReadDocuments(currentChunk[j], masterFile);
+                string[] fields2 = currentChunk[j].Split('\\');
+                string currFileName2 = fields2[fields2.Length - 1];
+               // Console.WriteLine( "i-value: "+i+" j-value: "+ j+ " file name "+currFileName2);
+            }
+            return masterFile;
+            /// we can return masterFile and send it to parser and do not sent the whole dictionary
+
+        }
+
         public void MainRead()
         {
             //Parse parse = new Parse(true, m_mainPath);
@@ -46,43 +85,6 @@ namespace InfoRetrieval
             {
                 m_paths[index] = Directory.GetFiles(directories[index])[0];
             }
-
-
-            /*
-            Action<object> readTask = (object obj) =>
-            {
-                ReadAllFiles();
-            };
-            Task firstTask = Task.Factory.StartNew(readTask, "taskName");
-            firstTask.Wait();
-            
-            int readIndex = 0;
-            */
-
-            /*
-            int sizeTasks, _external = 0;
-            masterFile currMasterFile = null;
-            
-            Action<object> parseTask = (object obj) =>
-            {
-                Parse parse = new Parse(true, m_mainPath);
-                currMasterFile = ReadNewFile(m_paths[_external++]);
-                //currMasterFile = m_files[m_paths[readIndex++]];
-                parse.ParseMasterFile(currMasterFile); //currMasterFile
-                parse.m_allTerms.Clear();
-            };
-
-            for (; _external < m_paths.Length;)
-            {
-                sizeTasks = Math.Min(15, m_paths.Length - _external);
-                Task[] taskArray = new Task[sizeTasks];
-                for (int _internal = 0; _internal < sizeTasks && _external < m_paths.Length; _internal++)
-                {
-                    taskArray[_internal] = Task.Factory.StartNew(parseTask, "taskName");
-                }
-                Task.WaitAll(taskArray);
-            }
-            */
         }
 
         private void ReadAllFiles()
@@ -164,89 +166,3 @@ namespace InfoRetrieval
         }
     }
 }
-
-/*
-private Document CreateDocument(string strSource)
-{
-    string[] docData, text, ti, date, docno;
-    docData = strSource.Split(new[] { "</DOC>" }, StringSplitOptions.None);
-    text = docData[0].Split(new[] { "</TEXT>" }, StringSplitOptions.None);
-    text = text[0].Split(new[] { "<TEXT>" }, StringSplitOptions.None);
-
-    ti = text[0].Split(new[] { "</TI>" }, StringSplitOptions.None);
-    ti = ti[0].Split(new[] { "<TI>" }, StringSplitOptions.None);
-
-    date = ti[0].Split(new[] { "</DATE>" }, StringSplitOptions.None);
-    date = date[0].Split(new[] { "<DATE>" }, StringSplitOptions.None);
-    StringBuilder DATE1 = new StringBuilder(date[1]);
-    docno = date[0].Split(new[] { "</DCONO>" }, StringSplitOptions.None);
-    docno = docno[0].Split(new[] { "<DCONO>" }, StringSplitOptions.None);
-    return new Document(new StringBuilder(docno[1]), DATE1, new StringBuilder(ti[1]), new StringBuilder(text[1]));
-}
-*/
-
-
-
-
-
-//Thread readThread = new Thread(new ThreadStart(() => ReadAllFiles()));
-//readThread.Start();
-//readThread.Join();
-/*
-Thread[] threads = new Thread[m_maxFiles];
-for (int i = 0; i < m_paths.Length;)
-{
-    for (int j = 0; j < m_maxFiles && i < m_paths.Length; j++)
-    {
-        currMasterFile = ReadNewFile(m_paths[i]);
-        threads[j] = new Thread(new ThreadStart(() => parse.ParseMasterFile(currMasterFile)));
-
-        ///parse.ParseMasterFile(currMasterFile);
-        i++;
-    }
-    //parse.m_allTerms.Clear();
-    for (int m = 0; m < m_maxFiles; m++)
-    {
-        threads[m].Start();
-    }
-    for (int k = 0; k < m_maxFiles; k++)
-    {
-        threads[k].Join();
-    }
-}
-*/
-/*
-
-var FilesIds = CreateInputQueue(m_paths);
-var FilesRead = new BlockingCollection<masterFile>(500);
-
-var readingTasks =
-Enumerable.Range(0, 10)
-.Select(_ =>
-   Task.Run(() =>
-   {
-       foreach (var fileId in FilesIds.GetConsumingEnumerable())
-       {
-           var file = ReadNewFile(fileId);
-           FilesRead.Add(file);
-       }
-   }))
-.ToArray();
-
-var parsingTasks =
-Enumerable.Range(0, 8)
-.Select(_ =>
-    Task.Run(() =>
-    {
-        foreach (var FileToParse in FilesRead.GetConsumingEnumerable())
-        {
-            parse.ParseMasterFile(FileToParse);
-                        //parse.m_allTerms.Clear();
-                    }
-    }))
-.ToArray();
-
-Task.WaitAll(readingTasks);
-    FilesRead.CompleteAdding();
-    Task.WaitAll(parsingTasks);
-*/

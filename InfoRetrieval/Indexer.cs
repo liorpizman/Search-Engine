@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -25,11 +26,13 @@ namespace InfoRetrieval
         public bool StreamHasChanged;
         public Queue<Dictionary<string, DocumentTerms>> IndexQueue;
         public bool CorpusDone;
+        public Semaphore semaphore;
 
         public Indexer(bool doStemming, string m_outPutPath)
         {
             //this.Writer = new StreamWriter();
             //this.Reader = new StreamReader();
+            semaphore = new Semaphore(2, 2);
             this.currentLine = new Dictionary<int, int>();
             this.tempDic = new Dictionary<string, DocumentTerms>();
             this.StreamHasChanged = false;
@@ -50,6 +53,10 @@ namespace InfoRetrieval
             CreatePostingFiles();
         }
 
+        public void IsLegalEntry()
+        {
+            semaphore.WaitOne();
+        }
 
         public void AddToQueue(Dictionary<string, DocumentTerms> ToAdd)
         {
@@ -69,6 +76,7 @@ namespace InfoRetrieval
                 while (IndexQueue.Count > 0)
                 {
                     WriteToPostingFile(IndexQueue.Dequeue(), FirstWrite);
+                    semaphore.Release();
                     FirstWrite = true;
                 }
                 ////////////// here we need to do thread.sleep(X secounds)
@@ -125,6 +133,7 @@ namespace InfoRetrieval
                 //StreamWriter sw = new StreamWriter(Path.Combine(m_outPutPath, "Posting.txt"));
                 foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
                 {
+
                     currentPostingForFirstWrite(pair.Value.postNum, postNum);
                     postNum = pair.Value.postNum;
                     IndexTerm currentTerm = new IndexTerm(pair.Key, postNum, currentLine[postNum]);
@@ -197,6 +206,11 @@ namespace InfoRetrieval
             //createTxtFile("NewPosting.txt", data);
             foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
             {
+                /*
+                if (pair.Value.m_valueOfTerm.Equals("")){
+                    int a = 0;
+                }
+                */
                 //StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, "newPost " + pair.Value.m_Terms[pair.Key].postNum+".txt"));
                 ///////////////////////// here need to add the definition of the file we wrote
                 currentPosting(pair.Value.postNum, PostNumber);
@@ -217,11 +231,35 @@ namespace InfoRetrieval
                         //    if ((currentLineInFile = Reader.ReadLine()) != null)
                         //  {
                         currentLineInFile = Reader.ReadLine();
+                        /*
+                        if (currentLineInFile.Split('#')[0].Equals(""))
+                        {
+                            int a = 0;
+                        }
+                        */
                         Writer.WriteLine(currentLineInFile);
                         currentLineNumber++;
                         // }
                     }
                     currentLineInFile = Reader.ReadLine();
+                    /*
+                    if (currentLineInFile.Split('#')[0].Equals(""))
+                    {
+                        int a = 0;
+                    }
+                    if (pair.Value.WriteToPostingFileDocDocTerm(true).ToString().Split('#')[0].Equals(""))
+                    {
+                        int a = 0;
+                    }
+                    if (pair.Value.m_valueOfTerm.Split('#')[0].Equals(""))
+                    {
+                        int a = 0;
+                    }
+                    if (pair.Key.Split('#')[0].Equals(""))
+                    {
+                        int a = 0;
+                    }
+                    */
                     Writer.WriteLine(currentLineInFile + pair.Value.WriteToPostingFileDocDocTerm(true));
                     //dictionaries[PostNumber][pair.Key].IncreaseTf(pair.Value.m_tfc);
                     dictionaries[PostNumber][pair.Key].IncreaseDf(pair.Value.m_Terms.Count);
@@ -234,6 +272,12 @@ namespace InfoRetrieval
                         while ((currentLineInFile = Reader.ReadLine()) != null)
                         {
                             //currentLineInFile = Reader.ReadLine();
+                            /*
+                            if (currentLineInFile.Split('#')[0].Equals(""))
+                            {
+                                int a = 0;
+                            }
+                            */
                             Writer.WriteLine(currentLineInFile);
                             currentLineNumber++;
                         }
@@ -245,6 +289,24 @@ namespace InfoRetrieval
                     //currentTerm.IncreaseTf(pair.Value.m_tfc);
                     currentTerm.IncreaseDf(pair.Value.m_Terms.Count);
                     dictionaries[PostNumber].Add(pair.Key, currentTerm);
+                    /*
+                    if (pair.Value.WriteToPostingFileDocDocTerm(false).ToString().Split('#')[0].Equals(""))
+                    {
+                        int a = 0;
+                    }
+                    if (pair.Value.m_valueOfTerm.Split('#')[0].Equals(""))
+                    {
+                        int a = 0;
+                    }
+                    if (pair.Value.WriteToPostingFileDocDocTerm(false).ToString().Split('#')[0].Equals(""))
+                    {
+                        int a = 0;
+                    }
+                    if (pair.Key.Split('#')[0].Equals(""))
+                    {
+                        int a = 0;
+                    }
+                    */
                     Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));
                 }
             }
@@ -296,10 +358,10 @@ namespace InfoRetrieval
             Writer = new StreamWriter(Path.Combine(m_outPutPath, "Dictionary.txt"));
             /// here add sort of the dictionary by keys
             //Dictionary<string, IndexTerm> temp;
-            /*
+            
             foreach (Dictionary<string, IndexTerm> dic in dictionaries)
             {
-                temp = dic.OrderBy(i => i.Key).ToDictionary(p => p.Key, p => p.Value);
+                //temp = dic.OrderBy(i => i.Key).ToDictionary(p => p.Key, p => p.Value);
                 foreach (KeyValuePair<string, IndexTerm> currentTerm in dic)
                 {
                     Writer.WriteLine(currentTerm.Value.PrintTerm());  ////////check whose function has the best time 
@@ -308,7 +370,7 @@ namespace InfoRetrieval
             }
             Writer.Flush();
             Writer.Close();
-            */
+            /*
             foreach (Dictionary<string, IndexTerm> dic in dictionaries)
             {
                 var list = dic.Keys.ToList();
@@ -319,6 +381,7 @@ namespace InfoRetrieval
                     Writer.WriteLine(dic[key].PrintTerm());
                 }
             }
+            */
         }
 
 
@@ -357,16 +420,6 @@ namespace InfoRetrieval
             Writer = null;
         }
 
-        internal class Contributor
-        {
-            public string Login { get; set; }
-            public short Contributions { get; set; }
-
-            public override string ToString()
-            {
-                return $"{Login,20}: {Contributions} contributions";
-            }
-        }
 
         public void WriteCitiesIndexFile(HashSet<string> m_Cities)
         {
@@ -405,128 +458,5 @@ namespace InfoRetrieval
         }
 
 
-        public int GetPostNumer(string m_value)       ///////////////// check if this method exist
-        {
-            if (m_value == "")
-            {
-                return 26;
-            }
-            else
-            {
-                char c = m_value.ToLower()[0];
-                if (c == 'a')
-                    return 0;
-                else if (c == 'b')
-                    return 1;
-                else if (c == 'c')
-                    return 2;
-                else if (c == 'd')
-                    return 3;
-                else if (c == 'e')
-                    return 4;
-                else if (c == 'f')
-                    return 5;
-                else if (c == 'g')
-                    return 6;
-                else if (c == 'h')
-                    return 7;
-                else if (c == 'i')
-                    return 8;
-                else if (c == 'j')
-                    return 9;
-                else if (c == 'k')
-                    return 10;
-                else if (c == 'l')
-                    return 11;
-                else if (c == 'm')
-                    return 12;
-                else if (c == 'n')
-                    return 13;
-                else if (c == 'o')
-                    return 14;
-                else if (c == 'p')
-                    return 15;
-                else if (c == 'q')
-                    return 16;
-                else if (c == 'r')
-                    return 17;
-                else if (c == 's')
-                    return 18;
-                else if (c == 't')
-                    return 19;
-                else if (c == 'u')
-                    return 20;
-                else if (c == 'v')
-                    return 21;
-                else if (c == 'w')
-                    return 22;
-                else if (c == 'x')
-                    return 23;
-                else if (c == 'y')
-                    return 24;
-                else if (c == 'z')
-                    return 25;
-                else
-                {
-                    return 26;
-                }
-            }
-        }
     }
 }
-
-/*
-         public void WriteCitiesIndexFile()
-        {
-            if (!File.Exists(Path.Combine(m_outPutPath, "Cities.txt")))
-            {
-                StringBuilder data = new StringBuilder();
-                CreateTxtFile("Cities.txt", data);
-            }
-            Writer = new StreamWriter(Path.Combine(m_outPutPath, "Cities.txt"));
-            var url = "https://restcountries.eu/rest/v2/all?fields=capital;name;currencies;population";
-            ///////////////////////////////////////
-            var webRequest = WebRequest.Create("https://restcountries.eu/rest/v2/all?fields=capital;name;currencies;population") as HttpWebRequest;
-            if (webRequest == null)
-            {
-                return;
-            }
-
-            webRequest.ContentType = "application/json";
-            webRequest.UserAgent = "Nothing";
-
-            using (var s = webRequest.GetResponse().GetResponseStream())
-            {
-                using (var sr = new StreamReader(s))
-                {
-                    var contributorsAsJson = sr.ReadToEnd();
-                    JArray jarr = JArray.Parse(contributorsAsJson);
-                    //Console.WriteLine(jarr);
-                    foreach (JObject content in jarr.Children<JObject>())
-                    {
-                        foreach (JProperty prop in content.Properties())
-                        {
-                            if (prop.Name.Equals("currencies"))
-                            {
-                                foreach (JProperty val in prop.Value[0])
-                                {
-                                    if (val.Name.Equals("name"))
-                                    {
-                                        Console.WriteLine("" + val.Value);
-                                    }
-                                }
-                            }
-                            //string tempValue = prop.Value.ToString(); // This is not allowed 
-                            // Console.WriteLine(tempValue);                                        //here more code in order to save in a database
-                        }
-                    }
-                    // var contributors = JsonConvert.DeserializeObject<List<Contributor>>(contributorsAsJson);
-                    //contributors.ForEach(Console.WriteLine);
-                }
-            }
-            ///////////////////////////////////////
-            Writer.Flush();
-            Writer.Close();
-            Writer = null;
-        }
-*/

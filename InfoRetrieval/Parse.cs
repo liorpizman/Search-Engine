@@ -197,12 +197,12 @@ namespace InfoRetrieval
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
             }
-            /*
+
             if (m_allTerms[current].m_Terms[DOCNO].m_tf > _MAX_TF)
             {
                 _MAX_TF = m_allTerms[current].m_Terms[DOCNO].m_tf;
             }
-            */
+
             //}
         }
 
@@ -251,12 +251,12 @@ namespace InfoRetrieval
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
             }
-            /*
+
             if (m_allTerms[lower].m_Terms[DOCNO].m_tf > _MAX_TF)
             {
                 _MAX_TF = m_allTerms[lower].m_Terms[DOCNO].m_tf;
             }
-            */
+
             //}
         }
 
@@ -279,12 +279,12 @@ namespace InfoRetrieval
                     tmpDoc.m_uniqueCounter++;
                 }
                 countPos++;
-                /*
+
                 if (m_allTerms[lower].m_Terms[DOCNO].m_tf > _MAX_TF)
                 {
                     _MAX_TF = m_allTerms[lower].m_Terms[DOCNO].m_tf;
                 }
-                */
+
             }
             else if (m_allTerms.ContainsKey(upper = lower.ToUpper()))
             {
@@ -299,12 +299,12 @@ namespace InfoRetrieval
                     tmpDoc.m_uniqueCounter++;
                 }
                 countPos++;
-                /*
+
                 if (m_allTerms[upper].m_Terms[DOCNO].m_tf > _MAX_TF)
                 {
                     _MAX_TF = m_allTerms[upper].m_Terms[DOCNO].m_tf;
                 }
-                */
+
             }
             else
             {
@@ -314,12 +314,12 @@ namespace InfoRetrieval
                 m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
-                /*
+
                 if (m_allTerms[upper].m_Terms[DOCNO].m_tf > _MAX_TF)
                 {
                     _MAX_TF = m_allTerms[upper].m_Terms[DOCNO].m_tf;
                 }
-                */
+
             }
             // }
         }
@@ -421,7 +421,7 @@ namespace InfoRetrieval
         {
             string currValue = "", numValue = "", stemmedValue = "", firstVal = "", secondVal = "", currDOCNO = document.m_DOCNO.Trim(' ');
             char[] delimiterChars = { ' ', '\n' };
-            char[] toDelete = { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"', '?', '!', '@', '\'' }; // add all trim delimiters
+            char[] toDelete = { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"', '?', '!', '@', '\'', '*', '`', '&', '□', '_', '+' }; // add all trim delimiters
             string[] tokens = tokens = document.m_TEXT.Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
             string[] splittedNums, splittedWords;
             int tokensSize = tokens.Length;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
+
     class DocumentTerms
     {
         public string m_valueOfTerm;
@@ -13,24 +15,28 @@ namespace InfoRetrieval
         public Dictionary<string, Term> m_Terms;   // df- m_Terms.length
         public int line;
         public int postNum;
-
+        public static Hashtable m_postingNums = new Hashtable()
+        {
+            {'a', 0 }, {'b', 1 }, {'c', 2 },{'d', 3 }, //{ "", "26" },
+            { 'e', 4 }, {'f', 5 }, {'g', 6 }, {'h', 7 },{'i', 8 },
+            { 'j', 9 }, {'k', 10 }, {'l', 11 }, {'m', 12 }, {'n', 13 },
+            {'o', 14 }, {'p', 15 },{'q', 16 },{'r', 17 }, {'s', 18 },
+            {'t', 19 }, {'u', 20 },{'v', 21 },{'w', 22 }, {'x', 23 },
+            { 'y', 24 } ,{'z', 25 }
+        };
 
         public DocumentTerms(string value)
         {
             this.m_valueOfTerm = value;
             //this.m_totalFreqCorpus = 0;
             this.m_Terms = new Dictionary<string, Term>();
-            initPostNumer();
+            UpdateCorrectPostNum();
             line = Int32.MaxValue;
         }
 
         public void AddToDocumentDictionary(Term term)
         {
-            //lock (this)
-            //{
             this.m_Terms.Add(term.m_DOCNO, term);
-            //}
-            //this.m_totalFreqCorpus++;
         }
 
         public StringBuilder WriteToPostingFileDocDocTerm(bool printed)
@@ -48,73 +54,24 @@ namespace InfoRetrieval
             return data;
         }
 
-        public void initPostNumer()                                //check if we need it 
+        public void UpdateCorrectPostNum()
         {
-            if (m_valueOfTerm == "")
+
+            if (this.m_valueOfTerm.Equals(""))
             {
-                postNum = 26;
+                this.postNum = 26;
+                return;
+            }
+            char c = char.ToLower(m_valueOfTerm[0]);
+            if (char.IsLetter(c))
+            {
+                this.postNum = (int)m_postingNums[c];
             }
             else
             {
-                char c = m_valueOfTerm.ToLower()[0];
-                if (c == 'a')
-                    postNum = 0;
-                else if (c == 'b')
-                    postNum = 1;
-                else if (c == 'c')
-                    postNum = 2;
-                else if (c == 'd')
-                    postNum = 3;
-                else if (c == 'e')
-                    postNum = 4;
-                else if (c == 'f')
-                    postNum = 5;
-                else if (c == 'g')
-                    postNum = 6;
-                else if (c == 'h')
-                    postNum = 7;
-                else if (c == 'i')
-                    postNum = 8;
-                else if (c == 'j')
-                    postNum = 9;
-                else if (c == 'k')
-                    postNum = 10;
-                else if (c == 'l')
-                    postNum = 11;
-                else if (c == 'm')
-                    postNum = 12;
-                else if (c == 'n')
-                    postNum = 13;
-                else if (c == 'o')
-                    postNum = 14;
-                else if (c == 'p')
-                    postNum = 15;
-                else if (c == 'q')
-                    postNum = 16;
-                else if (c == 'r')
-                    postNum = 17;
-                else if (c == 's')
-                    postNum = 18;
-                else if (c == 't')
-                    postNum = 19;
-                else if (c == 'u')
-                    postNum = 20;
-                else if (c == 'v')
-                    postNum = 21;
-                else if (c == 'w')
-                    postNum = 22;
-                else if (c == 'x')
-                    postNum = 23;
-                else if (c == 'y')
-                    postNum = 24;
-                else if (c == 'z')
-                    postNum = 25;
-                else
-                {
-                    postNum = 26;
-                }
+                this.postNum = 26;
             }
-
         }
+
     }
 }
