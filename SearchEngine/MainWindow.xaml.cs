@@ -24,8 +24,6 @@ namespace SearchEngine
     /// </summary>
     public partial class MainWindow : Window
     {
-        public static bool m_doStemming = false;
-        public static bool m_isResetOn = false;
         public static Model model = new Model();
 
         public MainWindow()
@@ -37,12 +35,12 @@ namespace SearchEngine
 
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            m_doStemming = true;
+            model.setStemming(true);
         }
 
         private void CheckBox_UnChecked(object sender, RoutedEventArgs e)
         {
-            m_doStemming = false;
+            model.setStemming(false);
         }
 
         private void Input_browse_Clicked(object sender, System.EventArgs e)
@@ -92,6 +90,14 @@ namespace SearchEngine
 
         private void Run_button_Clicked(object sender, System.EventArgs e)
         {
+            runButton.IsEnabled = false;
+            resetButton.IsEnabled = false;
+            loadDicButton.IsEnabled = false;
+            displayDicButton.IsEnabled = false;
+            browseInputButton.IsEnabled = false;
+            browseOutputButton.IsEnabled = false;
+            exitButton.IsEnabled = false;
+
             bool validInput = Directory.Exists(inputPathText.Text);
             bool validOutput = Directory.Exists(outputPathText.Text);
             if (!validInput)
@@ -100,6 +106,7 @@ namespace SearchEngine
                 string caption = "Error Detected in Input";
                 MessageBoxButtons buttons = MessageBoxButtons.OK;
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                return;
             }
             if (!validOutput)
             {
@@ -107,13 +114,30 @@ namespace SearchEngine
                 string caption = "Error Detected in OutPut";
                 MessageBoxButtons buttons = MessageBoxButtons.OK;
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                return;
             }
             // run all methods here!!!
+            if (model.inputPath.Equals(""))
+            {
+                model.setInputPath(inputPathText.Text);
+            }
+            if (model.outPutPath.Equals(""))
+            {
+                model.setOutPutPath(outputPathText.Text);
+            }
             model.Run();
             string message2 = "The execution is finished!";
             string caption2 = "Mission Completed Successfully";
             MessageBoxButtons buttons2 = MessageBoxButtons.OK;
             DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
+
+            runButton.IsEnabled = true;
+            resetButton.IsEnabled = true;
+            loadDicButton.IsEnabled = true;
+            displayDicButton.IsEnabled = true;
+            browseInputButton.IsEnabled = true;
+            browseOutputButton.IsEnabled = true;
+            exitButton.IsEnabled = true;
         }
 
         private void resetButton_Click(object sender, RoutedEventArgs e)

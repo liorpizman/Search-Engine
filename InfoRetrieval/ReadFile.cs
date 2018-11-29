@@ -55,20 +55,20 @@ namespace InfoRetrieval
 
         public masterFile ReadChunk(int i)
         {
+            //Console.WriteLine(i);
             string[] currentChunk = path_Chank[i];
-
             string[] fields = currentChunk[0].Split('\\');
             string currFileName = fields[fields.Length - 1];
             masterFile masterFile = new masterFile(currFileName, currentChunk[0]);
             ReadDocuments(currentChunk[0], masterFile);
             //Console.WriteLine("--------------------------"+i+ "--------------------------");
-            for (int j=1 ; j< currentChunk.Length; j++)
+            for (int j = 1; j < currentChunk.Length; j++)
             {
-               // Console.WriteLine("+++++++++++++++++++++++" + j + "+++++++++++++++++++++++");
+                // Console.WriteLine("+++++++++++++++++++++++" + j + "+++++++++++++++++++++++");
                 ReadDocuments(currentChunk[j], masterFile);
                 string[] fields2 = currentChunk[j].Split('\\');
                 string currFileName2 = fields2[fields2.Length - 1];
-               // Console.WriteLine( "i-value: "+i+" j-value: "+ j+ " file name "+currFileName2);
+                // Console.WriteLine( "i-value: "+i+" j-value: "+ j+ " file name "+currFileName2);
             }
             return masterFile;
             /// we can return masterFile and send it to parser and do not sent the whole dictionary
@@ -109,12 +109,18 @@ namespace InfoRetrieval
 
         private void ReadDocuments(string file, masterFile masterFile)
         {
-            string content = File.ReadAllText(file);                                      //check run time!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            string content = File.ReadAllText(file);
             string[] docs = content.Split(new[] { "<DOC>" }, StringSplitOptions.None);
-            string DOCNO, TEXT; //allDocument,
+            string DOCNO, TEXT;
             for (int i = 1; i < docs.Length; i++)
             {
-                //allDocument = "<DOC>" + docs[i];
+                /*
+                if ((docs[i].Contains("[TEXT]") && !docs[i].Contains("<TEXT>")) || docs[i].Length < 150)
+                {
+                    string b = docs[i];
+                    int a = docs[i].Length;
+                }
+                */
                 DOCNO = GetStringInBetween("<DOCNO>", "</DOCNO>", docs[i]);
                 StringBuilder DATE1 = new StringBuilder(GetDateInBetween(docs[i]));  // add condition with DATE
                 StringBuilder TI = new StringBuilder(GetStringInBetween("<TI>", "</TI>", docs[i]));

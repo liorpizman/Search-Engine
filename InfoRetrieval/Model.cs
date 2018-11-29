@@ -15,6 +15,9 @@ namespace InfoRetrieval
         public Mutex m;
         public ReadFile readFile;
         public Indexer indexer;
+        public string inputPath;
+        public string outPutPath;
+        public bool m_doStemming;
 
         public Model()
         {
@@ -22,30 +25,40 @@ namespace InfoRetrieval
             sizeTasks = 0;
             _external = 0;
             m = new Mutex();
+            inputPath = "";
+            outPutPath = "";
+            this.m_doStemming = false;
         }
 
         public void setInputPath(string userInput)
         {
-            readFile = new ReadFile(userInput);
+            inputPath = userInput;   //delete in clear
         }
 
         public void setOutPutPath(string userOutput)
         {
-            indexer = new Indexer(true, userOutput);
+            outPutPath = userOutput;//delete in clear
+
         }
 
+        public void setStemming(bool doStem)
+        {
+            m_doStemming = doStem;
+        }
 
         public void Run()
         {
+            readFile = new ReadFile(inputPath);
+            indexer = new Indexer(m_doStemming, outPutPath);
 
             Action<object> parseTask = (object obj) =>
                                     {
                                         Parse parse = new Parse(true, readFile.m_mainPath);
-
+                                        //////////// mutex 
                                         m.WaitOne();
                                         currMasterFile = readFile.ReadChunk(_external++);
                                         m.ReleaseMutex();
-
+                                        //////////// mutex 
                                         parse.ParseMasterFile(currMasterFile);
                                         indexer.IsLegalEntry();
                                         indexer.AddToQueue(new Dictionary<string, DocumentTerms>(parse.m_allTerms));
@@ -70,6 +83,7 @@ namespace InfoRetrieval
                 }
                 Task.WaitAll(taskArray);
             }
+
             indexer.SetCorpusDone();
             indexerTask.Wait();
         }

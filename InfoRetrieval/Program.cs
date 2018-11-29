@@ -11,13 +11,15 @@ namespace InfoRetrieval
     {
         static void Main(string[] args)
         {
-/*
+
             string corpusPath = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\corpus";
             string path = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder";
             string pathLab100 = @"D:\documents\users\pezman\newYehuda\test100";
             string pathLabCorpus = @"D:\documents\users\pezman\newYehuda\testFolder";
 
             string outputOnPc = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\OutPut";
+
+            bool stem = false;
 
             ReadFile r = new ReadFile(corpusPath);
             // r.MainRead();
@@ -29,14 +31,14 @@ namespace InfoRetrieval
             // Parse.AddStopWords(path);              //add static stop words;
 
 
-            Indexer indexer = new Indexer(true, outputOnPc);
+            Indexer indexer = new Indexer(stem, outputOnPc);
             //indexer.WriteCitiesIndexFile(new HashSet<string>() { "Nassau", "Santiago", "Willemstad", "Tbilisi", "Jerusalem" });
 
             Mutex m = new Mutex();
 
             Action<object> parseTask = (object obj) =>
             {
-                Parse parse = new Parse(true, r.m_mainPath);                   // send doStem from GUI
+                Parse parse = new Parse(stem, r.m_mainPath);                   // send doStem from GUI
                                                                                // currMasterFile = r.ReadNewFile(r.m_paths[_external++]);
                                                                                //currMasterFile = m_files[m_paths[readIndex++]];
                                                                                //Console.WriteLine(_external);
@@ -44,6 +46,7 @@ namespace InfoRetrieval
                 // Console.WriteLine(_external);
                 currMasterFile = r.ReadChunk(_external++);
                 m.ReleaseMutex();
+
 
                 parse.ParseMasterFile(currMasterFile); //currMasterFile
                 indexer.IsLegalEntry();
@@ -75,7 +78,7 @@ namespace InfoRetrieval
             indexer.SetCorpusDone();
             indexerTask.Wait();
 
-    */
+
         }
     }
 }

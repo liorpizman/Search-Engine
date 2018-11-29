@@ -85,7 +85,7 @@ namespace InfoRetrieval
             {
                 WriteToPostingFile(IndexQueue.Dequeue(), FirstWrite);
             }
-            MergePosting();
+            ///////////////////////////////////////////////////////MergePosting();//////////////////////////-checkit//////////////////////////
             WriteTheNewIndexFile();
         }
 
