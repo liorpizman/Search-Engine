@@ -32,11 +32,11 @@ namespace InfoRetrieval
 
         public StringBuilder WriteDocumentToIndexFile()
         {
-            StringBuilder data = new StringBuilder(m_DOCNO + "#" + m_DATE1 + "#" + m_TI);
-            data.Append(Environment.NewLine);
+            StringBuilder data = new StringBuilder(m_DOCNO + "(#)" + m_DATE1 + "(#)" + m_TI);
+            //data.Append(Environment.NewLine);
             foreach (string key in m_termsInDictionary.Keys)
             {
-                data.Append(key + "#" + m_termsInDictionary[key]);
+                data.Append(key + "(#)" + m_termsInDictionary[key]);
                 data.Append(Environment.NewLine);
             }
             return data;

@@ -193,7 +193,7 @@ namespace InfoRetrieval
                 DocumentTerms documentTerms = new DocumentTerms(current);
                 documentTerms.AddToDocumentDictionary(new Term(current, DOCNO, countPos));
                 m_allTerms.Add(current, documentTerms);
-                m_allTerms[current].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                //m_allTerms[current].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
             }
@@ -247,7 +247,7 @@ namespace InfoRetrieval
                 DocumentTerms documentTerms = new DocumentTerms(lower);
                 documentTerms.AddToDocumentDictionary(new Term(lower, DOCNO, countPos));
                 m_allTerms.Add(lower, documentTerms);
-                m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                //m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
             }
@@ -304,14 +304,13 @@ namespace InfoRetrieval
                 {
                     _MAX_TF = m_allTerms[upper].m_Terms[DOCNO].m_tf;
                 }
-
             }
             else
             {
                 DocumentTerms documentTerms = new DocumentTerms(upper);
                 documentTerms.AddToDocumentDictionary(new Term(upper, DOCNO, countPos));
                 m_allTerms.Add(upper, documentTerms);
-                m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                //m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
 
@@ -406,22 +405,18 @@ namespace InfoRetrieval
 
         public void ParseMasterFile(masterFile file)//
         {
-            //foreach (masterFile masterFile in ReadFile.m_files.Values)
-            //{
             foreach (Document document in file.m_documents.Values)
-            {//masterFile.m_documents.Values            
+            {
                 ParseDocuments(document);
             }
-            string[] fields = file.m_path.Split('\\');
-            //////////////////////////////////////Console.WriteLine(fields[fields.Length - 1]);
-            //}
+            Console.WriteLine("  ---  "+file.m_fileName);
         }
 
         public void ParseDocuments(Document document)
         {
             string currValue = "", numValue = "", stemmedValue = "", firstVal = "", secondVal = "", currDOCNO = document.m_DOCNO.Trim(' ');
             char[] delimiterChars = { ' ', '\n' };
-            char[] toDelete = { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"', '?', '!', '@', '\'', '*', '`', '&', '□', '_', '+' }; // add all trim delimiters
+            char[] toDelete = { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"', '?', '!', '@', '\'', '*', '`', '&', '□', '_', '+', '◻' }; // add all trim delimiters
             string[] tokens = tokens = document.m_TEXT.Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
             string[] splittedNums, splittedWords;
             int tokensSize = tokens.Length;
@@ -755,11 +750,7 @@ namespace InfoRetrieval
                     } // end of all cases
                 } // end of the if length >=2
             } // end of for loop
-
-            //lock (m_IndexDoc)
-            //{
             m_IndexDoc.Add(currDOCNO, new IndexDoc(_MAX_TF, tmpDoc.m_uniqueCounter, tmpDoc.m_CITY));
-            //}
         } // end of ParseDocuments function
     }
 }

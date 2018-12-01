@@ -17,32 +17,30 @@ namespace InfoRetrieval
     {
         public int m_indexCounter;
         public string m_outPutPath;
-        public bool doStem;
+        public bool m_doStem;
         public Dictionary<int, int> currentLine;
-        public Dictionary<string, IndexTerm>[] dictionaries = new Dictionary<string, IndexTerm>[27];
+        public Dictionary<string, IndexTerm>[] dictionaries;
         public Dictionary<string, DocumentTerms> tempDic;
         public StreamWriter Writer;
-        public StreamReader Reader;
-        public bool StreamHasChanged;
+        //public StreamReader Reader;
+        public bool m_StreamHasChanged;
         public Queue<Dictionary<string, DocumentTerms>> IndexQueue;
-        public bool CorpusDone;
-        public Semaphore semaphore;
+        public bool m_CorpusDone;
+        public Semaphore m_semaphore;
 
-        public Indexer(bool doStemming, string m_outPutPath)
+        public Indexer(bool doStemming, string m_outPutPath, int queueSize)
         {
-            //this.Writer = new StreamWriter();
-            //this.Reader = new StreamReader();
-            semaphore = new Semaphore(2, 2);
+            this.m_semaphore = new Semaphore(queueSize, queueSize);
             this.currentLine = new Dictionary<int, int>();
+            this.dictionaries = new Dictionary<string, IndexTerm>[27];
             this.tempDic = new Dictionary<string, DocumentTerms>();
-            this.StreamHasChanged = false;
+            this.m_StreamHasChanged = false;
             this.IndexQueue = new Queue<Dictionary<string, DocumentTerms>>();
-            this.CorpusDone = false;
-            this.m_indexCounter = 0;
-            initDic();
-            this.doStem = doStemming;
+            this.m_CorpusDone = false;
+            this.m_indexCounter = 1;
+            this.m_doStem = doStemming;
             this.m_outPutPath = m_outPutPath;
-            if (doStem)
+            if (m_doStem)
             {
                 this.m_outPutPath = Path.Combine(m_outPutPath, "WithStem");
             }
@@ -50,12 +48,13 @@ namespace InfoRetrieval
             {
                 this.m_outPutPath = Path.Combine(m_outPutPath, "WithOutStem");
             }
+            InitDic();
             CreatePostingFiles();
         }
 
         public void IsLegalEntry()
         {
-            semaphore.WaitOne();
+            m_semaphore.WaitOne();
         }
 
         public void AddToQueue(Dictionary<string, DocumentTerms> ToAdd)
@@ -65,28 +64,33 @@ namespace InfoRetrieval
 
         public void SetCorpusDone()
         {
-            CorpusDone = true;
+            this.m_CorpusDone = true;
         }
 
         public void MainIndexRun()
         {
+            ////////////////////////////////////// we should check if all cleared before run it[Serializable]
             bool FirstWrite = false;
-            while (!CorpusDone)
-            {
-                while (IndexQueue.Count > 0)
-                {
-                    WriteToPostingFile(IndexQueue.Dequeue(), FirstWrite);
-                    semaphore.Release();
-                    FirstWrite = true;
-                }
-                ////////////// here we need to do thread.sleep(X secounds)
-            }
-            while (IndexQueue.Count > 0)  /////////to ensure all the files are did post
+
+
+            //while (!m_CorpusDone)
+            //{
+            while (IndexQueue.Count > 0)
             {
                 WriteToPostingFile(IndexQueue.Dequeue(), FirstWrite);
+                m_semaphore.Release();
+                FirstWrite = true;
             }
-            ///////////////////////////////////////////////////////MergePosting();//////////////////////////-checkit//////////////////////////
+            //}
+
+
+            /*
+            while (IndexQueue.Count > 0)  /////////to ensure all the files are did post
+            {  WriteToPostingFile(IndexQueue.Dequeue(), FirstWrite);}
+            */
+            ////////////MergePosting();///////////////-check-it//////////////
             WriteTheNewIndexFile();
+            //WriteTheNewIndexBinFile();
         }
 
         // fileName = "fileNameToCreate.txt" (including .txt)
@@ -103,45 +107,80 @@ namespace InfoRetrieval
                 outputFile.WriteLine(dataToFile);
             }
         }
+
+        public void CreateEmptyTxtFile(string fileName)
+        {
+            if (!Directory.Exists(m_outPutPath))
+            {
+                Directory.CreateDirectory(m_outPutPath);
+            }
+            using (StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, fileName)))
+            {
+                outputFile.WriteLine();
+            }
+        }
+
         public void CreatePostingFiles()
         {
-            StringBuilder data = new StringBuilder();
+            //StringBuilder data = new StringBuilder();
             for (int i = 0; i < 27; i++)
             {
-                CreateTxtFile("Posting" + i + ".txt", data);
-                CreateTxtFile("NewPosting" + i + ".txt", data);
+                //CreateTxtFile("Posting" + i + ".txt", data);
+                CreateEmptyTxtFile("Posting" + i + ".txt");
+                //CreateTxtFile("NewPosting" + i + ".txt", data);
+                CreateEmptyTxtFile("NewPosting" + i + ".txt");
             }
         }
 
         public void CreateNewPostingFiles()
         {
-            StringBuilder data = new StringBuilder();
+            //StringBuilder data = new StringBuilder();
             for (int i = 0; i < 27; i++)
             {
-                CreateTxtFile("NewPosting" + i + ".txt", data);
+                //CreateTxtFile("NewPosting" + i + ".txt", data);
+                CreateEmptyTxtFile("NewPosting" + i + ".txt");
             }
         }
 
         public void WriteToPostingFile(Dictionary<string, DocumentTerms> documentTermsDic, bool hasWritten)
         {
             tempDic = documentTermsDic;
-            InitTerms();
+            //InitTerms();  
             if (!hasWritten)
             {
                 StringBuilder data = new StringBuilder();
+                this.tempDic = tempDic.OrderBy(i => i.Value.postNum).ThenBy(i => i.Value.line).ToDictionary(p => p.Key, p => p.Value);
                 int postNum = -1;
                 //StreamWriter sw = new StreamWriter(Path.Combine(m_outPutPath, "Posting.txt"));
                 foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
                 {
-
-                    currentPostingForFirstWrite(pair.Value.postNum, postNum);
+                    if (StreamShouldBeSwitched(pair.Value.postNum, postNum))
+                    {
+                        if (Writer != null)
+                        {
+                            Writer.Write(data);  //write all data in one step
+                            data.Clear();       // clear data from string builder
+                            Writer.Flush();
+                            Writer.Close();
+                        }
+                        m_StreamHasChanged = true;
+                        Writer = new StreamWriter(Path.Combine(m_outPutPath, "Posting" + pair.Value.postNum + ".txt"));
+                        //SwitchWriterForFirstPosting(pair.Value.postNum, postNum);
+                    }
                     postNum = pair.Value.postNum;
                     IndexTerm currentTerm = new IndexTerm(pair.Key, postNum, currentLine[postNum]);
-                    // currentTerm.IncreaseTf(pair.Value.m_tfc);
+                    //currentTerm.IncreaseTf(pair.Value.m_tfc);
                     currentTerm.IncreaseDf(pair.Value.m_Terms.Count);
                     dictionaries[postNum].Add(pair.Key, currentTerm);
-                    Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));
+                    //Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));
+                    data.Append(pair.Value.WriteToPostingFileDocDocTerm(false));
+                    data.Append(Environment.NewLine);
                     currentLine[postNum]++;
+                }
+                if (Writer != null)
+                {
+                    Writer.Write(data);
+                    data.Clear();
                 }
                 tempDic.Clear();
                 Writer.Flush();
@@ -153,9 +192,10 @@ namespace InfoRetrieval
                 UpdatePosting();
                 DeleteOldFiles();
             }
+            Console.WriteLine("counter:   " + m_indexCounter++);
         }
 
-        public void initDic()
+        public void InitDic()
         {
             for (int i = 0; i < 27; i++)
             {
@@ -164,64 +204,87 @@ namespace InfoRetrieval
             }
         }
 
-        public void currentPosting(int termPost, int currentPos)
+        public bool StreamShouldBeSwitched(int termPost, int currentPos)
         {
-            bool check = Writer != null && Reader != null;
             if (currentPos == -1 || termPost != currentPos)
             {
-                StreamHasChanged = true;
-                if (check)
+                return true;
+            }
+            return false;
+        }
+
+        public void SwitchWriterAndReaderForPosting(int termPost, int currentPos)
+        {
+            if (currentPos == -1 || termPost != currentPos)
+            {
+                m_StreamHasChanged = true;
+                if (Writer != null)
                 {
                     Writer.Flush();
                     Writer.Close();
+                }
+                /*
+                if (Reader != null)
+                {
                     Reader.Close();
                 }
+                */
                 Writer = new StreamWriter(Path.Combine(m_outPutPath, "NewPosting" + termPost + ".txt"));
-                Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt")); /////////////////// has to changed
+                //Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt"));
             }
         }
 
-        public void currentPostingForFirstWrite(int termPost, int currentPos)
+        public void SwitchWriterForFirstPosting(int termPost, int currentPos)
         {
-            bool check = Writer != null;
             if (currentPos == -1 || termPost != currentPos)
             {
-                if (check)
+                if (Writer != null)
                 {
                     Writer.Flush();
                     Writer.Close();
-                    // Reader.Close();
                 }
                 Writer = new StreamWriter(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt"));
-                // Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt")); /////////////////// has to changed
             }
         }
 
         public void UpdatePosting()
         {
+            InitTerms();
             CreateNewPostingFiles();
-            bool last_read = true;
-            int PostNumber = -1, LineNumber, currentLineNumber = 0;
-            StringBuilder data = new StringBuilder();
-            //createTxtFile("NewPosting.txt", data);
+            char[] splitBy = { '\r', '\n' };
+            bool finshedUpdatePrevTerms = true;
+            string currentLineInFile, readData, path;
+            int PostNumber = -1, LineNumber, currentLineNumber = 0, i = 0;
+            StringBuilder writeData = new StringBuilder();
+            string[] lines = null;
             foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
             {
-                /*
-                if (pair.Value.m_valueOfTerm.Equals("")){
-                    int a = 0;
-                }
-                */
-                //StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, "newPost " + pair.Value.m_Terms[pair.Key].postNum+".txt"));
                 ///////////////////////// here need to add the definition of the file we wrote
-                currentPosting(pair.Value.postNum, PostNumber);
-                if (StreamHasChanged)
+                if (StreamShouldBeSwitched(pair.Value.postNum, PostNumber))
                 {
+                    if (Writer != null)
+                    {
+                        Writer.Write(writeData);
+                        writeData.Clear();
+                        Writer.Flush();
+                        Writer.Close();
+                    }
+                    m_StreamHasChanged = true;
+                    Writer = new StreamWriter(Path.Combine(m_outPutPath, "NewPosting" + pair.Value.postNum + ".txt"));
+                    //SwitchWriterAndReaderForPosting(pair.Value.postNum, PostNumber);
+                }
+                if (m_StreamHasChanged)
+                {
+                    path = Path.Combine(m_outPutPath, "Posting" + pair.Value.postNum + ".txt");
+                    readData = File.ReadAllText(path);
+                    lines = readData.Split(splitBy, StringSplitOptions.RemoveEmptyEntries);
+                    readData = null;
+                    i = 0;
                     currentLineNumber = 0;
-                    StreamHasChanged = false;
-                    last_read = true;
+                    m_StreamHasChanged = false;
+                    finshedUpdatePrevTerms = true;
                     //currentLineNumber = currentLine[PostNumber];
                 }
-                string currentLineInFile;
                 PostNumber = pair.Value.postNum;
                 LineNumber = pair.Value.line;
                 if (LineNumber != Int32.MaxValue) // exist in the posting file
@@ -230,92 +293,64 @@ namespace InfoRetrieval
                     {
                         //    if ((currentLineInFile = Reader.ReadLine()) != null)
                         //  {
-                        currentLineInFile = Reader.ReadLine();
-                        /*
-                        if (currentLineInFile.Split('#')[0].Equals(""))
-                        {
-                            int a = 0;
-                        }
-                        */
-                        Writer.WriteLine(currentLineInFile);
+                        //currentLineInFile = Reader.ReadLine();
+                        currentLineInFile = lines[i++];
+                        //Writer.WriteLine(currentLineInFile);
+                        writeData.Append(currentLineInFile);
+                        writeData.Append(Environment.NewLine);
                         currentLineNumber++;
                         // }
                     }
-                    currentLineInFile = Reader.ReadLine();
-                    /*
-                    if (currentLineInFile.Split('#')[0].Equals(""))
-                    {
-                        int a = 0;
-                    }
-                    if (pair.Value.WriteToPostingFileDocDocTerm(true).ToString().Split('#')[0].Equals(""))
-                    {
-                        int a = 0;
-                    }
-                    if (pair.Value.m_valueOfTerm.Split('#')[0].Equals(""))
-                    {
-                        int a = 0;
-                    }
-                    if (pair.Key.Split('#')[0].Equals(""))
-                    {
-                        int a = 0;
-                    }
-                    */
-                    Writer.WriteLine(currentLineInFile + pair.Value.WriteToPostingFileDocDocTerm(true));
+                    //currentLineInFile = Reader.ReadLine();
+                    currentLineInFile = lines[i++];
+                    //Writer.WriteLine(currentLineInFile + pair.Value.WriteToPostingFileDocDocTerm(true));
+                    writeData.Append(currentLineInFile + pair.Value.WriteToPostingFileDocDocTerm(true));
+                    writeData.Append(Environment.NewLine);
                     //dictionaries[PostNumber][pair.Key].IncreaseTf(pair.Value.m_tfc);
                     dictionaries[PostNumber][pair.Key].IncreaseDf(pair.Value.m_Terms.Count);
                     currentLineNumber++;
                 }
                 else
                 {
-                    if (last_read)
+                    if (finshedUpdatePrevTerms)
                     {
+                        /*
                         while ((currentLineInFile = Reader.ReadLine()) != null)
                         {
-                            //currentLineInFile = Reader.ReadLine();
-                            /*
-                            if (currentLineInFile.Split('#')[0].Equals(""))
-                            {
-                                int a = 0;
-                            }
-                            */
                             Writer.WriteLine(currentLineInFile);
-                            currentLineNumber++;
+                            //currentLineNumber++;
                         }
-                        last_read = false;
+                        */
+                        while (i < lines.Length)
+                        {
+                            currentLineInFile = lines[i++];
+                            writeData.Append(currentLineInFile);
+                            writeData.Append(Environment.NewLine);
+                        }
+                        finshedUpdatePrevTerms = false;
                     }
                     IndexTerm currentTerm = new IndexTerm(pair.Key, PostNumber, currentLine[PostNumber]);
-                    LineNumber = currentLine[PostNumber];
+                    //LineNumber = currentLine[PostNumber];
                     currentLine[PostNumber]++;
                     //currentTerm.IncreaseTf(pair.Value.m_tfc);
                     currentTerm.IncreaseDf(pair.Value.m_Terms.Count);
                     dictionaries[PostNumber].Add(pair.Key, currentTerm);
-                    /*
-                    if (pair.Value.WriteToPostingFileDocDocTerm(false).ToString().Split('#')[0].Equals(""))
-                    {
-                        int a = 0;
-                    }
-                    if (pair.Value.m_valueOfTerm.Split('#')[0].Equals(""))
-                    {
-                        int a = 0;
-                    }
-                    if (pair.Value.WriteToPostingFileDocDocTerm(false).ToString().Split('#')[0].Equals(""))
-                    {
-                        int a = 0;
-                    }
-                    if (pair.Key.Split('#')[0].Equals(""))
-                    {
-                        int a = 0;
-                    }
-                    */
-                    Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));
+                    //Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));
+                    writeData.Append(pair.Value.WriteToPostingFileDocDocTerm(false));
+                    writeData.Append(Environment.NewLine);
                 }
+            }
+            if (Writer != null)
+            {
+                Writer.Write(writeData);
+                writeData.Clear();
             }
             Writer.Flush();
             Writer.Close();
-            Reader.Close();
+            //Reader.Close();
             Writer = null;
-            Reader = null;
-            ///in the end:
+            //Reader = null;
+            //in the end:
             tempDic.Clear();
         }
 
@@ -323,18 +358,28 @@ namespace InfoRetrieval
         {
             for (int i = 0; i < 27; i++)
             {
+
                 if (File.Exists(Path.Combine(m_outPutPath, "Posting" + i + ".txt")))
                 {
                     File.Delete(Path.Combine(m_outPutPath, "Posting" + i + ".txt"));
                 }
+
+                // rename src file -> dst file
                 File.Move(Path.Combine(m_outPutPath, "NewPosting" + i + ".txt"), Path.Combine(m_outPutPath, "Posting" + i + ".txt"));
+
+                if (File.Exists(Path.Combine(m_outPutPath, "NewPosting" + i + ".txt")))
+                {
+                    File.Delete(Path.Combine(m_outPutPath, "NewPosting" + i + ".txt"));
+                }
             }
         }
 
+        /*
         public void MergePosting()
         {
-            StringBuilder data = new StringBuilder();
-            CreateTxtFile("Posting.txt", data);
+            //StringBuilder data = new StringBuilder();
+            //CreateTxtFile("Posting.txt", data);
+            CreateEmptyTxtFile("Posting.txt");
             string current;
             Writer = new StreamWriter(Path.Combine(m_outPutPath, "Posting.txt"));
             for (int i = 0; i < 27; i++)
@@ -349,41 +394,54 @@ namespace InfoRetrieval
             Writer.Flush();
             Writer.Close();
         }
+        */
+
+
+        /*
+        public void WriteTheNewIndexBinFile()
+        {
+            System.Runtime.Serialization.IFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            Stream stream = new FileStream(Path.Combine(m_outPutPath, "Dictionary.bin"), FileMode.Create, FileAccess.Write, FileShare.None);
+            formatter.Serialize(stream, dictionaries);
+            stream.Close();
+        }
+        */
+
 
         public void WriteTheNewIndexFile()
         {
-            StringBuilder data = new StringBuilder();
-            CreateTxtFile("Dictionary.txt", data);
+            //StringBuilder data = new StringBuilder();
+            //CreateTxtFile("Dictionary.txt", data);
+            CreateEmptyTxtFile("Dictionary.txt");
             //string current;
             Writer = new StreamWriter(Path.Combine(m_outPutPath, "Dictionary.txt"));
-            /// here add sort of the dictionary by keys
-            //Dictionary<string, IndexTerm> temp;
-
+            // here add sort of the dictionary by keys
+            Dictionary<string, IndexTerm> temp;
             foreach (Dictionary<string, IndexTerm> dic in dictionaries)
             {
-                //temp = dic.OrderBy(i => i.Key).ToDictionary(p => p.Key, p => p.Value);
-                this.tempDic = tempDic.OrderBy(i => i.Value.m_valueOfTerm).ToDictionary(p => p.Key, p => p.Value);
-                foreach (KeyValuePair<string, IndexTerm> currentTerm in dic)
+                temp = dic.OrderBy(i => i.Key).ToDictionary(p => p.Key, p => p.Value);
+                foreach (KeyValuePair<string, IndexTerm> currentTerm in temp)
                 {
                     Writer.WriteLine(currentTerm.Value.PrintTerm());  ////////check whose function has the best time 
-                    //Writer.WriteLine(currentTerm.Value.PrintTermString()); 
+                                                                      //Writer.WriteLine(currentTerm.Value.PrintTermString()); 
                 }
             }
             Writer.Flush();
             Writer.Close();
-            /*
-            foreach (Dictionary<string, IndexTerm> dic in dictionaries)
-            {
-                var list = dic.Keys.ToList();
-                list.Sort();
-                // Loop through keys.
-                foreach (var key in list)
-                {
-                    Writer.WriteLine(dic[key].PrintTerm());
-                }
-            }
-            */
+            // 
+            // foreach (Dictionary<string, IndexTerm> dic in dictionaries)
+            // {
+            //     var list = dic.Keys.ToList();
+            //     list.Sort();
+            //     // Loop through keys.
+            //     foreach (var key in list)
+            //     {
+            //         Writer.WriteLine(dic[key].PrintTerm());
+            //  }
+            //
+
         }
+
 
 
         public void InitTerms()
@@ -405,16 +463,17 @@ namespace InfoRetrieval
         {
             if (!File.Exists(Path.Combine(m_outPutPath, "Documents.txt")))
             {
-                StringBuilder data = new StringBuilder();
+                //StringBuilder data = new StringBuilder();
                 //Directory.CreateDirectory(Path.Combine(m_outPutPath, "Documents.txt"));
-                CreateTxtFile("Documents.txt", data);
+                //CreateTxtFile("Documents.txt", data);
+                CreateEmptyTxtFile("Documents.txt");
+
             }
             Writer = new StreamWriter(Path.Combine(m_outPutPath, "Documents.txt"));
             //StringBuilder data = new StringBuilder();
-            foreach (Document d in masterFiles.m_documents.Values)
+            foreach (Document doc in masterFiles.m_documents.Values)
             {
-                Writer.WriteLine(d.WriteDocumentToIndexFile());
-                //data.Append(Environment.NewLine);
+                Writer.WriteLine(doc.WriteDocumentToIndexFile());
             }
             Writer.Flush();
             Writer.Close();
@@ -448,7 +507,7 @@ namespace InfoRetrieval
                         JProperty[] fields = content.Properties().ToArray();
                         if (m_Cities.Contains("" + fields[2].Value))
                         {//fields[0].Value[0].ToArray()[0] 
-                            Writer.WriteLine(fields[2].Value + "#" + fields[1].Value + "#" + fields[0].Value[0].ToArray()[0].ToArray()[0] + "#" + fields[3].Value);
+                            Writer.WriteLine(fields[2].Value + "(#)" + fields[1].Value + "(#)" + fields[0].Value[0].ToArray()[0].ToArray()[0] + "(#)" + fields[3].Value);
                         }
                     }
                 }
@@ -458,7 +517,7 @@ namespace InfoRetrieval
             Writer = null;
         }
 
-
+        /*
         public void LoadDictionary()
         {
             if (!File.Exists(Path.Combine(m_outPutPath, "Dictionary.txt")))
@@ -490,8 +549,6 @@ namespace InfoRetrieval
                 dictionaries[postNum].Add(currentTerm.m_value, currentTerm);
             }
         }
-
-
-
+        */
     }
 }

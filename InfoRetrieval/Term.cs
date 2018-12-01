@@ -18,20 +18,20 @@ namespace InfoRetrieval
         {
             this.m_value = m_value;
             this.m_tf = 1;
-            this.m_positions = new StringBuilder();
+            this.m_positions = new StringBuilder(""+newPOS);
             //add poisition index add in the constructor for the first step
             this.m_DOCNO = docno;
         }
 
         public void AddNewIndex(int newPos)
         {
-            m_positions.Append(newPos + " ");
+            m_positions.Append(" " + newPos);
             this.m_tf++;
         }
 
         public StringBuilder WriteDocumentToPostingFileTerm()
         {
-            return new StringBuilder("#" + m_DOCNO + "#" + m_tf + "#" + m_positions);
+            return new StringBuilder(m_DOCNO + "(#)" + m_tf + "(#)" + m_positions);
             //document num of current term 
             //tf - term frequency in current doc
             //all the indexes of the current term

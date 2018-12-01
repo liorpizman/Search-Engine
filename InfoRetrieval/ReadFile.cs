@@ -11,64 +11,48 @@ namespace InfoRetrieval
 {
     public class ReadFile
     {
-        //public Dictionary<string, masterFile> m_files;
         public string m_mainPath;
         public string[] m_paths;
         public int m_indexCurrFile;
-        //public int m_maxFiles = 10; //16;
-        //public bool readerThreadFinished = false;
-
         public List<string[]> path_Chank;
         public int ChankSize;
 
-        public ReadFile(string m_mainPath)
+        public ReadFile(string m_mainPath, int ChankSize)
         {
             this.m_mainPath = m_mainPath;
             this.m_indexCurrFile = 0;
             path_Chank = new List<string[]>();
-            ChankSize = 75;
+            this.ChankSize = ChankSize;
             MainRead();
             InitList();
-            //this.m_files = new Dictionary<string, masterFile>();
         }
 
 
         public void InitList()
         {
-            //ChankSize
             int sumFiles = 0;
             int currentListSize = Math.Min(ChankSize, m_paths.Length - sumFiles);
             bool doChank = currentListSize != 0;
-            for (int i = 0; currentListSize != 0; i++)
+            for (int i = 0, step = 0; currentListSize != 0; i++, step += ChankSize)
             {
-                // path_Chank[i] = new string[currentListSize];
                 path_Chank.Add(new string[currentListSize]);
                 for (int j = 0; j < currentListSize; j++)
                 {
-                    path_Chank[i][j] = m_paths[i + j];
+                    path_Chank[i][j] = m_paths[step + j];
                 }
                 sumFiles += currentListSize;
                 currentListSize = Math.Min(ChankSize, m_paths.Length - sumFiles);
-
             }
         }
 
         public masterFile ReadChunk(int i)
         {
-            //Console.WriteLine(i);
             string[] currentChunk = path_Chank[i];
             string[] fields = currentChunk[0].Split('\\');
-            string currFileName = fields[fields.Length - 1];
-            masterFile masterFile = new masterFile(currFileName, currentChunk[0]);
-            ReadDocuments(currentChunk[0], masterFile);
-            //Console.WriteLine("--------------------------"+i+ "--------------------------");
-            for (int j = 1; j < currentChunk.Length; j++)
+            masterFile masterFile = new masterFile(fields[fields.Length - 1], currentChunk[0]);
+            for (int j = 0; j < currentChunk.Length; j++)
             {
-                // Console.WriteLine("+++++++++++++++++++++++" + j + "+++++++++++++++++++++++");
                 ReadDocuments(currentChunk[j], masterFile);
-                string[] fields2 = currentChunk[j].Split('\\');
-                string currFileName2 = fields2[fields2.Length - 1];
-                // Console.WriteLine( "i-value: "+i+" j-value: "+ j+ " file name "+currFileName2);
             }
             return masterFile;
             /// we can return masterFile and send it to parser and do not sent the whole dictionary
@@ -77,24 +61,13 @@ namespace InfoRetrieval
 
         public void MainRead()
         {
-            //Parse parse = new Parse(true, m_mainPath);
             string[] directories = Directory.GetDirectories(Directory.GetDirectories(m_mainPath)[0]);
             m_paths = new string[directories.Length];
-
             for (int index = 0; index < directories.Length; index++)
             {
                 m_paths[index] = Directory.GetFiles(directories[index])[0];
             }
         }
-
-        private void ReadAllFiles()
-        {
-            for (int i = 0; i < m_paths.Length; i++)
-            {
-                ReadNewFile(m_paths[i]);
-            }
-        }
-
 
         public masterFile ReadNewFile(string file)
         {
@@ -102,7 +75,6 @@ namespace InfoRetrieval
             string currFileName = fields[fields.Length - 1];
             masterFile masterFile = new masterFile(currFileName, file);
             ReadDocuments(file, masterFile);
-            //m_files.Add(file, masterFile);//m_files.Add(currFileName, masterFile);
             return masterFile;
             /// we can return masterFile and send it to parser and do not sent the whole dictionary
         }

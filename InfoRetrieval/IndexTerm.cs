@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
+    [Serializable]
     public class IndexTerm
     {
         public int df; //number of documents that contain the term
@@ -37,7 +38,8 @@ namespace InfoRetrieval
 
         public StringBuilder PrintTerm()
         {
-            return new StringBuilder(m_value + "#" + "df: " + df + "#" + "tf: " + tf);
+            //return new StringBuilder(m_value + "#" + "df: " + df + "#" + "tf: " + tf);(#)
+            return new StringBuilder(m_value + "(#)" + df + "(#)" + tf);
         }
 
     }
