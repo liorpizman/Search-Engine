@@ -48,8 +48,8 @@ namespace InfoRetrieval
 
         public void Run()
         {
-            readFile = new ReadFile(inputPath, 50);  // int - ChankSize
-            indexer = new Indexer(m_doStemming, outPutPath, 10); // int - queueSize
+            readFile = new ReadFile(inputPath);
+            indexer = new Indexer(m_doStemming, outPutPath);
 
             Action<object> parseTask = (object obj) =>
                                     {

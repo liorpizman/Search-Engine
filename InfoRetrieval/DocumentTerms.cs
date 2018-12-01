@@ -49,7 +49,7 @@ namespace InfoRetrieval
             }
             foreach (KeyValuePair<string, Term> pair in m_Terms)
             {
-                data.Append("(#)" + pair.Value.WriteDocumentToPostingFileTerm());
+                data.Append("#" + pair.Value.WriteDocumentToPostingFileTerm());
             }
             return data;
         }

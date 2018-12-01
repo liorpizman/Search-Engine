@@ -21,8 +21,7 @@ namespace InfoRetrieval
 
         public StringBuilder PrintDocumentData()
         {
-            //return new StringBuilder("#" + "mxTF: " + m_mxTF + "#" + "unique: " + m_uniqueCouner + "#" + "city: " + m_City);
-            return new StringBuilder("(#)" + m_mxTF + "(#)" + m_uniqueCouner + "(#)" + m_City);
+            return new StringBuilder("#" + "mxTF: " + m_mxTF + "#" + "unique: " + m_uniqueCouner + "#" + "city: " + m_City);
         }
     }
 }
