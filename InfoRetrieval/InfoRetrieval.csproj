@@ -54,6 +54,8 @@
     <Compile Include="IndexDoc.cs" />
     <Compile Include="Indexer.cs" />
     <Compile Include="IndexTerm.cs" />
+    <Compile Include="IParse.cs" />
+    <Compile Include="IReadFile.cs" />
     <Compile Include="masterFile.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="Parse.cs" />

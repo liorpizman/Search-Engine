@@ -6,18 +6,31 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
+    /// <summary>
+    /// Class which represents a Document in a File
+    /// </summary>
     public class Document
     {
-        public Dictionary<string, int> m_termsInDictionary; // all terms (strings) in document with (int) counter of instances
+        /// <summary>
+        /// fields of a Document
+        /// </summary>
+        public Dictionary<string, int> m_termsInDictionary { get; private set; }// all terms (strings) in document with (int) counter of instances
         public string m_DOCNO { get; private set; }
         public StringBuilder m_DATE1 { get; private set; }
         public StringBuilder m_TI { get; private set; }
         public StringBuilder m_CITY { get; private set; }
         public string m_TEXT { get; private set; }
         public int m_uniqueCounter { get; set; }
-        public int m_maxTF { get; private set; }
+        public int m_maxTF { get; set; }
 
-
+        /// <summary>
+        /// constructor of a Document
+        /// </summary>
+        /// <param name="m_DOCNO">document's id</param>
+        /// <param name="m_DATE1">document's date</param>
+        /// <param name="m_TI">document's title</param>
+        /// <param name="m_TEXT">document's text</param>
+        /// <param name="m_CITY">document's city</param>
         public Document(string m_DOCNO, StringBuilder m_DATE1, StringBuilder m_TI, string m_TEXT, StringBuilder m_CITY)
         {
             this.m_DOCNO = m_DOCNO;
@@ -29,18 +42,28 @@ namespace InfoRetrieval
             this.m_maxTF = 0;
             this.m_termsInDictionary = new Dictionary<string, int>();               // we should check if we need delete this??
         }
-
         public StringBuilder WriteDocumentToIndexFile()
         {
-            StringBuilder data = new StringBuilder(m_DOCNO + "#" + m_DATE1 + "#" + m_TI);
-            data.Append(Environment.NewLine);
-            foreach (string key in m_termsInDictionary.Keys)
+            StringBuilder data = new StringBuilder(m_DOCNO + " (#)" + "unique words: " + m_uniqueCounter + " (#)" + "max TF: " + m_maxTF);
+            if (!m_CITY.ToString().Equals(""))
             {
-                data.Append(key + "#" + m_termsInDictionary[key]);
-                data.Append(Environment.NewLine);
+                string[] city = m_CITY.ToString().Split(' ');
+                if (city.Length > 1)
+                {
+                    data.Append(" city: " + city[0].ToUpper());
+                    return data;
+                }
+                else
+                {
+                    data.Append(" city: " + m_CITY);
+                    return data;
+                }
             }
-            return data;
+            else
+            {
+                data.Append(" city:---- ");
+                return data;
+            }
         }
-
     }
 }

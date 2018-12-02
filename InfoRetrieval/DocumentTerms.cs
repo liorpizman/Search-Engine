@@ -7,9 +7,14 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-
+    /// <summary>
+    /// Class which represents all instances of a term in a collection of files 
+    /// </summary>
     public class DocumentTerms
     {
+        /// <summary>
+        /// fields of DocumentTerms
+        /// </summary>
         public string m_valueOfTerm;
         //public int m_totalFreqCorpus;
         public Dictionary<string, Term> m_Terms;   // df- m_Terms.length
@@ -25,6 +30,10 @@ namespace InfoRetrieval
             { 'y', 24 } ,{'z', 25 }
         };
 
+        /// <summary>
+        /// constructor of DocumentTerms
+        /// </summary>
+        /// <param name="value">the vale of the term</param>
         public DocumentTerms(string value)
         {
             this.m_valueOfTerm = value;
@@ -34,11 +43,20 @@ namespace InfoRetrieval
             line = Int32.MaxValue;
         }
 
+        /// <summary>
+        /// method to add a new instance of a term in a new document
+        /// </summary>
+        /// <param name="term">an object which respresents the instance in the new document</param>
         public void AddToDocumentDictionary(Term term)
         {
             this.m_Terms.Add(term.m_DOCNO, term);
         }
 
+        /// <summary>
+        /// method for writing to posting file
+        /// </summary>
+        /// <param name="printed">checks whether the name of the term was printed in the posting</param>
+        /// <returns>stringbuilder for writing to posting file</returns>
         public StringBuilder WriteToPostingFileDocDocTerm(bool printed)
         {
             StringBuilder data = new StringBuilder();
@@ -49,11 +67,25 @@ namespace InfoRetrieval
             }
             foreach (KeyValuePair<string, Term> pair in m_Terms)
             {
-                data.Append("#" + pair.Value.WriteDocumentToPostingFileTerm());
+                data.Append("(#)" + pair.Value.WriteDocumentToPostingFileTerm());
             }
             return data;
         }
 
+        public StringBuilder WriteToCitiesIndexFile()
+        {
+            StringBuilder data = new StringBuilder();
+            foreach (KeyValuePair<string, Term> pair in m_Terms)
+            {
+                data.Append("(#)" + pair.Value.WritePositionsToCitiesIndex());
+            }
+            return data;
+
+        }
+
+        /// <summary>
+        /// evaluates the correct post number of the current term
+        /// </summary>
         public void UpdateCorrectPostNum()
         {
 

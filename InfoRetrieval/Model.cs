@@ -46,6 +46,7 @@ namespace InfoRetrieval
             m_doStemming = doStem;
         }
 
+        /*
         public void Run()
         {
             readFile = new ReadFile(inputPath);
@@ -87,5 +88,6 @@ namespace InfoRetrieval
             indexer.SetCorpusDone();
             indexerTask.Wait();
         }
+        */
     }
 }

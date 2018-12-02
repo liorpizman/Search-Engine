@@ -9,8 +9,14 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-    class Parse
+    /// <summary>
+    /// Class which represents the Parse which splits the text into terms
+    ////// </summary>
+    class Parse : IParse
     {
+        /// <summary>
+        /// fields of Parse
+        /// </summary>
         public Dictionary<string, DocumentTerms> m_allTerms;
         public Hashtable m_IndexDoc;
         public bool m_doStemming;
@@ -24,61 +30,12 @@ namespace InfoRetrieval
         public Hashtable m_times;
         public Hashtable m_lengths;
         private Stemmer m_stemmer;
-        /*
-        public static bool m_doStemming;
-        private static int _MAX_TF = 0;
-        private static int countPos = 0;
-        private static Document tmpDoc = null;
-        public static HashSet<string> m_stopWords = new HashSet<string>();
-        public static Hashtable m_months = new Hashtable()
-        {
-            { "jan", "01" }, {"feb", "02" }, {"mar", "03" }, {"apr", "04" },{"may", "05" },
-            { "jun", "06" }, {"jul", "07" }, {"aug", "08" }, {"sep", "09" },{"oct", "10" },
-            { "nov", "11" }, {"dec", "12" }, {"january", "01" }, {"february", "02" }, {"march", "03" },
-            {"april", "04" }, {"june", "06" },{"july", "07" },{"august", "08" }, {"september", "09" },
-            {"october", "10" }, {"november", "11" },{"december", "12" } // ("may", "05");}
-        };
-        public static Hashtable m_nums = new Hashtable()
-        {
-            { "million", "M" },{"billion", "B" }, {"trillion", "000B" },{"thousand", "K" }
-        };
-        public static Hashtable m_prices = new Hashtable()
-        {
-            { "million", " M Dollars" },{"billion", "000 M Dollars" },{"trillion", "000000 M Dollars" },
-            {"m", " M Dollars" }, {"bn", "000 M Dollars" }
-        };
-        public static Hashtable m_times = new Hashtable()
-        {
-            { "second", "sec" },{"seconds", "sec"}, {"minutes", "min"}, {"minute", "min"},
-            {"hours", "hr"}, {"hour", "hr"}
-        };
-        public static Hashtable m_lengths = new Hashtable()
-        {
-            { "meters", "meter" },{"meter", "meter"}, {"foot", "ft"},{"kilometere", "km"},
-            {"kilometers", "km"}, {"centimeter", "cm"}, {"centimeters", "cm"}
-        };
-        private static Stemmer m_stemmer = new Stemmer();
-        */
-        //public Dictionary<string, DocumentTerms> m_tmp = new Dictionary<string, DocumentTerms>();
 
-        // for test run time
-        /*
-        public static int _count_BigLetter = 0;
-        public static int _count_percentage = 0;
-        public static int _count_Dollars = 0;
-        public static int _count_signDollar = 0;
-        public static int _count_us = 0;
-        public static int _count_month = 0;
-        public static int _count_between = 0;
-        public static int _count_thousand = 0;
-        public static int _count_million = 0;
-        public static int _count_billion = 0;
-        public static int _count_trillion = 0;
-        public static int _count_number = 0;
-        public static int _count_fraction = 0;
-        public static int _count_else = 0;
-        */
-
+        /// <summary>
+        /// constructor of Parse
+        /// </summary>
+        /// <param name="m_doStemming"></param>
+        /// <param name="stopWordsPath"></param>
         public Parse(bool m_doStemming, string stopWordsPath) //
         {
             this.m_doStemming = m_doStemming;
@@ -98,8 +55,9 @@ namespace InfoRetrieval
             AddLengths();
             AddStopWords(stopWordsPath);
         }
-
-
+        /// <summary>
+        /// HashTable which represents the months of a year
+        /// </summary>
         public void AddMonths()
         {
             m_months.Add("jan", "01"); m_months.Add("feb", "02"); m_months.Add("mar", "03"); m_months.Add("apr", "04"); m_months.Add("may", "05");
@@ -108,30 +66,41 @@ namespace InfoRetrieval
             m_months.Add("april", "04"); m_months.Add("june", "06"); m_months.Add("july", "07"); m_months.Add("august", "08"); m_months.Add("september", "09");
             m_months.Add("october", "10"); m_months.Add("november", "11"); m_months.Add("december", "12"); // m_months.Add("may", "05");
         }
-
+        /// <summary>
+        /// HashTable which represents the prices 
+        /// </summary>
         public void AddPrices()
         {
             m_prices.Add("million", " M Dollars"); m_prices.Add("billion", "000 M Dollars"); m_prices.Add("trillion", "000000 M Dollars");
             m_prices.Add("m", " M Dollars"); m_prices.Add("bn", "000 M Dollars");
         }
-
+        /// <summary>
+        /// HashTable which represents the prefixes of the numbers
+        /// </summary>
         public void AddNums()
         {
             m_nums.Add("million", "M"); m_nums.Add("billion", "B"); m_nums.Add("trillion", "000B"); m_nums.Add("thousand", "K");
         }
-
+        /// <summary>
+        /// HashTable which represents the time measurement
+        /// </summary>
         public void AddTimes()
         {
             m_times.Add("second", "sec"); m_times.Add("seconds", "sec"); m_times.Add("minutes", "min"); m_times.Add("minute", "min");
             m_times.Add("hours", "hr"); m_times.Add("hour", "hr");
         }
-
+        /// <summary>
+        /// HashTable which represents the length measurement
+        /// </summary>
         public void AddLengths()
         {
             m_lengths.Add("meters", "meter"); m_lengths.Add("meter", "meter"); m_lengths.Add("foot", "ft"); m_lengths.Add("kilometere", "km");
             m_lengths.Add("kilometers", "km"); m_lengths.Add("centimeter", "cm"); m_lengths.Add("centimeters", "cm");
         }
-
+        /// <summary>
+        /// method to add the stop words to the Parse
+        /// </summary>
+        /// <param name="filePath">the path of stop words</param>
         public void AddStopWords(string filePath)
         {
             string s = "";
@@ -145,7 +114,11 @@ namespace InfoRetrieval
             catch (Exception e) { Console.WriteLine("Exception-(Parse.addStopWords): " + e.Message); }
             m_stopWords = new HashSet<string>(s.Split(delimitersToSplit, StringSplitOptions.RemoveEmptyEntries));
         }
-
+        /// <summary>
+        /// method to convert a fraction to double
+        /// </summary>
+        /// <param name="fraction">the fraction input</param>
+        /// <returns>double output</returns>
         public static double FractionToDouble(string fraction)// convert 3 4/5 ------------> 3.8
         {
             double result;
@@ -164,16 +137,16 @@ namespace InfoRetrieval
                         return a + (double)b / c;
                 }
             }
-            Console.WriteLine("error : " + fraction);
-            //throw new FormatException("Parse.FractionToDouble exception"); //---------------------------// delete when we submit the project!
-            return -345678.34;
+            //Console.WriteLine("error : " + fraction);
+            return 1;
         }
-
-
+        /// <summary>
+        /// method to add a term to the dictionary of terms
+        /// </summary>
+        /// <param name="DOCNO">the id of current document</param>
+        /// <param name="current">the value of current term</param>
         public void AddNewTerm(string DOCNO, string current)
         {
-            //lock (m_allTerms)
-            //{
             if (m_allTerms.ContainsKey(current))
             {
                 //m_allTerms[current].m_tfc++;
@@ -193,24 +166,23 @@ namespace InfoRetrieval
                 DocumentTerms documentTerms = new DocumentTerms(current);
                 documentTerms.AddToDocumentDictionary(new Term(current, DOCNO, countPos));
                 m_allTerms.Add(current, documentTerms);
-                m_allTerms[current].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                //m_allTerms[current].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
             }
-
             if (m_allTerms[current].m_Terms[DOCNO].m_tf > _MAX_TF)
             {
                 _MAX_TF = m_allTerms[current].m_Terms[DOCNO].m_tf;
             }
-
-            //}
         }
 
-
+        /// <summary>
+        /// method to add a lower case term to the dictionary of terms
+        /// </summary>
+        /// <param name="DOCNO">the id of current document</param>
+        /// <param name="current">the value of current term</param>
         public void AddNewLowerCaseTerm(string DOCNO, string current)
         {
-            //lock (m_allTerms)
-            //{
             string lower, upper;
             if (m_allTerms.ContainsKey(lower = current.ToLower()))
             {
@@ -247,24 +219,23 @@ namespace InfoRetrieval
                 DocumentTerms documentTerms = new DocumentTerms(lower);
                 documentTerms.AddToDocumentDictionary(new Term(lower, DOCNO, countPos));
                 m_allTerms.Add(lower, documentTerms);
-                m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                //m_allTerms[lower].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
             }
-
             if (m_allTerms[lower].m_Terms[DOCNO].m_tf > _MAX_TF)
             {
                 _MAX_TF = m_allTerms[lower].m_Terms[DOCNO].m_tf;
             }
-
-            //}
         }
 
-
+        /// <summary>
+        /// method to add an upper case term to the dictionary of terms
+        /// </summary>
+        /// <param name="DOCNO">the id of current document</param>
+        /// <param name="current">the value of current term</param>
         public void AddNewUpperCaseTerm(string DOCNO, string lower)
         {
-            // lock (m_allTerms)
-            //{
             string upper;
             if (m_allTerms.ContainsKey(lower))
             {
@@ -279,12 +250,10 @@ namespace InfoRetrieval
                     tmpDoc.m_uniqueCounter++;
                 }
                 countPos++;
-
                 if (m_allTerms[lower].m_Terms[DOCNO].m_tf > _MAX_TF)
                 {
                     _MAX_TF = m_allTerms[lower].m_Terms[DOCNO].m_tf;
                 }
-
             }
             else if (m_allTerms.ContainsKey(upper = lower.ToUpper()))
             {
@@ -299,31 +268,31 @@ namespace InfoRetrieval
                     tmpDoc.m_uniqueCounter++;
                 }
                 countPos++;
-
                 if (m_allTerms[upper].m_Terms[DOCNO].m_tf > _MAX_TF)
                 {
                     _MAX_TF = m_allTerms[upper].m_Terms[DOCNO].m_tf;
                 }
-
             }
             else
             {
                 DocumentTerms documentTerms = new DocumentTerms(upper);
                 documentTerms.AddToDocumentDictionary(new Term(upper, DOCNO, countPos));
                 m_allTerms.Add(upper, documentTerms);
-                m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
+                //m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);  // added for adding first position
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
-
                 if (m_allTerms[upper].m_Terms[DOCNO].m_tf > _MAX_TF)
                 {
                     _MAX_TF = m_allTerms[upper].m_Terms[DOCNO].m_tf;
                 }
-
             }
-            // }
         }
 
+        /// <summary>
+        /// method to check whether a string is numeric
+        /// </summary>
+        /// <param name="str">input string</param>
+        /// <returns>boolean output</returns>
         public static bool IsIntOrDouble(string str)
         {
             int num1;
@@ -331,11 +300,20 @@ namespace InfoRetrieval
             return int.TryParse(str, out num1) && double.TryParse(str, out num2);
         }
 
+        /// <summary>
+        /// method to check whether a string is an Integer
+        /// </summary>
+        /// <param name="str">input string</param>
+        /// <returns>boolean output</returns>
         public static bool IsInteger(string str)
         {
             return int.TryParse(str, out int n);
         }
-
+        /// <summary>
+        /// method to check whether a string is a fraction
+        /// </summary>
+        /// <param name="str">input string</param>
+        /// <returns>boolean output</returns>
         public static bool IsFraction(string str)
         {
             string[] nums = str.Split('/');
@@ -343,6 +321,11 @@ namespace InfoRetrieval
             return IsIntOrDouble(str.Replace("/", ""));
         }
 
+        /// <summary>
+        /// method to convert a value of a number to a new value with prefix
+        /// </summary>
+        /// <param name="currentValue">input value without prefix</param>
+        /// <returns>a new value with prefix</returns>
         public string getNumberAfterConvertToTerm(string currentValue)
         {
             string tmp = currentValue.Replace(",", "");
@@ -365,6 +348,11 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// method to convert a value of a price to a new value with prefix
+        /// </summary>
+        /// <param name="currentValue">input value without prefix</param>
+        /// <returns>a new value with prefix</returns>
         public string GetNumberAfterConvertToPrice(string currentValue)
         {
             double number = Convert.ToDouble(currentValue.Replace(",", ""));
@@ -374,6 +362,12 @@ namespace InfoRetrieval
                 return (number / 1000000).ToString() + "M Dollars";
         }
 
+        /// <summary>
+        /// method to convert a value of a price to a new value with prefix
+        /// </summary>
+        /// <param name="numeric">numeric string input</param>
+        /// <param name="fraction">fraction string input</param>
+        /// <returns>a new value with prefix</returns>
         public string GetNumFractionAfterConvertToPrice(string numeric, string fraction)
         {
             double number = Convert.ToDouble(numeric.Replace(",", ""));
@@ -383,6 +377,11 @@ namespace InfoRetrieval
                 return (number / 1000000).ToString() + " " + fraction + "M Dollars";
         }
 
+        /// <summary>
+        /// method to convert a value of a price to a new value with prefix
+        /// </summary>
+        /// <param name="currentValue">input value without prefix</param>
+        /// <returns>a new value with prefix</returns>
         public string GetFractionNumberAfterConvertToPrice(string currentValue)
         {
             double number = FractionToDouble(currentValue.Replace(",", ""));
@@ -392,6 +391,11 @@ namespace InfoRetrieval
                 return (number / 1000000).ToString() + "M Dollars";
         }
 
+        /// <summary>
+        /// method to check whether a current term suitable to any case in the parse
+        /// </summary>
+        /// <param name="currValue">the value of the term</param>
+        /// <returns>boolean output</returns>
         public bool SuitableToAnyCase(string currValue)
         {
             if (string.Equals(currValue, "u.s", StringComparison.OrdinalIgnoreCase) || string.Equals(currValue, "dollars", StringComparison.OrdinalIgnoreCase) ||
@@ -404,28 +408,29 @@ namespace InfoRetrieval
             return false;
         }
 
+        /// <summary>
+        /// method which splits per document in the collection of the files into terms
+        /// </summary>
+        /// <param name="file">the path of the first file in the collection</param>
         public void ParseMasterFile(masterFile file)//
         {
-            //foreach (masterFile masterFile in ReadFile.m_files.Values)
-            //{
             foreach (Document document in file.m_documents.Values)
-            {//masterFile.m_documents.Values            
+            {
                 ParseDocuments(document);
-             //   Console.WriteLine("parse number  " + file.m_fileName+ " m_allTerms.Count is" + m_allTerms.Count + " end");
-                //Console.WriteLine("parse number  " + document.m_DOCNO + " end");
             }
-            Console.WriteLine( file.m_fileName);
-            //Console.WriteLine("parse number  " + file.m_fileName + " number of files: " + file.m_documents.Count+ " m_allTerms.Count is" + m_allTerms.Count + " end");
-            // string[] fields = file.m_path.Split('\\');
-            //////////////////////////////////////Console.WriteLine(fields[fields.Length - 1]);
-            //}
+            Console.WriteLine(file.m_fileName);
         }
 
+        /// <summary>
+        /// method which splits a document into terms and adds all the terms into the dictionary
+        /// </summary>
+        /// <param name="document">the current document</param>
         public void ParseDocuments(Document document)
         {
             string currValue = "", numValue = "", stemmedValue = "", firstVal = "", secondVal = "", currDOCNO = document.m_DOCNO.Trim(' ');
             char[] delimiterChars = { ' ', '\n' };
-            char[] toDelete = { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"', '?', '!', '@', '\'', '*', '`', '&', '□', '_', '+' }; // add all trim delimiters
+            char[] toDelete = { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"', '?', '!', '@', '\'', '*', '`', '&', '□', '_', '+', '>', '<', '#' }; // add all trim delimiters
+            string[] removeChars = new string[] { "?", "@" };
             string[] tokens = tokens = document.m_TEXT.Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
             string[] splittedNums, splittedWords;
             int tokensSize = tokens.Length;
@@ -434,14 +439,13 @@ namespace InfoRetrieval
             tmpDoc = document;
             for (int tokIndex = 0; tokIndex < tokensSize; tokIndex++)
             {
-                currValue = tokens[tokIndex] = tokens[tokIndex].Trim(toDelete);     // must be before the check of length
+                currValue = tokens[tokIndex] = tokens[tokIndex].Trim(toDelete).Replace("\"", "").Replace("&", "").Replace("#", "").Replace("!", "").Replace("?", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace("--", "-").Replace("|", "").Replace("*", "");
                 if (currValue.Length >= 2)
                 {
-                    if (m_stopWords.Contains(currValue.ToLower()) && !string.Equals(currValue, "between", StringComparison.OrdinalIgnoreCase))
+                    if (m_stopWords.Contains(currValue.ToLower()) && !string.Equals(currValue, "between", StringComparison.OrdinalIgnoreCase) && !string.Equals(currValue, "may", StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
-                    //countPos++; // must be after all continue commands
                     if (currValue.Contains('-'))
                     {
                         splittedNums = currValue.Split('-');
@@ -509,12 +513,6 @@ namespace InfoRetrieval
                     }
                     if (char.IsUpper(currValue[0]))
                     {
-                        /*
-                        if (tokIndex - 1 >= 0 && char.IsUpper(tokens[tokIndex - 1][0]))       // Two words with upper case letter -- our Rule--
-                        {
-                            AddNewTerm(currDOCNO, tokens[tokIndex - 1] + " " + currValue);
-                        }
-                        */
                         if (m_doStemming)
                         {
                             lock (m_stemmer)
@@ -527,14 +525,11 @@ namespace InfoRetrieval
                         {
                             AddNewUpperCaseTerm(currDOCNO, currValue.ToLower());
                         }
-                        //_count_BigLetter++;
-                        //m_UpperCaseLetter.Add(currValue.ToUpper());                        // there are not duplicates of strings here!
                         if (!SuitableToAnyCase(currValue))
                         { continue; }
                     } ///////////////// end of upper case
                     if (IsIntOrDouble(currValue))
                     {
-                        //_count_number++;
                         if (tokIndex + 1 < tokensSize && !m_nums.Contains(tokens[tokIndex + 1].ToLower()))
                         {
                             AddNewTerm(currDOCNO, getNumberAfterConvertToTerm(currValue));
@@ -546,15 +541,13 @@ namespace InfoRetrieval
                     } // end of number case
                     else if (string.Equals(currValue, "percent", StringComparison.OrdinalIgnoreCase) || string.Equals(currValue, "percentage", StringComparison.OrdinalIgnoreCase))
                     {
-                        //_count_percentage++;
                         if (tokIndex - 1 >= 0 && IsIntOrDouble(numValue = tokens[tokIndex - 1]))
                         {
                             AddNewTerm(currDOCNO, numValue + "%");
                         }
                     } ///////////////// end of percent case
-                    else if (string.Equals(currValue, "dollars", StringComparison.OrdinalIgnoreCase))//currValue.Equals("Dollars"))
+                    else if (string.Equals(currValue, "dollars", StringComparison.OrdinalIgnoreCase))
                     {
-                        //_count_Dollars++;
                         if (tokIndex - 1 >= 0)
                         {
                             if (IsIntOrDouble(tokens[tokIndex - 1]))  //numeric
@@ -589,7 +582,6 @@ namespace InfoRetrieval
                     }///////////////// end of Dollars case
                     else if (currValue[0] == '$')
                     {
-                        //_count_signDollar++;
                         currValue = currValue.Replace("$", "");
                         if (IsIntOrDouble(currValue))
                         {
@@ -620,7 +612,6 @@ namespace InfoRetrieval
                     }///////////////// end of $ case
                     else if (IsFraction(currValue))
                     {
-                        //_count_fraction++;
                         if (tokIndex - 1 < 0 || !IsInteger(tokens[tokIndex - 1])) // the previous term is not numeric
                         {
                             AddNewTerm(currDOCNO, currValue);
@@ -632,7 +623,6 @@ namespace InfoRetrieval
                     } // end of fraction case
                     else if (m_months.Contains(currValue))
                     {
-                        //_count_month++;
                         int num;
                         if (tokIndex + 1 < tokensSize && IsInteger(numValue = tokens[tokIndex + 1]))
                         {
@@ -715,7 +705,6 @@ namespace InfoRetrieval
                     }///////////////// end of u.s. dollars case
                     else if (tokIndex + 3 < tokensSize && string.Equals(currValue, "between", StringComparison.OrdinalIgnoreCase))
                     {
-                        //_count_between++;
                         if (IsIntOrDouble(firstVal = tokens[tokIndex + 1].Trim(toDelete)))
                         {
                             if (string.Equals(tokens[tokIndex + 2], "and", StringComparison.OrdinalIgnoreCase))
@@ -743,7 +732,6 @@ namespace InfoRetrieval
                     }///////////////// end of lengths case  --------------------------- our Rule ------------------------------
                     else //of all cases
                     {
-                        //_count_else++;
                         if (m_doStemming)
                         {
                             lock (m_stemmer)
@@ -758,12 +746,9 @@ namespace InfoRetrieval
                         }
                     } // end of all cases
                 } // end of the if length >=2
-            } // end of for loop
-
-            //lock (m_IndexDoc)
-            //{
+            } // end of for loop 
+            tmpDoc.m_maxTF = _MAX_TF;//document.m_maxTF = _MAX_TF;
             m_IndexDoc.Add(currDOCNO, new IndexDoc(_MAX_TF, tmpDoc.m_uniqueCounter, tmpDoc.m_CITY));
-            //}
         } // end of ParseDocuments function
     }
 }

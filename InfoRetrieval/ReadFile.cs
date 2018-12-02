@@ -9,8 +9,14 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
-    public class ReadFile
+    /// <summary>
+    /// Class which represents a Reader which reads all documents in the corpus
+    /// </summary>
+    public class ReadFile : IReadFile
     {
+        /// <summary>
+        /// fields of ReadFile
+        /// </summary>
         //public Dictionary<string, masterFile> m_files;
         public string m_mainPath;
         public string[] m_paths;
@@ -19,27 +25,33 @@ namespace InfoRetrieval
         //public bool readerThreadFinished = false;
 
         public List<string[]> path_Chank;
-        public int ChankSize;
+        public int ChunkSize;
 
+        /// <summary>
+        /// constructor of ReadFile
+        /// </summary>
+        /// <param name="m_mainPath">the path of the corpus</param>
         public ReadFile(string m_mainPath)
         {
             this.m_mainPath = m_mainPath;
             this.m_indexCurrFile = 0;
             path_Chank = new List<string[]>();
-            ChankSize = 85;
+            ChunkSize = 120; //85
             MainRead();
             InitList();
             //this.m_files = new Dictionary<string, masterFile>();
         }
 
-
+        /// <summary>
+        /// method which splits the corpus to chunks
+        /// </summary>
         public void InitList()
         {
             //ChankSize
             int sumFiles = 0;
-            int currentListSize = Math.Min(ChankSize, m_paths.Length - sumFiles);
+            int currentListSize = Math.Min(ChunkSize, m_paths.Length - sumFiles);
             bool doChank = currentListSize != 0;
-            for (int i = 0, step = 0; currentListSize != 0; i++, step += ChankSize)
+            for (int i = 0, step = 0; currentListSize != 0; i++, step += ChunkSize)
             {
                 // path_Chank[i] = new string[currentListSize];
                 path_Chank.Add(new string[currentListSize]);
@@ -48,11 +60,16 @@ namespace InfoRetrieval
                     path_Chank[i][j] = m_paths[step + j];
                 }
                 sumFiles += currentListSize;
-                currentListSize = Math.Min(ChankSize, m_paths.Length - sumFiles);
+                currentListSize = Math.Min(ChunkSize, m_paths.Length - sumFiles);
 
             }
         }
 
+        /// <summary>
+        /// method which reads all documents in a chunck
+        /// </summary>
+        /// <param name="i">the id of the chunck</param>
+        /// <returns>the collection of files</returns>
         public masterFile ReadChunk(int i)
         {
             //Console.WriteLine(i);
@@ -69,6 +86,9 @@ namespace InfoRetrieval
 
         }
 
+        /// <summary>
+        /// method to get all pathes of all files in the corpus
+        /// </summary>
         public void MainRead()
         {
             //Parse parse = new Parse(true, m_mainPath);
@@ -81,6 +101,7 @@ namespace InfoRetrieval
             }
         }
 
+        /*
         private void ReadAllFiles()
         {
             for (int i = 0; i < m_paths.Length; i++)
@@ -88,8 +109,13 @@ namespace InfoRetrieval
                 ReadNewFile(m_paths[i]);
             }
         }
+        */
 
-
+        /// <summary>
+        /// method which reads a current file in the path
+        /// </summary>
+        /// <param name="file">the path of the current file</param>
+        /// <returns></returns>
         public masterFile ReadNewFile(string file)
         {
             string[] fields = file.Split('\\');
@@ -101,6 +127,11 @@ namespace InfoRetrieval
             /// we can return masterFile and send it to parser and do not sent the whole dictionary
         }
 
+        /// <summary>
+        /// method which reads all documents in current master file
+        /// </summary>
+        /// <param name="file">the path of current file</param>
+        /// <param name="masterFile">current master file</param>
         private void ReadDocuments(string file, masterFile masterFile)
         {
             string content = File.ReadAllText(file);
@@ -115,9 +146,9 @@ namespace InfoRetrieval
                     int a = docs[i].Length;
                 }
                 */
-                DOCNO = GetStringInBetween("<DOCNO>", "</DOCNO>", docs[i]);
-                StringBuilder DATE1 = new StringBuilder(GetDateInBetween(docs[i]));  // add condition with DATE
-                StringBuilder TI = new StringBuilder(GetStringInBetween("<TI>", "</TI>", docs[i]));
+                DOCNO = GetStringInBetween("<DOCNO>", "</DOCNO>", docs[i]).Trim(' ');
+                StringBuilder DATE1 = new StringBuilder(GetDateInBetween(docs[i]).Trim(' '));  // add condition with DATE
+                StringBuilder TI = new StringBuilder(GetStringInBetween("<TI>", "</TI>", docs[i]).Trim(' '));
                 TEXT = GetStringInBetween("<TEXT>", "</TEXT>", docs[i]);                                     // add condition when TEXT does not exist
                 StringBuilder City = new StringBuilder(GetCityInBetween(docs[i]));
                 masterFile.m_documents.Add(DOCNO.ToString(), new Document(DOCNO, DATE1, TI, TEXT, City));
@@ -125,6 +156,13 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// method to get the string between two tags
+        /// </summary>
+        /// <param name="strBegin">first tag</param>
+        /// <param name="strEnd">second tag</param>
+        /// <param name="strSource">the source string</param>
+        /// <returns>the string between two tags</returns>
         public static string GetStringInBetween(string strBegin, string strEnd, string strSource)
         {
             string[] firstSplit, secondSplit;
@@ -137,6 +175,12 @@ namespace InfoRetrieval
             return secondSplit[0];
         }
 
+
+        /// <summary>
+        /// method to get the string between two tags of date
+        /// </summary>
+        /// <param name="strSource">the source string</param>
+        /// <returns>the string between two tags of date</returns>
         public static string GetDateInBetween(string strSource)
         {
             string[] firstSplit, secondSplit;
@@ -153,6 +197,12 @@ namespace InfoRetrieval
             return secondSplit[0];
         }
 
+
+        /// <summary>
+        /// method to get the string between two tags of city
+        /// </summary>
+        /// <param name="strSource">the source string</param>
+        /// <returns>the string between two tags of city</returns>
         public static string GetCityInBetween(string strSource)
         {
             string[] firstSplit, secondSplit;

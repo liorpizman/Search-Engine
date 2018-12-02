@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,33 +14,51 @@ using System.Threading.Tasks;
 
 namespace InfoRetrieval
 {
+    /// <summary>
+    /// Class which represents an indexer for creating posting and indexing files 
+    /// </summary>
     public class Indexer
     {
+        /// <summary>
+        /// fields of Indexer
+        /// </summary>
         public int m_indexCounter;
         public string m_outPutPath;
         public bool doStem;
         public Dictionary<int, int> currentLine;
         public Dictionary<string, IndexTerm>[] dictionaries = new Dictionary<string, IndexTerm>[27];
         public Dictionary<string, DocumentTerms> tempDic;
+        public HashSet<string> m_Cities;
         public StreamWriter Writer;
         public StreamReader Reader;
         public bool StreamHasChanged;
-        public Queue<Dictionary<string, DocumentTerms>> IndexQueue;
-        public bool CorpusDone;
-        public Semaphore semaphore;
+        public char[] toDelete;
 
         public int indexNumber = 0;
 
+        public static Hashtable m_postingNums = new Hashtable()
+        {
+            {'a', 0 }, {'b', 1 }, {'c', 2 },{'d', 3 }, //{ "", "26" },
+            { 'e', 4 }, {'f', 5 }, {'g', 6 }, {'h', 7 },{'i', 8 },
+            { 'j', 9 }, {'k', 10 }, {'l', 11 }, {'m', 12 }, {'n', 13 },
+            {'o', 14 }, {'p', 15 },{'q', 16 },{'r', 17 }, {'s', 18 },
+            {'t', 19 }, {'u', 20 },{'v', 21 },{'w', 22 }, {'x', 23 },
+            { 'y', 24 } ,{'z', 25 }
+        };
+
+
+        /// <summary>
+        /// constructor of Indexer
+        /// </summary>
+        /// <param name="doStemming">boolean input for stemming</param>
+        /// <param name="m_outPutPath">the path of the output</param>
         public Indexer(bool doStemming, string m_outPutPath)
         {
-            //this.Writer = new StreamWriter();
-            //this.Reader = new StreamReader();
-            semaphore = new Semaphore(1, 1);
+            this.toDelete = new char[] { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"', '?', '!', '@', '\'', '*', '`', '&', '□', '_', '+' };
             this.currentLine = new Dictionary<int, int>();
             this.tempDic = new Dictionary<string, DocumentTerms>();
             this.StreamHasChanged = false;
-            this.IndexQueue = new Queue<Dictionary<string, DocumentTerms>>();
-            this.CorpusDone = false;
+            this.m_Cities = new HashSet<string>();
             this.m_indexCounter = 1;
             initDic();
             this.doStem = doStemming;
@@ -55,45 +74,11 @@ namespace InfoRetrieval
             CreatePostingFiles();
         }
 
-        public void IsLegalEntry()
-        {
-            semaphore.WaitOne();
-        }
-
-        public void AddToQueue(Dictionary<string, DocumentTerms> ToAdd)
-        {
-            IndexQueue.Enqueue(ToAdd);
-        }
-
-        public void SetCorpusDone()
-        {
-            CorpusDone = true;
-        }
-
-        public void MainIndexRun()
-        {
-            bool FirstWrite = false;
-            while (!CorpusDone)
-            {
-                while (IndexQueue.Count > 0)
-                {
-                    WriteToPostingFile(IndexQueue.Dequeue(), FirstWrite);
-                    semaphore.Release();
-                    FirstWrite = true;
-                }
-                ////////////// here we need to do thread.sleep(X secounds)
-            }
-            while (IndexQueue.Count > 0)  /////////to ensure all the files are did post
-            {
-                WriteToPostingFile(IndexQueue.Dequeue(), FirstWrite);
-            }
-            ///////////////////////////////////////////////////////MergePosting();//////////////////////////-checkit//////////////////////////
-            WriteTheNewIndexFile();
-        }
-
-        // fileName = "fileNameToCreate.txt" (including .txt)
-        // mydocpath = @"C:\Users\Lior\Desktop\current semester\Information retrieval\Project\moodle data\testFolder"; // change to path from GUI
-        // dataToFile = "add here the data structure!"
+        /// <summary>
+        /// method which creates a new text file
+        /// </summary>
+        /// <param name="fileName">the name of the file</param>
+        /// <param name="dataToFile">the data to write to the file</param>
         public void CreateTxtFile(string fileName, StringBuilder dataToFile)
         {
             if (!Directory.Exists(m_outPutPath))
@@ -105,6 +90,10 @@ namespace InfoRetrieval
                 outputFile.WriteLine(dataToFile);
             }
         }
+
+        /// <summary>
+        /// methods which creates posting files
+        /// </summary>
         public void CreatePostingFiles()
         {
             StringBuilder data = new StringBuilder();
@@ -115,6 +104,9 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// methods which creates new posting files
+        /// </summary>
         public void CreateNewPostingFiles()
         {
             StringBuilder data = new StringBuilder();
@@ -124,26 +116,22 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// method to write to posting files
+        /// </summary>
+        /// <param name="documentTermsDic">input dictionary of the Parse class</param>
+        /// <param name="hasWritten">boolean input for first writing</param>
         public void WriteToPostingFile(Dictionary<string, DocumentTerms> documentTermsDic, bool hasWritten)
         {
-            //Console.WriteLine("current index documentTermsDic number  is: " + documentTermsDic.Count);
             tempDic = documentTermsDic;
-            //documentTermsDic.Clear();
-            //InitTerms();
-
-            //Console.WriteLine(hasWritten);
             if (!hasWritten)
             {
                 this.tempDic = tempDic.OrderBy(i => i.Value.postNum).ThenBy(i => i.Value.line).ToDictionary(p => p.Key, p => p.Value);
-                //Console.WriteLine("current post number (first write) is: " + indexNumber++);
                 StringBuilder data = new StringBuilder();
                 int postNum = -1;
-                //StreamWriter sw = new StreamWriter(Path.Combine(m_outPutPath, "Posting.txt"));
                 foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
                 {
-
-                    currentPostingForFirstWrite(pair.Value.postNum, postNum);
-                    //Console.WriteLine("current post number (first write) is: "+ pair.Value.postNum);
+                    SwitchWriterForFirstPosting(pair.Value.postNum, postNum);
                     postNum = pair.Value.postNum;
                     IndexTerm currentTerm = new IndexTerm(pair.Key, postNum, currentLine[postNum]);
                     // currentTerm.IncreaseTf(pair.Value.m_tfc);
@@ -163,9 +151,11 @@ namespace InfoRetrieval
                 DeleteOldFiles();
             }
             Console.WriteLine("-----------" + m_indexCounter++);
-            //Console.WriteLine("current index documentTermsDic number  is end");
         }
 
+        /// <summary>
+        /// mwthod to init the array which holds all the dictionaries of each post number
+        /// </summary>
         public void initDic()
         {
             for (int i = 0; i < 27; i++)
@@ -175,12 +165,16 @@ namespace InfoRetrieval
             }
         }
 
-        public void currentPosting(int termPost, int currentPos)
+        /// <summary>
+        /// method to switch the reader and writer streams
+        /// </summary>
+        /// <param name="termPost">the post number of the current term</param>
+        /// <param name="currentPos">the position of the stream</param>
+        public void SwitchWriterAndReaderForPosting(int termPost, int currentPos)
         {
             bool check = Writer != null && Reader != null;
             if (currentPos == -1 || termPost != currentPos)
             {
-                // Console.WriteLine("current post number (update write) is: " + termPost);
                 StreamHasChanged = true;
                 if (check)
                 {
@@ -189,27 +183,32 @@ namespace InfoRetrieval
                     Reader.Close();
                 }
                 Writer = new StreamWriter(Path.Combine(m_outPutPath, "NewPosting" + termPost + ".txt"));
-                Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt")); /////////////////// has to changed
+                Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt"));
             }
         }
 
-        public void currentPostingForFirstWrite(int termPost, int currentPos)
+        /// <summary>
+        /// method to switch the writer stream
+        /// </summary>
+        /// <param name="termPost">the post number of the current term</param>
+        /// <param name="currentPos">the position of the stream</param>
+        public void SwitchWriterForFirstPosting(int termPost, int currentPos)
         {
             bool check = Writer != null;
             if (currentPos == -1 || termPost != currentPos)
             {
-                //  Console.WriteLine("current post number (first write) is: " + termPost);
                 if (check)
                 {
                     Writer.Flush();
                     Writer.Close();
-                    // Reader.Close();
                 }
                 Writer = new StreamWriter(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt"));
-                // Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt")); /////////////////// has to changed
             }
         }
 
+        /// <summary>
+        /// method which updates current posting files
+        /// </summary>
         public void UpdatePosting()
         {
             InitTerms();
@@ -217,46 +216,25 @@ namespace InfoRetrieval
             bool last_read = true;
             int PostNumber = -1, LineNumber, currentLineNumber = 0;
             StringBuilder data = new StringBuilder();
-            // Console.WriteLine("current post number (update write) is: " + indexNumber++);
-            //createTxtFile("NewPosting.txt", data);
             foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
             {
-                /*
-                if (pair.Value.m_valueOfTerm.Equals("")){
-                    int a = 0;
-                }
-                */
-                //StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, "newPost " + pair.Value.m_Terms[pair.Key].postNum+".txt"));
-                ///////////////////////// here need to add the definition of the file we wrote
-                currentPosting(pair.Value.postNum, PostNumber);
-                //Console.WriteLine("current post number (update write) is: " + pair.Value.postNum);
+                SwitchWriterAndReaderForPosting(pair.Value.postNum, PostNumber);
                 if (StreamHasChanged)
                 {
                     currentLineNumber = 0;
                     StreamHasChanged = false;
                     last_read = true;
-                    //currentLineNumber = currentLine[PostNumber];
                 }
                 string currentLineInFile;
                 PostNumber = pair.Value.postNum;
                 LineNumber = pair.Value.line;
                 if (LineNumber != Int32.MaxValue) // exist in the posting file
                 {
-                    // Console.WriteLine("LineNumber != Int32.MaxValue: " + LineNumber);
-                    while (LineNumber > currentLineNumber)  //LineNumber < currentLineNumber)
+                    while (LineNumber > currentLineNumber)
                     {
-                        //    if ((currentLineInFile = Reader.ReadLine()) != null)
-                        //  {
                         currentLineInFile = Reader.ReadLine();
-                        /*
-                        if (currentLineInFile.Split('#')[0].Equals(""))
-                        {
-                            int a = 0;
-                        }
-                        */
                         Writer.WriteLine(currentLineInFile);
                         currentLineNumber++;
-                        // }
                     }
                     currentLineInFile = Reader.ReadLine();
                     Writer.WriteLine(currentLineInFile + pair.Value.WriteToPostingFileDocDocTerm(true));
@@ -266,7 +244,6 @@ namespace InfoRetrieval
                 }
                 else
                 {
-                    // Console.WriteLine("else: LineNumber != Int32.MaxValue: " + LineNumber);
                     if (last_read)
                     {
                         while ((currentLineInFile = Reader.ReadLine()) != null)
@@ -294,11 +271,11 @@ namespace InfoRetrieval
             tempDic.Clear();
         }
 
+        /// <summary>
+        /// method to delete all old files
+        /// </summary>
         public void DeleteOldFiles()
         {
-            //TimeSpan parse = TimeSpan.Zero;
-            //DateTime st1 = DateTime.Now;
-
             for (int i = 0; i < 27; i++)
             {
                 if (File.Exists(Path.Combine(m_outPutPath, "Posting" + i + ".txt")))
@@ -311,133 +288,166 @@ namespace InfoRetrieval
                     File.Delete(Path.Combine(m_outPutPath, "NewPosting" + i + ".txt"));
                 }
             }
-            //parse = parse.Add(DateTime.Now - st1);
-            //Console.WriteLine("parse time span: " + parse);
         }
 
-        public void MergePosting()
-        {
-            StringBuilder data = new StringBuilder();
-            CreateTxtFile("Posting.txt", data);
-            string current;
-            Writer = new StreamWriter(Path.Combine(m_outPutPath, "Posting.txt"));
-            for (int i = 0; i < 27; i++)
-            {
-                Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + i + ".txt"));
-                while ((current = Reader.ReadLine()) != null)
-                {
-                    Writer.WriteLine(current);
-                }
-                Reader.Close();
-            }
-            Writer.Flush();
-            Writer.Close();
-        }
-
+        /// <summary>
+        /// method to write the index file
+        /// </summary>
         public void WriteTheNewIndexFile()
         {
             StringBuilder data = new StringBuilder();
             CreateTxtFile("Dictionary.txt", data);
-            //string current;
             Writer = new StreamWriter(Path.Combine(m_outPutPath, "Dictionary.txt"));
-            /// here add sort of the dictionary by keys
             Dictionary<string, IndexTerm> temp;
-
             foreach (Dictionary<string, IndexTerm> dic in dictionaries)
             {
-                //temp = dic.OrderBy(i => i.Key).ToDictionary(p => p.Key, p => p.Value);
                 temp = dic.OrderBy(i => i.Value.m_value).ToDictionary(p => p.Key, p => p.Value);
                 foreach (KeyValuePair<string, IndexTerm> currentTerm in temp)
                 {
-                    Writer.WriteLine(currentTerm.Value.PrintTerm());  ////////check whose function has the best time 
-                    //Writer.WriteLine(currentTerm.Value.PrintTermString()); 
+                    Writer.WriteLine(currentTerm.Value.PrintTerm());
                 }
             }
             Writer.Flush();
             Writer.Close();
-            /*
-            foreach (Dictionary<string, IndexTerm> dic in dictionaries)
-            {
-                var list = dic.Keys.ToList();
-                list.Sort();
-                // Loop through keys.
-                foreach (var key in list)
-                {
-                    Writer.WriteLine(dic[key].PrintTerm());
-                }
-            }
-            */
         }
 
-
+        /// <summary>
+        /// method which init all the terms in the current dictionary
+        /// </summary>
         public void InitTerms()
         {
-            //TimeSpan parse = TimeSpan.Zero;
-            // DateTime st1 = DateTime.Now;
             foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
             {
-
                 int PostNumber = pair.Value.postNum;
                 if (dictionaries[PostNumber].ContainsKey(pair.Key))
                 {
                     pair.Value.line = dictionaries[PostNumber][pair.Key].lineInPost;
                 }
             }
-            // parse = parse.Add(DateTime.Now - st1);
-            //Console.WriteLine("parse time span: " + parse);
-            ///////////////// order without internal order - check it!!!
             this.tempDic = tempDic.OrderBy(i => i.Value.postNum).ThenBy(i => i.Value.line).ToDictionary(p => p.Key, p => p.Value);
         }
 
+        /// <summary>
+        /// method which get the suitable post number of a current term
+        /// </summary>
+        /// <param name="str">the value of the current term</param>
+        /// <returns>the post number of a current term</returns>
+        public int GetPostNumber(string str)
+        {
+            if (str.Equals(""))
+            {
+                return 26;
+            }
+            char c = char.ToLower(str[0]);
+            if (char.IsLetter(c))
+            {
+                return (int)m_postingNums[c];
+            }
+            else
+            {
+                return 26;
+            }
+        }
 
+        /// <summary>
+        /// method to write the documents' file to disk
+        /// </summary>
+        /// <param name="masterFiles">current collection of files</param>
         public void WriteTheNewDocumentsFile(masterFile masterFiles)
         {
+            /////////////////////////////////////////////////////////////////////////////   delete all files, before run the model
+            StringBuilder data = new StringBuilder();
             if (!File.Exists(Path.Combine(m_outPutPath, "Documents.txt")))
             {
-                StringBuilder data = new StringBuilder();
-                //Directory.CreateDirectory(Path.Combine(m_outPutPath, "Documents.txt"));
                 CreateTxtFile("Documents.txt", data);
+                Writer = new StreamWriter(Path.Combine(m_outPutPath, "Documents.txt"));
             }
-            Writer = new StreamWriter(Path.Combine(m_outPutPath, "Documents.txt"));
-            //StringBuilder data = new StringBuilder();
+            else
+            {
+                Writer = File.AppendText(Path.Combine(m_outPutPath, "Documents.txt"));
+            }
             foreach (Document d in masterFiles.m_documents.Values)
             {
                 Writer.WriteLine(d.WriteDocumentToIndexFile());
-                //data.Append(Environment.NewLine);
             }
             Writer.Flush();
             Writer.Close();
             Writer = null;
         }
 
-
-        public void WriteCitiesIndexFile(HashSet<string> m_Cities)
+        /// <summary>
+        /// method which saves all the cities exist in the tags
+        /// </summary>
+        /// <param name="masterFile">a collection of files</param>
+        public void UpdateCitiesPositionInDocument(masterFile masterFile)
         {
+            string city;
+            foreach (Document document in masterFile.m_documents.Values)
+            {
+                city = document.m_CITY.ToString().Trim(toDelete);
+                if (!city.Equals("") && !m_Cities.Contains(city) && !(city.Any(char.IsDigit)))
+                {
+                    m_Cities.Add(city);
+                }
+            }
+        }
+
+        /// <summary>
+        /// method to write the Cities index file
+        /// </summary>
+        public void WriteCitiesIndexFile()
+        {
+            int postNum;
+            string currency, state, population;
+            StringBuilder cityData = new StringBuilder();
             if (!File.Exists(Path.Combine(m_outPutPath, "Cities.txt")))
             {
                 StringBuilder data = new StringBuilder();
                 CreateTxtFile("Cities.txt", data);
             }
             Writer = new StreamWriter(Path.Combine(m_outPutPath, "Cities.txt"));
-            var webRequest = WebRequest.Create("https://restcountries.eu/rest/v2/all?fields=capital;name;currencies;population") as HttpWebRequest;
-            if (webRequest == null)
+            foreach (string city in m_Cities)
             {
-                return;
-            }
-            webRequest.ContentType = "application/json";
-            webRequest.UserAgent = "Nothing";
-            using (var s = webRequest.GetResponse().GetResponseStream())
-            {
-                using (var sr = new StreamReader(s))
+                postNum = GetPostNumber(city);
+
+                var webRequest = WebRequest.Create("http://getcitydetails.geobytes.com/GetCityDetails?fqcn=" + city) as HttpWebRequest;
+                if (webRequest != null)
                 {
-                    var contributorsAsJson = sr.ReadToEnd();
-                    JArray jarr = JArray.Parse(contributorsAsJson);
-                    foreach (JObject content in jarr.Children<JObject>())
-                    {//fields[0] - currencies ,fields[1] - name ,fields[2] - capital ,fields[3] - population ,
-                        JProperty[] fields = content.Properties().ToArray();
-                        if (m_Cities.Contains("" + fields[2].Value))
-                        {//fields[0].Value[0].ToArray()[0] 
-                            Writer.WriteLine(fields[2].Value + "#" + fields[1].Value + "#" + fields[0].Value[0].ToArray()[0].ToArray()[0] + "#" + fields[3].Value);
+                    using (var s = webRequest.GetResponse().GetResponseStream())
+                    {
+                        using (var sr = new StreamReader(s))
+                        {
+                            var contributorsAsJson = sr.ReadToEnd();
+                            JObject jObject = JObject.Parse(contributorsAsJson);
+                            cityData.Append(city + "(#)");
+                            currency = (string)jObject.SelectToken("geobytescurrencycode");
+                            state = (string)jObject.SelectToken("geobytescountry");
+                            population = (string)jObject.SelectToken("geobytespopulation");
+                            if (!currency.Equals(""))
+                            {
+                                cityData.Append(currency + "(#)"); //currency
+                            }
+                            if (!state.Equals(""))
+                            {
+                                cityData.Append(state + "(#)"); // state
+                            }
+                            if (!population.Equals(""))
+                            {
+                                cityData.Append(population + "(#)"); // population
+                            }
+
+                            if (dictionaries[postNum].ContainsKey(city))
+                            {
+                                cityData.Append(" postNum: " + postNum + " lineNumber: " + dictionaries[postNum][city].lineInPost); // positions pointer
+                                Writer.WriteLine(cityData);
+                                cityData.Clear();
+                            }
+                            else
+                            {
+                                cityData.Append(" not exist in Posting"); // positions
+                                Writer.WriteLine(cityData);
+                                cityData.Clear();
+                            }
                         }
                     }
                 }
@@ -447,7 +457,9 @@ namespace InfoRetrieval
             Writer = null;
         }
 
-
+        /// <summary>
+        /// method to load the dictionary from the disk
+        /// </summary>
         public void LoadDictionary()
         {
             if (!File.Exists(Path.Combine(m_outPutPath, "Dictionary.txt")))
@@ -467,8 +479,8 @@ namespace InfoRetrieval
             for (int i = 0; i < allLines.Length; i++)
             {
                 string currentLine = allLines[i];
-                string[] lineDetails = currentLine.Split('#');
-                ///////////////////////////////// have to add the post number of the index
+                string[] lineDetails = currentLine.Split('#'); //(#)
+                                                               ///////////////////////////////// have to add the post number of the index
                 string[] lineNumber = lineDetails[3].Split(':');
                 string[] df = lineDetails[1].Split(':');
                 string[] tf = lineDetails[2].Split(':');
