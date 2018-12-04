@@ -14,11 +14,12 @@ namespace InfoRetrieval
         /// <summary>
         /// fields of a Document
         /// </summary>
-        public Dictionary<string, int> m_termsInDictionary { get; private set; }// all terms (strings) in document with (int) counter of instances
+        //public Dictionary<string, int> m_termsInDictionary { get; private set; }// all terms (strings) in document with (int) counter of instances
         public string m_DOCNO { get; private set; }
         public StringBuilder m_DATE1 { get; private set; }
         public StringBuilder m_TI { get; private set; }
         public StringBuilder m_CITY { get; private set; }
+        public StringBuilder m_language { get; private set; }
         public string m_TEXT { get; private set; }
         public int m_uniqueCounter { get; set; }
         public int m_maxTF { get; set; }
@@ -31,16 +32,17 @@ namespace InfoRetrieval
         /// <param name="m_TI">document's title</param>
         /// <param name="m_TEXT">document's text</param>
         /// <param name="m_CITY">document's city</param>
-        public Document(string m_DOCNO, StringBuilder m_DATE1, StringBuilder m_TI, string m_TEXT, StringBuilder m_CITY)
+        public Document(string DOCNO, StringBuilder DATE1, StringBuilder TI, string TEXT, StringBuilder CITY, StringBuilder language)
         {
-            this.m_DOCNO = m_DOCNO;
-            this.m_DATE1 = m_DATE1;
-            this.m_TI = m_TI;
-            this.m_TEXT = m_TEXT;
-            this.m_CITY = m_CITY;
+            this.m_DOCNO = DOCNO;
+            this.m_DATE1 = DATE1;
+            this.m_TI = TI;
+            this.m_TEXT = TEXT;
+            this.m_CITY = CITY;
+            this.m_language = language;
             this.m_uniqueCounter = 0;
             this.m_maxTF = 0;
-            this.m_termsInDictionary = new Dictionary<string, int>();               // we should check if we need delete this??
+            //this.m_termsInDictionary = new Dictionary<string, int>();               // we should check if we need delete this??
         }
         public StringBuilder WriteDocumentToIndexFile()
         {

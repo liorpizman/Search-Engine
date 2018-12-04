@@ -9,13 +9,14 @@ namespace InfoRetrieval
     /// <summary>
     /// Class which represents the data of a term for indexing
     ////// </summary>
+    [Serializable]
     public class IndexTerm
     {
         /// <summary>
         /// fiels of IndexTerm
         /// </summary>
         public int df; //number of documents that contain the term
-        public int tf; //total frequency in corpus
+        public int tfc; //total frequency in corpus
         public string m_value; //value of the term
         //public int postNum;
         public int lineInPost;
@@ -30,7 +31,7 @@ namespace InfoRetrieval
         public IndexTerm(string m_value, int postNum, int lineInPost)
         {
             this.df = 0;
-            this.tf = 0;
+            this.tfc = 0;
             //updated = true;
             //initPostNumer();
             this.m_value = m_value;
@@ -42,9 +43,9 @@ namespace InfoRetrieval
         /// method for increase TF of a term
         /// </summary>
         /// <param name="increase">number of instances that should be add</param>
-        public void IncreaseTf(int increase)
+        public void IncreaseTfc(int increase)
         {
-            this.tf += increase;
+            this.tfc += increase;
         }
 
         /// <summary>
@@ -62,8 +63,10 @@ namespace InfoRetrieval
         /// <returns>stringbuilder for writing to index file</returns>
         public StringBuilder PrintTerm()
         {
-            return new StringBuilder(m_value + "(#)" + "df:" + df + "(#)" + "tf:" + tf);
+            return new StringBuilder(m_value + "(#)" + "df:" + df + "(#)" + "tfc:" + tfc);
+            //return new StringBuilder(m_value + "(#)" + "tfc:" + tfc);
         }
+
 
     }
 }

@@ -36,8 +36,8 @@ namespace InfoRetrieval
             this.m_mainPath = m_mainPath;
             this.m_indexCurrFile = 0;
             path_Chank = new List<string[]>();
-            ChunkSize = 120; //85
             MainRead();
+            ChunkSize = Math.Min(120, m_paths.Length);
             InitList();
             //this.m_files = new Dictionary<string, masterFile>();
         }
@@ -151,7 +151,8 @@ namespace InfoRetrieval
                 StringBuilder TI = new StringBuilder(GetStringInBetween("<TI>", "</TI>", docs[i]).Trim(' '));
                 TEXT = GetStringInBetween("<TEXT>", "</TEXT>", docs[i]);                                     // add condition when TEXT does not exist
                 StringBuilder City = new StringBuilder(GetCityInBetween(docs[i]));
-                masterFile.m_documents.Add(DOCNO.ToString(), new Document(DOCNO, DATE1, TI, TEXT, City));
+                StringBuilder language = new StringBuilder(GetLanguageInBetween(docs[i]));
+                masterFile.m_documents.Add(DOCNO.ToString(), new Document(DOCNO, DATE1, TI, TEXT, City, language));
                 masterFile.m_docAmount++;
             }
         }
@@ -213,6 +214,18 @@ namespace InfoRetrieval
             }
             secondSplit = firstSplit[1].Split(new[] { "</F>" }, StringSplitOptions.None);
             return secondSplit[0].Trim(' ').Split(' ')[0].ToUpper();
+        }
+
+        public static string GetLanguageInBetween(string strSource)
+        {
+            string[] firstSplit, secondSplit;
+            firstSplit = strSource.Split(new[] { "<F P=105>" }, StringSplitOptions.None);
+            if (firstSplit.Length < 2)
+            {
+                return "";
+            }
+            secondSplit = firstSplit[1].Split(new[] { "</F>" }, StringSplitOptions.None);
+            return secondSplit[0].Trim(' ').Split(' ')[0];
         }
     }
 }

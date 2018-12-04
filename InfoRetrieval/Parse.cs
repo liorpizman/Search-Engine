@@ -295,6 +295,7 @@ namespace InfoRetrieval
         /// <returns>boolean output</returns>
         public static bool IsIntOrDouble(string str)
         {
+            str = str.Replace(",", "");
             int num1;
             double num2;
             return int.TryParse(str, out num1) && double.TryParse(str, out num2);
@@ -481,10 +482,10 @@ namespace InfoRetrieval
                                 {
                                     if (m_doStemming)
                                     {
-                                        lock (m_stemmer)
-                                        {
-                                            stemmedValue = m_stemmer.stemTerm(word.ToLower());
-                                        }
+                                        //lock (m_stemmer)
+                                        //{
+                                        stemmedValue = m_stemmer.stemTerm(word.ToLower());
+                                        //}
                                         AddNewUpperCaseTerm(currDOCNO, stemmedValue);
                                     }
                                     else
@@ -496,10 +497,10 @@ namespace InfoRetrieval
                                 {
                                     if (m_doStemming)
                                     {
-                                        lock (m_stemmer)
-                                        {
-                                            stemmedValue = m_stemmer.stemTerm(word);
-                                        }
+                                        //lock (m_stemmer)
+                                        //{
+                                        stemmedValue = m_stemmer.stemTerm(word);
+                                        //}
                                         AddNewLowerCaseTerm(currDOCNO, stemmedValue);
                                     }
                                     else
@@ -515,10 +516,10 @@ namespace InfoRetrieval
                     {
                         if (m_doStemming)
                         {
-                            lock (m_stemmer)
-                            {
-                                stemmedValue = m_stemmer.stemTerm(currValue.ToLower());
-                            }
+                            //lock (m_stemmer)
+                            //{
+                            stemmedValue = m_stemmer.stemTerm(currValue.ToLower());
+                            //}
                             AddNewUpperCaseTerm(currDOCNO, stemmedValue);
                         }
                         else
@@ -711,7 +712,7 @@ namespace InfoRetrieval
                             {
                                 if (IsIntOrDouble(secondVal = tokens[tokIndex + 3].Trim(toDelete)))
                                 {
-                                    AddNewTerm(currDOCNO, "between " + firstVal + " and " + secondVal);
+                                    AddNewTerm(currDOCNO, "between " + getNumberAfterConvertToTerm(firstVal) + " and " + getNumberAfterConvertToTerm(secondVal));
                                 }
                             }
                         }
@@ -720,24 +721,24 @@ namespace InfoRetrieval
                     {
                         if (tokIndex - 1 >= 0 && IsIntOrDouble(tokens[tokIndex - 1]))
                         {
-                            AddNewTerm(currDOCNO, tokens[tokIndex - 1] + " " + m_times[currValue]);
+                            AddNewTerm(currDOCNO, getNumberAfterConvertToTerm(tokens[tokIndex - 1]) + " " + m_times[currValue]);
                         }
                     }///////////////// end of times case  --------------------------- our Rule ------------------------------
                     else if (m_lengths.Contains(currValue))
                     {
                         if (tokIndex - 1 >= 0 && IsIntOrDouble(tokens[tokIndex - 1]))
                         {
-                            AddNewTerm(currDOCNO, tokens[tokIndex - 1] + " " + m_lengths[currValue]);
+                            AddNewTerm(currDOCNO, getNumberAfterConvertToTerm(tokens[tokIndex - 1]) + " " + m_lengths[currValue]);
                         }
                     }///////////////// end of lengths case  --------------------------- our Rule ------------------------------
                     else //of all cases
                     {
                         if (m_doStemming)
                         {
-                            lock (m_stemmer)
-                            {
-                                stemmedValue = m_stemmer.stemTerm(currValue);
-                            }
+                            //lock (m_stemmer)
+                            //{
+                            stemmedValue = m_stemmer.stemTerm(currValue);
+                            //}
                             AddNewLowerCaseTerm(currDOCNO, stemmedValue);
                         }
                         else

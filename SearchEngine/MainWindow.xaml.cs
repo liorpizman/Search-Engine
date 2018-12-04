@@ -15,7 +15,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Forms;
 using InfoRetrieval;
-
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Runtime.Serialization;
 
 namespace SearchEngine
 {
@@ -90,14 +91,7 @@ namespace SearchEngine
 
         private void Run_button_Clicked(object sender, System.EventArgs e)
         {
-            runButton.IsEnabled = false;
-            resetButton.IsEnabled = false;
-            loadDicButton.IsEnabled = false;
-            displayDicButton.IsEnabled = false;
-            browseInputButton.IsEnabled = false;
-            browseOutputButton.IsEnabled = false;
-            exitButton.IsEnabled = false;
-
+            EnableButtons(false);
             bool validInput = Directory.Exists(inputPathText.Text);
             bool validOutput = Directory.Exists(outputPathText.Text);
             if (!validInput)
@@ -116,7 +110,6 @@ namespace SearchEngine
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
                 return;
             }
-            // run all methods here!!!
             if (model.inputPath.Equals(""))
             {
                 model.setInputPath(inputPathText.Text);
@@ -125,23 +118,46 @@ namespace SearchEngine
             {
                 model.setOutPutPath(outputPathText.Text);
             }
+            TimeSpan runTime = TimeSpan.Zero;
+            DateTime startTime = DateTime.Now;
             model.Run();
-            string message2 = "The execution is finished!";
+            runTime = runTime.Add(DateTime.Now - startTime);
+            int i = 1;
+            foreach (string language in model.indexer.m_Languages)
+            {
+                languagesComboBox.Items.Insert(i++, language);
+            }
+            /*
+            TimeSpan runTimeCities = TimeSpan.Zero;
+            DateTime startTimeCities = DateTime.Now;
+            model.RunCitiesIndex();
+            runTimeCities = runTimeCities.Add(DateTime.Now - startTimeCities);
+
+            TimeSpan runTimeDictionary = TimeSpan.Zero;
+            DateTime startTimeDictionary = DateTime.Now;
+            model.RunDictionaryIndex();
+            runTimeDictionary = runTimeDictionary.Add(DateTime.Now - startTimeDictionary);
+            */
+            StringBuilder outPutMessage = new StringBuilder("The execution is finished!");
+            outPutMessage.AppendLine();
+            outPutMessage.AppendLine("Total run time: " + runTime);
+            outPutMessage.AppendLine("Total unique terms indexed: " + model.indexer.uniqueCorpusCounter);
+            outPutMessage.AppendLine("Total documents indexed: " + model.indexer.docCounter);
+
             string caption2 = "Mission Completed Successfully";
             MessageBoxButtons buttons2 = MessageBoxButtons.OK;
-            DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
+            DialogResult result2 = System.Windows.Forms.MessageBox.Show(outPutMessage.ToString(), caption2, buttons2);
 
-            runButton.IsEnabled = true;
-            resetButton.IsEnabled = true;
-            loadDicButton.IsEnabled = true;
-            displayDicButton.IsEnabled = true;
-            browseInputButton.IsEnabled = true;
-            browseOutputButton.IsEnabled = true;
-            exitButton.IsEnabled = true;
+            EnableButtons(true);
         }
 
         private void resetButton_Click(object sender, RoutedEventArgs e)
         {
+            languagesComboBox.Items.Clear();
+            languagesComboBox.Items.Insert(0, "Choose...");
+            languagesComboBox.SelectedIndex = 0;
+            dictionaryListBox.Items.Clear();
+            model.indexer = null;
             if (outputPathText.Text.Equals(""))
             {
                 string message = "The are no dictionary or posting files in the path you specified!";
@@ -163,5 +179,124 @@ namespace SearchEngine
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
             }
         }
+
+        private void displayDicButton_Click(object sender, RoutedEventArgs e)
+        {
+            EnableButtons(false);
+            // dictionaryListBox.Items.Clear();
+            if (model.indexer != null)
+            {
+                var res = model.indexer.dictionaries.SelectMany(dict => dict)
+            .ToDictionary(pair => pair.Key, pair => pair.Value.tfc);
+                dictionaryListBox.ItemsSource = res;
+                string message = "Mission done!";
+                string caption = "Dictionary display";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+            }
+            else
+            {
+                string message = "Dictionary does not exist!\n\nPlease Load the Dictionary or Run the search engine first.";
+                string caption = "Dictionary display";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+            }
+            EnableButtons(true);
+        }
+
+        private void loadDicButton_Click(object sender, RoutedEventArgs e)
+        {
+            EnableButtons(false);
+            bool existWithStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithStem\\Dictionary.bin"));
+            bool existWithoutStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithOutStem\\Dictionary.bin"));
+            if (model.indexer != null)
+            {
+                if (!model.m_doStemming) // Without Stemming
+                {
+                    if (existWithoutStem)
+                    {
+                        if (model.lastRunStem)// last run stem - false when the last run was without stemming
+                        {
+                            Deserialize(System.IO.Path.Combine(outputPathText.Text, "WithOutStem"));
+                        }
+                    }
+                    else
+                    {
+                        string msg = "Dictionary with out stemming does not exist!\n\nPlease Run the search engine first.";
+                        string cap = "Dictionary Load";
+                        MessageBoxButtons bttns = MessageBoxButtons.OK;
+                        DialogResult res = System.Windows.Forms.MessageBox.Show(msg, cap, bttns);
+                        EnableButtons(true);
+                        return;
+                    }
+                }
+                else // With Stemming
+                {
+                    if (existWithStem)
+                    {
+                        if (!model.lastRunStem)// last run stem - true when the last run was with stemming
+                        {
+                            Deserialize(System.IO.Path.Combine(outputPathText.Text, "WithStem"));
+                        }
+                    }
+                    else
+                    {
+                        string msg = "Dictionary with stemming does not exist!\n\nPlease Run the search engine first.";
+                        string cap = "Dictionary Load";
+                        MessageBoxButtons bttns = MessageBoxButtons.OK;
+                        DialogResult res = System.Windows.Forms.MessageBox.Show(msg, cap, bttns);
+                        EnableButtons(true);
+                        return;
+                    }
+
+                }
+                string message = "Done loading the dictionary!";
+                string caption = "Dictionary Load";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+            }
+            else
+            {
+                string message = "Dictionary does not exist!\n\nPlease Run the search engine first.";
+                string caption = "Dictionary Load";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+            }
+            EnableButtons(true);
+        }
+
+        private void EnableButtons(bool enable)
+        {
+            runButton.IsEnabled = enable;
+            resetButton.IsEnabled = enable;
+            loadDicButton.IsEnabled = enable;
+            displayDicButton.IsEnabled = enable;
+            browseInputButton.IsEnabled = enable;
+            browseOutputButton.IsEnabled = enable;
+            exitButton.IsEnabled = enable;
+        }
+
+
+        private void Deserialize(string path)
+        {
+            Dictionary<string, IndexTerm>[] dictionaries = null;
+            FileStream fs = new FileStream(System.IO.Path.Combine(path, "Dictionary.bin"), FileMode.Open, FileAccess.Read, FileShare.None);
+            try
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                dictionaries = (Dictionary<string, IndexTerm>[])formatter.Deserialize(fs);
+            }
+            catch (SerializationException e)
+            {
+                Console.WriteLine("Failed to deserialize. Reason: " + e.Message);
+                throw;
+            }
+            finally
+            {
+                fs.Close();
+            }
+            model.indexer.dictionaries = dictionaries;
+        }
+
     }
 }

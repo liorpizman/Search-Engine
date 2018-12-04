@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SearchEngine"
         mc:Ignorable="d"
-        Title="MainWindow" Height="468.667" Width="735.667">
+        Title="MainWindow" Height="468.667" Width="1183.411">
     <Grid RenderTransformOrigin="0.5,0.5">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0*"/>
@@ -38,12 +38,14 @@
         <TextBox x:Name="outputPathText" HorizontalAlignment="Left" Height="23" Margin="7,79,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="549" Grid.Column="2"/>
         <Button x:Name="browseInputButton" Content="Browse" HorizontalAlignment="Left" Height="23" Margin="588,33,0,0" VerticalAlignment="Top" Width="91" Click="Input_browse_Clicked" Grid.Column="2"/>
         <Button x:Name="browseOutputButton" Content="Browse" HorizontalAlignment="Left" Height="23" Margin="588,79,0,0" VerticalAlignment="Top" Width="91" Click="Output_browse_Clicked" Grid.Column="2"/>
-        <Button x:Name="exitButton" Content="Exit" HorizontalAlignment="Left" Height="36" Margin="597,371,0,0" VerticalAlignment="Top" Width="72" Click="Exit_button_Clicked" Grid.Column="2"/>
-        <Button x:Name="displayDicButton" Content="Display dictionary" HorizontalAlignment="Left" Height="56" Margin="402,151,0,0" VerticalAlignment="Top" Width="162" Grid.Column="2"/>
+        <Button x:Name="exitButton" Content="Exit" HorizontalAlignment="Left" Height="36" Margin="287,384,0,0" VerticalAlignment="Top" Width="72" Click="Exit_button_Clicked" Grid.Column="2"/>
+        <Button x:Name="displayDicButton" Content="Display dictionary" HorizontalAlignment="Left" Height="56" Margin="402,151,0,0" VerticalAlignment="Top" Width="162" Grid.Column="2" Click="displayDicButton_Click"/>
         <Button x:Name="resetButton" Content="Reset" HorizontalAlignment="Left" Height="48" Margin="7,236,0,0" VerticalAlignment="Top" Width="109" RenderTransformOrigin="0.368,1.309" Click="resetButton_Click" Grid.Column="2"/>
-        <Button x:Name="loadDicButton" Content="Load dictionary" HorizontalAlignment="Left" Height="56" Margin="402,228,0,0" VerticalAlignment="Top" Width="166" Grid.Column="2"/>
+        <Button x:Name="loadDicButton" Content="Load dictionary" HorizontalAlignment="Left" Height="56" Margin="402,228,0,0" VerticalAlignment="Top" Width="166" Grid.Column="2"  Click="loadDicButton_Click" />
         <ComboBox x:Name="languagesComboBox" HorizontalAlignment="Left" Height="23" Margin="7,184,0,0" VerticalAlignment="Top" Width="167" Grid.Column="2" />
         <TextBlock HorizontalAlignment="Left" Height="17" Margin="10,162,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="100" Text="Select Language:" Grid.Column="2"/>
+        <ListBox x:Name="dictionaryListBox" Grid.Column="2" HorizontalAlignment="Left" Height="374" Margin="694,33,0,0" VerticalAlignment="Top" Width="431"/>
+        <TextBlock Grid.Column="2" HorizontalAlignment="Left" Height="22" Margin="844,11,0,0" TextWrapping="Wrap" Text="Dictionary Display" VerticalAlignment="Top" Width="138"/>
 
     </Grid>
 </Window>
