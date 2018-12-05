@@ -15,10 +15,10 @@ namespace InfoRetrieval
         /// <summary>
         /// fields of a Term
         /// </summary>
-        public string m_value;
-        public int m_tf;  // num of instances of m_value in current m_DOCNO
-        public string m_DOCNO;
-        public StringBuilder m_positions; //maybe list
+        public string m_value { get; private set; }
+        public int m_tf { get; private set; }  // num of instances of m_value in current m_DOCNO
+        public string m_DOCNO { get; private set; }
+        public StringBuilder m_positions { get; private set; }
 
         /// <summary>
         /// constructor of a Term
@@ -52,18 +52,7 @@ namespace InfoRetrieval
         public StringBuilder WriteDocumentToPostingFileTerm()
         {
             return new StringBuilder(m_DOCNO + "(#)" + m_tf + "(#)" + m_positions);
-            //document num of current term 
-            //tf - term frequency in current doc
-            //all the indexes of the current term
         }
 
-
-        public StringBuilder WritePositionsToCitiesIndex()
-        {
-            return new StringBuilder(m_DOCNO + "(#)" + m_positions);
-            //document num of current term 
-            //tf - term frequency in current doc
-            //all the indexes of the current term
-        }
     }
 }

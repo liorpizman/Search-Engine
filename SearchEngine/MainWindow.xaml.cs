@@ -25,8 +25,14 @@ namespace SearchEngine
     /// </summary>
     public partial class MainWindow : Window
     {
+        /// <summary>
+        /// fields of MainWindow
+        /// </summary>
         public static Model model = new Model();
 
+        /// <summary>
+        /// constructor of MainWindow
+        /// </summary>
         public MainWindow()
         {
             InitializeComponent();
@@ -34,16 +40,31 @@ namespace SearchEngine
             languagesComboBox.SelectedIndex = 0;
         }
 
+        /// <summary>
+        /// method when check box is checked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void CheckBox_Checked(object sender, RoutedEventArgs e)
         {
             model.setStemming(true);
         }
 
+        /// <summary>
+        /// method when check box is unchecked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void CheckBox_UnChecked(object sender, RoutedEventArgs e)
         {
             model.setStemming(false);
         }
 
+        /// <summary>
+        /// method of input button browse click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Input_browse_Clicked(object sender, System.EventArgs e)
         {
             using (var fbd = new FolderBrowserDialog())
@@ -60,6 +81,11 @@ namespace SearchEngine
             }
         }
 
+        /// <summary>
+        /// method of output button browse click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Output_browse_Clicked(object sender, System.EventArgs e)
         {
             using (var fbd = new FolderBrowserDialog())
@@ -76,6 +102,11 @@ namespace SearchEngine
             }
         }
 
+        /// <summary>
+        /// method of exit button click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Exit_button_Clicked(object sender, System.EventArgs e)
         {
             string message = "Do you really want to exit?";
@@ -89,6 +120,11 @@ namespace SearchEngine
             }
         }
 
+        /// <summary>
+        /// method of run button click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Run_button_Clicked(object sender, System.EventArgs e)
         {
             EnableButtons(false);
@@ -110,14 +146,8 @@ namespace SearchEngine
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
                 return;
             }
-            if (model.inputPath.Equals(""))
-            {
-                model.setInputPath(inputPathText.Text);
-            }
-            if (model.outPutPath.Equals(""))
-            {
-                model.setOutPutPath(outputPathText.Text);
-            }
+            model.setInputPath(inputPathText.Text);
+            model.setOutPutPath(outputPathText.Text);
             TimeSpan runTime = TimeSpan.Zero;
             DateTime startTime = DateTime.Now;
             model.Run();
@@ -127,17 +157,6 @@ namespace SearchEngine
             {
                 languagesComboBox.Items.Insert(i++, language);
             }
-            /*
-            TimeSpan runTimeCities = TimeSpan.Zero;
-            DateTime startTimeCities = DateTime.Now;
-            model.RunCitiesIndex();
-            runTimeCities = runTimeCities.Add(DateTime.Now - startTimeCities);
-
-            TimeSpan runTimeDictionary = TimeSpan.Zero;
-            DateTime startTimeDictionary = DateTime.Now;
-            model.RunDictionaryIndex();
-            runTimeDictionary = runTimeDictionary.Add(DateTime.Now - startTimeDictionary);
-            */
             StringBuilder outPutMessage = new StringBuilder("The execution is finished!");
             outPutMessage.AppendLine();
             outPutMessage.AppendLine("Total run time: " + runTime);
@@ -151,13 +170,18 @@ namespace SearchEngine
             EnableButtons(true);
         }
 
+        /// <summary>
+        /// method of reset button click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void resetButton_Click(object sender, RoutedEventArgs e)
         {
             languagesComboBox.Items.Clear();
             languagesComboBox.Items.Insert(0, "Choose...");
             languagesComboBox.SelectedIndex = 0;
             dictionaryListBox.Items.Clear();
-            model.indexer = null;
+            model.ClearMemory();
             if (outputPathText.Text.Equals(""))
             {
                 string message = "The are no dictionary or posting files in the path you specified!";
@@ -180,6 +204,11 @@ namespace SearchEngine
             }
         }
 
+        /// <summary>
+        /// method of display button click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void displayDicButton_Click(object sender, RoutedEventArgs e)
         {
             EnableButtons(false);
@@ -204,6 +233,11 @@ namespace SearchEngine
             EnableButtons(true);
         }
 
+        /// <summary>
+        /// method of load button click
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void loadDicButton_Click(object sender, RoutedEventArgs e)
         {
             EnableButtons(false);
@@ -265,6 +299,10 @@ namespace SearchEngine
             EnableButtons(true);
         }
 
+        /// <summary>
+        /// method to enable or disable buttons
+        /// </summary>
+        /// <param name="enable"></param>
         private void EnableButtons(bool enable)
         {
             runButton.IsEnabled = enable;
@@ -276,7 +314,10 @@ namespace SearchEngine
             exitButton.IsEnabled = enable;
         }
 
-
+        /// <summary>
+        /// method for loading dictionary from disk
+        /// </summary>
+        /// <param name="path">the path of the dictionary in the disk</param>
         private void Deserialize(string path)
         {
             Dictionary<string, IndexTerm>[] dictionaries = null;

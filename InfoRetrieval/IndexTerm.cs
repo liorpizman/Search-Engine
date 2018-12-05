@@ -15,11 +15,11 @@ namespace InfoRetrieval
         /// <summary>
         /// fiels of IndexTerm
         /// </summary>
-        public int df; //number of documents that contain the term
-        public int tfc; //total frequency in corpus
-        public string m_value; //value of the term
-        //public int postNum;
-        public int lineInPost;
+        public int df { get; private set; }//number of documents that contain the term
+        public int tfc { get; private set; } //total frequency in corpus
+        public string m_value { get; private set; } //value of the term
+        public int postNum { get; private set; }
+        public int lineInPost { get; set; }
         //public bool updated;
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace InfoRetrieval
             //updated = true;
             //initPostNumer();
             this.m_value = m_value;
-            //this.postNum = postNum;
+            this.postNum = postNum;
             this.lineInPost = lineInPost;
         }
 
@@ -63,7 +63,8 @@ namespace InfoRetrieval
         /// <returns>stringbuilder for writing to index file</returns>
         public StringBuilder PrintTerm()
         {
-            return new StringBuilder(m_value + "(#)" + "df:" + df + "(#)" + "tfc:" + tfc);
+            return new StringBuilder(m_value + "(#)" + "df:" + df + "(#)" + "tfc:" + tfc + "(#)" + "PN:" + postNum + "(#)" + "LN:" + lineInPost);
+            //PN - postNumber LN -lineNumber
             //return new StringBuilder(m_value + "(#)" + "tfc:" + tfc);
         }
 

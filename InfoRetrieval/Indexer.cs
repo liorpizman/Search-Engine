@@ -24,21 +24,20 @@ namespace InfoRetrieval
         /// <summary>
         /// fields of Indexer
         /// </summary>
-        public int m_indexCounter;
-        public string m_outPutPath;
-        public bool doStem;
-        public Dictionary<int, int> currentLine;
-        public Dictionary<string, IndexTerm>[] dictionaries = new Dictionary<string, IndexTerm>[27];
-        public Dictionary<string, DocumentTerms> tempDic;
-        public HashSet<string> m_Cities;
-        public HashSet<string> m_Languages;
-        public StreamWriter Writer;
-        //public StreamReader Reader;
-        public bool StreamHasChanged;
-        public char[] toDelete;
-        public int indexNumber = 0;            //delete it - it is for testing
-        public int docCounter = 0;
-        public int uniqueCorpusCounter = 0;
+        public int m_indexCounter;  ////////////////////////////////////////////////////////////////////// should be deleted!!!!!
+        public int indexNumber = 0;  ///////////////////////////////////////////////////////////// //delete it - it is for testing
+        public string m_outPutPath { get; private set; }
+        public bool doStem { get; private set; }
+        public Dictionary<int, int> currentLine { get; private set; }
+        public Dictionary<string, IndexTerm>[] dictionaries { get; set; }
+        public Dictionary<string, DocumentsTerm> tempDic { get; private set; }
+        public HashSet<string> m_Cities { get; private set; }
+        public HashSet<string> m_Languages { get; private set; }
+        public StreamWriter Writer { get; private set; }
+        public bool StreamHasChanged { get; private set; }
+        public char[] toDelete { get; private set; }
+        public int docCounter { get; private set; }
+        public int uniqueCorpusCounter { get; private set; }
 
         public static Hashtable m_postingNums = new Hashtable()
         {
@@ -60,11 +59,14 @@ namespace InfoRetrieval
         {
             this.toDelete = new char[] { ',', '.', '{', '}', '(', ')', '[', ']', '-', ';', ':', '~', '|', '\\', '"', '?', '!', '@', '\'', '*', '`', '&', '□', '_', '+' };
             this.currentLine = new Dictionary<int, int>();
-            this.tempDic = new Dictionary<string, DocumentTerms>();
+            this.tempDic = new Dictionary<string, DocumentsTerm>();
             this.StreamHasChanged = false;
             this.m_Cities = new HashSet<string>();
             this.m_Languages = new HashSet<string>();
             this.m_indexCounter = 1;
+            this.dictionaries = new Dictionary<string, IndexTerm>[27];
+            this.uniqueCorpusCounter = 0;
+            this.docCounter = 0;
             initDic();
             this.doStem = doStemming;
             this.m_outPutPath = m_outPutPath;
@@ -143,7 +145,7 @@ namespace InfoRetrieval
         /// </summary>
         /// <param name="documentTermsDic">input dictionary of the Parse class</param>
         /// <param name="hasWritten">boolean input for first writing</param>
-        public void WriteToPostingFile(Dictionary<string, DocumentTerms> documentTermsDic, bool hasWritten)
+        public void WriteToPostingFile(Dictionary<string, DocumentsTerm> documentTermsDic, bool hasWritten)
         {
             tempDic = documentTermsDic;
             if (!hasWritten)
@@ -151,7 +153,7 @@ namespace InfoRetrieval
                 this.tempDic = tempDic.OrderBy(i => i.Value.postNum).ThenBy(i => i.Value.line).ToDictionary(p => p.Key, p => p.Value);
                 StringBuilder data = new StringBuilder();
                 int postNum = -1;
-                foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
+                foreach (KeyValuePair<string, DocumentsTerm> pair in tempDic)
                 {
                     if (StreamShouldBeChanged(pair.Value.postNum, postNum))
                     {
@@ -265,7 +267,7 @@ namespace InfoRetrieval
             int PostNumber = -1, LineNumberOfTerm, currentLineNumber = 0, indexLine = 0;
             StringBuilder writeData = new StringBuilder();
             string[] lines = null;
-            foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
+            foreach (KeyValuePair<string, DocumentsTerm> pair in tempDic)
             {
                 if (StreamShouldBeChanged(pair.Value.postNum, PostNumber))
                 {
@@ -364,9 +366,10 @@ namespace InfoRetrieval
         {
             CreateEmptyTxtFile("Dictionary.txt");
             Writer = new StreamWriter(Path.Combine(m_outPutPath, "Dictionary.txt"));
-            Dictionary<string, IndexTerm> temp;
+            //Dictionary<string, IndexTerm> temp;
             //foreach (Dictionary<string, IndexTerm> dic in dictionaries)
             //{
+            StringBuilder data = new StringBuilder();
             for (int j = 0; j < dictionaries.Length; j++)
             {
                 uniqueCorpusCounter += dictionaries[j].Count;
@@ -374,9 +377,12 @@ namespace InfoRetrieval
                 //  dictionaries[j] = dictionaries[j].OrderBy(i => i.Value.m_value).ToDictionary(p => p.Key, p => p.Value);  ///////// check if we need it
                 foreach (KeyValuePair<string, IndexTerm> currentTerm in dictionaries[j])
                 {
-                    Writer.WriteLine(currentTerm.Value.PrintTerm());
+                    //Writer.WriteLine(currentTerm.Value.PrintTerm());
+                    data.AppendLine(currentTerm.Value.PrintTerm().ToString());
                 }
             }
+            Writer.Write(data);
+            data.Clear();
             //}
             Writer.Flush();
             Writer.Close();
@@ -387,7 +393,7 @@ namespace InfoRetrieval
         /// </summary>
         public void InitTerms()
         {
-            foreach (KeyValuePair<string, DocumentTerms> pair in tempDic)
+            foreach (KeyValuePair<string, DocumentsTerm> pair in tempDic)
             {
                 int PostNumber = pair.Value.postNum;
                 if (dictionaries[PostNumber].ContainsKey(pair.Key))
@@ -424,7 +430,7 @@ namespace InfoRetrieval
         /// method to write the documents' file to disk
         /// </summary>
         /// <param name="masterFiles">current collection of files</param>
-        public void WriteTheNewDocumentsFile(masterFile masterFiles)
+        public void WriteTheNewDocumentsFile(MasterFile masterFiles)
         {
             if (!File.Exists(Path.Combine(m_outPutPath, "Documents.txt")))
             {
@@ -448,7 +454,7 @@ namespace InfoRetrieval
         /// method which saves all the cities exist in the tags
         /// </summary>
         /// <param name="masterFile">a collection of files</param>
-        public void UpdateCitiesAndLanguagesInDocument(masterFile masterFile)
+        public void UpdateCitiesAndLanguagesInDocument(MasterFile masterFile)
         {
             string city, language;
             docCounter += masterFile.m_documents.Count;
@@ -466,7 +472,7 @@ namespace InfoRetrieval
                 }
             }
         }
-
+        /*
         /// <summary>
         /// method to write the Cities index file
         /// </summary>
@@ -483,7 +489,6 @@ namespace InfoRetrieval
             foreach (string city in m_Cities)
             {
                 postNum = GetPostNumber(city);
-
                 var webRequest = WebRequest.Create("http://getcitydetails.geobytes.com/GetCityDetails?fqcn=" + city) as HttpWebRequest;
                 if (webRequest != null)
                 {
@@ -507,6 +512,7 @@ namespace InfoRetrieval
                             }
                             if (!population.Equals(""))
                             {
+                                population = AddPerfixToNumber(population);
                                 cityData.Append(population + "(#)"); // population
                             }
 
@@ -530,7 +536,7 @@ namespace InfoRetrieval
             Writer.Close();
             Writer = null;
         }
-
+        */
         /// <summary>
         /// method to serialize the dictionary of all terms into bin file
         /// </summary>
@@ -568,8 +574,10 @@ namespace InfoRetrieval
             dictionaries[dicNumber] = dictionaries[dicNumber].OrderBy(i => i.Value.m_value).ToDictionary(p => p.Key, p => p.Value);
             IndexTerm[] Terms = dictionaries[dicNumber].Values.ToArray();
             Dictionary<int, List<int>> LinesToMerge = new Dictionary<int, List<int>>();
-            int j;
-            for (int i = 0; i < Terms.Length - 2; i++)
+            StringBuilder data = new StringBuilder();
+            int currLineInPosting = 0, position, j, numOfLines = 0;
+            string extension = "";
+            for (int i = 0; i < Terms.Length - 2; i++, numOfLines++)
             {
                 j = i;
                 while (string.Equals(Terms[i].m_value, Terms[j + 1].m_value, StringComparison.OrdinalIgnoreCase) && j < Terms.Length - 2)
@@ -579,12 +587,10 @@ namespace InfoRetrieval
                         List<int> toAdd = new List<int>();
                         toAdd.Add(Terms[j + 1].lineInPost);
                         LinesToMerge.Add(Terms[i].lineInPost, toAdd);
-                        // Console.WriteLine(Terms[i].m_value + " ---- " + Terms[j + 1].m_value);
                     }
                     else
                     {
                         LinesToMerge[Terms[i].lineInPost].Add(Terms[j + 1].lineInPost);
-                        // Console.WriteLine(Terms[i].m_value + " ---- " + Terms[j + 1].m_value);
                     }
                     dictionaries[dicNumber][Terms[i].m_value].IncreaseDf(Terms[j + 1].df);
                     dictionaries[dicNumber][Terms[i].m_value].IncreaseTfc(Terms[j + 1].tfc);
@@ -596,8 +602,6 @@ namespace InfoRetrieval
             string[] Lines = File.ReadAllLines(path);
             foreach (KeyValuePair<int, List<int>> mergeLines in LinesToMerge)
             {
-                string extension = "";
-                int position;
                 foreach (int pos in mergeLines.Value)
                 {
                     position = Lines[pos].IndexOf("(#)");
@@ -605,14 +609,20 @@ namespace InfoRetrieval
                     Lines[mergeLines.Key] = Lines[mergeLines.Key] + extension;
                     Lines[pos] = null;
                 }
-
             }
-            StringBuilder data = new StringBuilder();
             for (int i = 0; i < Lines.Length; i++)
             {
                 if (Lines[i] != null)
                 {
+                    position = Lines[i].IndexOf("(#)");
+                    if (position == -1 || position == 0)
+                    {
+                        continue;
+                    }
+                    extension = Lines[i].Substring(0, position);
+                    dictionaries[dicNumber][extension].lineInPost = currLineInPosting;
                     data.AppendLine(Lines[i]);
+                    currLineInPosting++;
                 }
             }
             if (File.Exists(path))
@@ -621,7 +631,101 @@ namespace InfoRetrieval
             }
             CreateTxtFile("Posting" + dicNumber + ".txt", data);
         }
-    }
 
+        public string AddPerfixToNumber(string currentValue)
+        {
+            double number = Convert.ToDouble(currentValue.Replace(",", ""));
+            if (number >= 1000 && number < 1000000)
+            {
+                return Math.Round((number / 1000), 2).ToString() + "K";
+            }
+            else if (number >= 1000000 && number < 1000000000)
+            {
+                return Math.Round((number / 1000000), 2).ToString() + "M";
+            }
+            else if (number >= 1000000000)
+            {
+                return Math.Round((number / 1000000000), 2).ToString() + "B";
+            }
+            else //number under 1000
+            {
+                return Math.Round(number, 2).ToString();
+            }
+        }
+
+
+
+
+        public void WriteCitiesIndexFile()
+        {
+            if (!File.Exists(Path.Combine(m_outPutPath, "Cities.txt")))
+            {
+                StringBuilder data = new StringBuilder();
+                CreateTxtFile("Cities.txt", data);
+            }
+            Writer = new StreamWriter(Path.Combine(m_outPutPath, "Cities.txt"));
+            var webRequest = WebRequest.Create("https://restcountries.eu/rest/v2/all?fields=capital;name;currencies;population") as HttpWebRequest;
+            if (webRequest == null)
+            {
+                return;
+            }
+            int postNum;
+            string city = "", line = "";
+            using (var s = webRequest.GetResponse().GetResponseStream())
+            {
+                using (var sr = new StreamReader(s))
+                {
+                    var contributorsAsJson = sr.ReadToEnd();
+                    JArray jarr = JArray.Parse(contributorsAsJson);
+                    HashSet<string> m_States = new HashSet<string>();                                            //delete it
+                    foreach (JObject content in jarr.Children<JObject>())
+                    {//fields[0] - currencies ,fields[1] - name ,fields[2] - capital ,fields[3] - population ,
+                        JProperty[] fields = content.Properties().ToArray();
+                        city = "" + fields[2].Value;
+                        postNum = GetPostNumber(city);
+                        city = (city).ToUpper();
+                        if (m_Cities.Contains(city))
+                        {
+                            if (!m_States.Contains(fields[1].Value + ""))                                 //delete it
+                            {
+                                m_States.Add(fields[1].Value + "");
+                            }
+                            if (dictionaries[postNum].ContainsKey(city))
+                            {
+                                line = "PN: " + postNum + " LN: " + dictionaries[postNum][city].lineInPost;
+                            }
+                            else
+                            {
+                                line = "not exist in Posting";
+                            }
+                            Writer.WriteLine(city + "(#)" + fields[1].Value + "(#)" + fields[0].Value[0].ToArray()[0].ToArray()[0] + "(#)" + AddPerfixToNumber(fields[3].Value.ToString()) + "(#)" + line);
+                            m_Cities.Remove(city);
+                        }
+                    }
+                    foreach (string m_city in m_Cities)
+                    {
+                        city = m_city.ToUpper();
+                        postNum = GetPostNumber(city);
+                        if (dictionaries[postNum].ContainsKey(city))
+                        {
+                            line = "PN: " + postNum + " LN: " + dictionaries[postNum][city].lineInPost;
+                        }
+                        else
+                        {
+                            line = "not exist in Posting";
+                        }
+                        Writer.WriteLine(city + "(#)" + line);
+                    }
+                    Console.WriteLine("counter of states: " + m_States.Count);                                       //delete it
+                    m_Cities.Clear();
+                }
+            }
+            Writer.Flush();
+            Writer.Close();
+            Writer = null;
+        }
+
+
+    }
 }
 

@@ -15,6 +15,6 @@ namespace InfoRetrieval
         ///  method which splits per document in the collection of the files into terms
         /// </summary>
         /// <param name="file">the path of the first file in the collection</param>
-        void ParseMasterFile(masterFile file);
+        void ParseMasterFile(MasterFile file);
     }
 }

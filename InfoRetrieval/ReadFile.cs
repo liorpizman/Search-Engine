@@ -18,14 +18,11 @@ namespace InfoRetrieval
         /// fields of ReadFile
         /// </summary>
         //public Dictionary<string, masterFile> m_files;
-        public string m_mainPath;
-        public string[] m_paths;
-        public int m_indexCurrFile;
-        //public int m_maxFiles = 10; //16;
-        //public bool readerThreadFinished = false;
-
-        public List<string[]> path_Chank;
-        public int ChunkSize;
+        public string m_mainPath { get; private set; }
+        public string[] m_paths { get; private set; }
+        public int m_indexCurrFile { get; private set; }
+        public List<string[]> path_Chank { get; private set; }
+        public int ChunkSize { get; private set; }
 
         /// <summary>
         /// constructor of ReadFile
@@ -70,13 +67,12 @@ namespace InfoRetrieval
         /// </summary>
         /// <param name="i">the id of the chunck</param>
         /// <returns>the collection of files</returns>
-        public masterFile ReadChunk(int i)
+        public MasterFile ReadChunk(int i)
         {
-            //Console.WriteLine(i);
             string[] currentChunk = path_Chank[i];
             string[] fields = currentChunk[0].Split('\\');
             string currFileName = fields[fields.Length - 1];
-            masterFile masterFile = new masterFile(currFileName, currentChunk[0]);
+            MasterFile masterFile = new MasterFile(currFileName, currentChunk[0]);
             for (int j = 0; j < currentChunk.Length; j++)
             {
                 ReadDocuments(currentChunk[j], masterFile);
@@ -101,51 +97,18 @@ namespace InfoRetrieval
             }
         }
 
-        /*
-        private void ReadAllFiles()
-        {
-            for (int i = 0; i < m_paths.Length; i++)
-            {
-                ReadNewFile(m_paths[i]);
-            }
-        }
-        */
-
-        /// <summary>
-        /// method which reads a current file in the path
-        /// </summary>
-        /// <param name="file">the path of the current file</param>
-        /// <returns></returns>
-        public masterFile ReadNewFile(string file)
-        {
-            string[] fields = file.Split('\\');
-            string currFileName = fields[fields.Length - 1];
-            masterFile masterFile = new masterFile(currFileName, file);
-            ReadDocuments(file, masterFile);
-            //m_files.Add(file, masterFile);//m_files.Add(currFileName, masterFile);
-            return masterFile;
-            /// we can return masterFile and send it to parser and do not sent the whole dictionary
-        }
-
         /// <summary>
         /// method which reads all documents in current master file
         /// </summary>
         /// <param name="file">the path of current file</param>
         /// <param name="masterFile">current master file</param>
-        private void ReadDocuments(string file, masterFile masterFile)
+        private void ReadDocuments(string file, MasterFile masterFile)
         {
             string content = File.ReadAllText(file);
             string[] docs = content.Split(new[] { "<DOC>" }, StringSplitOptions.None);
             string DOCNO, TEXT;
             for (int i = 1; i < docs.Length; i++)
             {
-                /*
-                if ((docs[i].Contains("[TEXT]") && !docs[i].Contains("<TEXT>")) || docs[i].Length < 150)
-                {
-                    string b = docs[i];
-                    int a = docs[i].Length;
-                }
-                */
                 DOCNO = GetStringInBetween("<DOCNO>", "</DOCNO>", docs[i]).Trim(' ');
                 StringBuilder DATE1 = new StringBuilder(GetDateInBetween(docs[i]).Trim(' '));  // add condition with DATE
                 StringBuilder TI = new StringBuilder(GetStringInBetween("<TI>", "</TI>", docs[i]).Trim(' '));
@@ -216,6 +179,11 @@ namespace InfoRetrieval
             return secondSplit[0].Trim(' ').Split(' ')[0].ToUpper();
         }
 
+        /// <summary>
+        /// method to get the string between two tags of language
+        /// </summary>
+        /// <param name="strSource">the source string</param>
+        /// <returns>the string between two tags of language</returns>
         public static string GetLanguageInBetween(string strSource)
         {
             string[] firstSplit, secondSplit;

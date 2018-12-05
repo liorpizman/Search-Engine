@@ -46,7 +46,12 @@ namespace InfoRetrieval
         }
         public StringBuilder WriteDocumentToIndexFile()
         {
-            StringBuilder data = new StringBuilder(m_DOCNO + " (#)" + "unique words: " + m_uniqueCounter + " (#)" + "max TF: " + m_maxTF);
+            string title = m_TI.ToString();
+            if (title.Contains('\n'))
+            {
+                title = title.Split('\n')[0];
+            }
+            StringBuilder data = new StringBuilder(m_DOCNO + " (#)" + "TI: " + title + " (#)" + "unique words: " + m_uniqueCounter + " (#)" + "maxTF: " + m_maxTF);
             if (!m_CITY.ToString().Equals(""))
             {
                 string[] city = m_CITY.ToString().Split(' ');

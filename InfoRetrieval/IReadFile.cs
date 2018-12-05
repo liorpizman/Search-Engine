@@ -20,6 +20,6 @@ namespace InfoRetrieval
         /// </summary>
         /// <param name="i">the id of the chunck</param>
         /// <returns>the collection of files</returns>
-        masterFile ReadChunk(int i);
+        MasterFile ReadChunk(int i);
     }
 }

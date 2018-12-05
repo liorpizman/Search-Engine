@@ -10,15 +10,15 @@ namespace InfoRetrieval
     /// <summary>
     /// Class which represents all instances of a term in a collection of files 
     /// </summary>
-    public class DocumentTerms
+    public class DocumentsTerm
     {
         /// <summary>
         /// fields of DocumentTerms
         /// </summary>
-        public string m_valueOfTerm;
-        public Dictionary<string, Term> m_Terms;   // df- m_Terms.length
-        public int line;
-        public int postNum;
+        public string m_valueOfTerm { get; set; }
+        public Dictionary<string, Term> m_Terms { get; private set; } // df- m_Terms.length
+        public int line { get; set; }
+        public int postNum { get; private set; }
         public static Hashtable m_postingNums = new Hashtable()
         {
             {'a', 1 }, {'b', 2 }, {'c', 3 },{'d', 4 }, //{ "", "0" },
@@ -33,7 +33,7 @@ namespace InfoRetrieval
         /// constructor of DocumentTerms
         /// </summary>
         /// <param name="value">the vale of the term</param>
-        public DocumentTerms(string value)
+        public DocumentsTerm(string value)
         {
             this.m_valueOfTerm = value;
             this.m_Terms = new Dictionary<string, Term>();
@@ -68,17 +68,6 @@ namespace InfoRetrieval
                 data.Append("(#)" + pair.Value.WriteDocumentToPostingFileTerm());
             }
             return data;
-        }
-
-        public StringBuilder WriteToCitiesIndexFile()
-        {
-            StringBuilder data = new StringBuilder();
-            foreach (KeyValuePair<string, Term> pair in m_Terms)
-            {
-                data.Append("(#)" + pair.Value.WritePositionsToCitiesIndex());
-            }
-            return data;
-
         }
 
         /// <summary>
