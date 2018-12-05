@@ -17,6 +17,7 @@ using System.Windows.Forms;
 using InfoRetrieval;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
+using System.Threading;
 
 namespace SearchEngine
 {
@@ -73,10 +74,7 @@ namespace SearchEngine
                 if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
                     inputPathText.Text = fbd.SelectedPath;
-                    //Model.inputPath = inputPathText.Text;
                     model.setInputPath(inputPathText.Text);
-                    //string[] directories = Directory.GetDirectories(Directory.GetDirectories(fbd.SelectedPath)[0]);
-                    //System.Windows.Forms.MessageBox.Show("Directories found: " + directories.Length.ToString(), "Message");
                 }
             }
         }
@@ -94,10 +92,7 @@ namespace SearchEngine
                 if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
                     outputPathText.Text = fbd.SelectedPath;
-                    //Model.outPutPath = outputPathText.Text;
                     model.setOutPutPath(outputPathText.Text);
-                    //string[] directories = Directory.GetDirectories(Directory.GetDirectories(fbd.SelectedPath)[0]);
-                    //System.Windows.Forms.MessageBox.Show("Directories found: " + directories.Length.ToString(), "Message");
                 }
             }
         }
@@ -162,11 +157,9 @@ namespace SearchEngine
             outPutMessage.AppendLine("Total run time: " + runTime);
             outPutMessage.AppendLine("Total unique terms indexed: " + model.indexer.uniqueCorpusCounter);
             outPutMessage.AppendLine("Total documents indexed: " + model.indexer.docCounter);
-
             string caption2 = "Mission Completed Successfully";
             MessageBoxButtons buttons2 = MessageBoxButtons.OK;
             DialogResult result2 = System.Windows.Forms.MessageBox.Show(outPutMessage.ToString(), caption2, buttons2);
-
             EnableButtons(true);
         }
 
@@ -180,7 +173,8 @@ namespace SearchEngine
             languagesComboBox.Items.Clear();
             languagesComboBox.Items.Insert(0, "Choose...");
             languagesComboBox.SelectedIndex = 0;
-            dictionaryListBox.Items.Clear();
+            //dictionaryListBox.Items.Clear();
+            dictionaryListBox.ItemsSource = null;
             model.ClearMemory();
             if (outputPathText.Text.Equals(""))
             {
@@ -202,6 +196,7 @@ namespace SearchEngine
                 MessageBoxButtons buttons = MessageBoxButtons.OK;
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
             }
+            GC.Collect();
         }
 
         /// <summary>
@@ -213,6 +208,7 @@ namespace SearchEngine
         {
             EnableButtons(false);
             // dictionaryListBox.Items.Clear();
+            dictionaryListBox.ItemsSource = null;
             if (model.indexer != null)
             {
                 var res = model.indexer.dictionaries.SelectMany(dict => dict)

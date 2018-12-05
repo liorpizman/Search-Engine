@@ -3,7 +3,7 @@ Document information retrieval
 
 
 Instructions for running
-1.run SearchEngine.exe in the path: "Your Current Directory"\SearchEngine\bin\Debug or run GUI project in the solution 
+1.run SearchEngine.exe in the path: id1_id2\SearchEngine\SearchEngine\bin\Debug\SearchEngine.exe or run GUI project in the solution 
 2.make sure that the stop_words file and the corpus folder are in the same directory!
 3.make sure that the stop_words file name is : "stop_words.txt"
 

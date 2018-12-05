@@ -45,7 +45,7 @@
         <ComboBox x:Name="languagesComboBox" HorizontalAlignment="Left" Height="23" Margin="7,184,0,0" VerticalAlignment="Top" Width="167" Grid.Column="2" />
         <TextBlock HorizontalAlignment="Left" Height="17" Margin="10,162,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="100" Text="Select Language:" Grid.Column="2"/>
         <ListBox x:Name="dictionaryListBox" Grid.Column="2" HorizontalAlignment="Left" Height="374" Margin="694,33,0,0" VerticalAlignment="Top" Width="431"/>
-        <TextBlock Grid.Column="2" HorizontalAlignment="Left" Height="22" Margin="844,11,0,0" TextWrapping="Wrap" Text="Dictionary Display" VerticalAlignment="Top" Width="138"/>
+        <TextBlock x:Name="dispalyDictionaryText" Grid.Column="2" HorizontalAlignment="Left" Height="22" Margin="844,11,0,0" TextWrapping="Wrap" Text="Dictionary Display" VerticalAlignment="Top" Width="138"/>
 
     </Grid>
 </Window>
