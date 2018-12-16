@@ -59,7 +59,10 @@
     <Compile Include="Model.cs" />
     <Compile Include="Parse.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Query.cs" />
+    <Compile Include="Ranker.cs" />
     <Compile Include="ReadFile.cs" />
+    <Compile Include="Searcher.cs" />
     <Compile Include="Stemmer.cs" />
     <Compile Include="Term.cs" />
   </ItemGroup>

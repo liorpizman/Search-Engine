@@ -39,6 +39,16 @@ namespace SearchEngine
             InitializeComponent();
             languagesComboBox.Items.Insert(0, "Choose...");
             languagesComboBox.SelectedIndex = 0;
+
+            List<ComboBoxItem> cityList = new List<ComboBoxItem>();
+            cityList.Add(new ComboBoxItem(false, "Miami"));
+            cityList.Add(new ComboBoxItem(false, "Boston"));
+            cityList.Add(new ComboBoxItem(false, "Los Angeles"));
+            cityList.Add(new ComboBoxItem(false, "Houston"));
+            cityList.Add(new ComboBoxItem(false, "Dallas"));
+            cityList.Add(new ComboBoxItem(false, "Atlantic City"));
+            cityList.Add(new ComboBoxItem(false, "Chicago"));
+            cityComboBox.ItemsSource = cityList;
         }
 
         /// <summary>
@@ -333,6 +343,24 @@ namespace SearchEngine
                 fs.Close();
             }
             model.indexer.dictionaries = dictionaries;
+        }
+
+        /// <summary>
+        /// class to represt a choice of a city in the GUI
+        /// </summary>
+        public class ComboBoxItem
+        {
+            public Boolean IsChecked
+            { get; set; }
+
+            public String CityName
+            { get; set; }
+
+            public ComboBoxItem(bool isChecked, string cityName)
+            {
+                this.IsChecked = isChecked;
+                this.CityName = cityName;
+            }
         }
 
 
