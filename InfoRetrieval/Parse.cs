@@ -427,6 +427,7 @@ namespace InfoRetrieval
             string[] tokens = tokens = document.m_TEXT.Split(delimiterChars, StringSplitOptions.RemoveEmptyEntries);
             string[] splittedNums, splittedWords;
             int tokensSize = tokens.Length;
+            document.m_length = tokensSize;
             _MAX_TF = 0;
             countPos = 0;
             tmpDoc = document;

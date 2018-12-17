@@ -23,6 +23,7 @@ namespace InfoRetrieval
         public string m_TEXT { get; private set; }
         public int m_uniqueCounter { get; set; }
         public int m_maxTF { get; set; }
+        public int m_length { get; set; }
 
         /// <summary>
         /// constructor of a Document
@@ -42,6 +43,7 @@ namespace InfoRetrieval
             this.m_language = language;
             this.m_uniqueCounter = 0;
             this.m_maxTF = 0;
+            this.m_length = 0;
             //this.m_termsInDictionary = new Dictionary<string, int>();               // we should check if we need delete this??
         }
         public StringBuilder WriteDocumentToIndexFile()
@@ -51,24 +53,24 @@ namespace InfoRetrieval
             {
                 title = title.Split('\n')[0];
             }
-            StringBuilder data = new StringBuilder(m_DOCNO + " (#)" + "TI: " + title + " (#)" + "unique words: " + m_uniqueCounter + " (#)" + "maxTF: " + m_maxTF);
+            StringBuilder data = new StringBuilder(m_DOCNO + " (#)" + "TI: " + title + " (#)" + "unique words: " + m_uniqueCounter + " (#)" + "maxTF: " + m_maxTF + " (#)" + "length: " + m_length);
             if (!m_CITY.ToString().Equals(""))
             {
                 string[] city = m_CITY.ToString().Split(' ');
                 if (city.Length > 1)
                 {
-                    data.Append(" city: " + city[0].ToUpper());
+                    data.Append(" (#)city: " + city[0].ToUpper());
                     return data;
                 }
                 else
                 {
-                    data.Append(" city: " + m_CITY);
+                    data.Append(" (#)city: " + m_CITY);
                     return data;
                 }
             }
             else
             {
-                data.Append(" city:---- ");
+                data.Append(" (#)city:---- ");
                 return data;
             }
         }

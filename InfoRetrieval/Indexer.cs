@@ -38,6 +38,8 @@ namespace InfoRetrieval
         public char[] toDelete { get; private set; }
         public int docCounter { get; private set; }
         public int uniqueCorpusCounter { get; private set; }
+        public int avgDL { get; private set; }
+        public int totalLenDocs { get; private set; }
 
         public static Hashtable m_postingNums = new Hashtable()
         {
@@ -48,7 +50,6 @@ namespace InfoRetrieval
             {'t', 20 }, {'u', 21 },{'v', 22 },{'w', 23 }, {'x', 24 },
             { 'y', 25 } ,{'z', 26 }
         };
-
 
         /// <summary>
         /// constructor of Indexer
@@ -67,6 +68,7 @@ namespace InfoRetrieval
             this.dictionaries = new Dictionary<string, IndexTerm>[27];
             this.uniqueCorpusCounter = 0;
             this.docCounter = 0;
+            this.totalLenDocs = 0;
             initDic();
             this.doStem = doStemming;
             this.m_outPutPath = m_outPutPath;
@@ -441,10 +443,12 @@ namespace InfoRetrieval
             {
                 Writer = File.AppendText(Path.Combine(m_outPutPath, "Documents.txt"));
             }
-            foreach (Document d in masterFiles.m_documents.Values)
+            foreach (Document document in masterFiles.m_documents.Values)
             {
-                Writer.WriteLine(d.WriteDocumentToIndexFile());
+                Writer.WriteLine(document.WriteDocumentToIndexFile());
+                totalLenDocs += document.m_length;
             }
+
             Writer.Flush();
             Writer.Close();
             Writer = null;
@@ -604,7 +608,7 @@ namespace InfoRetrieval
             {
                 foreach (int pos in mergeLines.Value)
                 {
-                    position = Lines[pos].IndexOf("(#)");
+                    position = Lines[pos].IndexOf("[#]");
                     extension = Lines[pos].Substring(position + 3);
                     Lines[mergeLines.Key] = Lines[mergeLines.Key] + extension;
                     Lines[pos] = null;
@@ -614,7 +618,7 @@ namespace InfoRetrieval
             {
                 if (Lines[i] != null)
                 {
-                    position = Lines[i].IndexOf("(#)");
+                    position = Lines[i].IndexOf("[#]");
                     if (position == -1 || position == 0)
                     {
                         continue;
@@ -725,7 +729,37 @@ namespace InfoRetrieval
             Writer = null;
         }
 
+        /// <summary>
+        /// method which calculates the avgDL
+        /// </summary>
+        /// <returns>AvgDL</returns>
+        public double GetAvgDL()
+        {
+            return (totalLenDocs / docCounter);
+        }
 
+
+        /// <summary>
+        /// method to write the documents' additional data
+        /// </summary>
+        public void WriteAdditionalDataOfDocs()
+        {
+            if (!File.Exists(Path.Combine(m_outPutPath, "DocsData.txt")))
+            {
+                CreateEmptyTxtFile("DocsData.txt");
+                Writer = new StreamWriter(Path.Combine(m_outPutPath, "DocsData.txt"));
+            }
+            else
+            {
+                Writer = File.AppendText(Path.Combine(m_outPutPath, "DocsData.txt"));
+            }
+            Writer.WriteLine("avgDL: " + GetAvgDL());
+            Writer.WriteLine("docsCounter: " + docCounter);
+
+            Writer.Flush();
+            Writer.Close();
+            Writer = null;
+        }
     }
 }
 

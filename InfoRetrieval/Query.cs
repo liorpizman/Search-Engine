@@ -8,6 +8,6 @@ namespace InfoRetrieval
 {
     class Query
     {
-        private int qID; // id of query
+        private int m_ID; // id of query
     }
 }

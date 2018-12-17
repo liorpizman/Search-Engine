@@ -47,16 +47,16 @@
         <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="32,268,0,0" TextWrapping="Wrap" Text="Insert a Query" VerticalAlignment="Top"/>
         <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="32,338,0,0" TextWrapping="Wrap" Text="Insert a Query File Path" VerticalAlignment="Top"/>
         <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="32,382,0,0" TextWrapping="Wrap" Text="Query Search Output Path" VerticalAlignment="Top"/>
-        <CheckBox Grid.ColumnSpan="2" Content="Semantic treatment" HorizontalAlignment="Left" Margin="32,0,0,81" Width="159" Height="15" VerticalAlignment="Bottom"/>
-        <CheckBox Grid.ColumnSpan="2" Content="Stemming" HorizontalAlignment="Left" Margin="32,315,0,0" VerticalAlignment="Top"/>
-        <Button Grid.ColumnSpan="2" Content="Search For Query" HorizontalAlignment="Left" Margin="557,284,0,0" VerticalAlignment="Top" Width="133"/>
-        <Button Grid.ColumnSpan="2" Content="Search" HorizontalAlignment="Left" Margin="629,355,0,0" VerticalAlignment="Top" Width="61" />
-        <Button Grid.ColumnSpan="2" Content="Browse" HorizontalAlignment="Left" Margin="557,356,0,0" VerticalAlignment="Top" Width="58" RenderTransformOrigin="0.516,0.35"/>
-        <Button Grid.ColumnSpan="2" Content="Browse" HorizontalAlignment="Left" Margin="583,401,0,0" VerticalAlignment="Top" Width="80"/>
-        <Button Grid.ColumnSpan="2" Content="Reset Output" HorizontalAlignment="Left" Margin="431,452,0,0" VerticalAlignment="Top" Width="104" Height="27" />
-        <TextBox Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" Margin="29,284,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="506"/>
-        <TextBox Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" Margin="32,355,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="503"/>
-        <TextBox Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" Margin="32,399,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="503" RenderTransformOrigin="-1.117,-6.905" />
+        <CheckBox x:Name="semanticCheckBox" Grid.ColumnSpan="2" Content="Semantic treatment" HorizontalAlignment="Left" Margin="32,0,0,81" Width="159" Height="15" VerticalAlignment="Bottom" Checked="SemanticCheckBox_Checked" Unchecked="SemanticCheckBox_UnChecked"/>
+        <CheckBox x:Name="queryStemmingCheckBox" Grid.ColumnSpan="2" Content="Stemming" HorizontalAlignment="Left" Margin="32,315,0,0" VerticalAlignment="Top" Checked="QueryCheckBox_Checked" Unchecked="QueryCheckBox_UnChecked"/>
+        <Button x:Name="searchQueryButton"  Grid.ColumnSpan="2" Content="Search For Query" HorizontalAlignment="Left" Margin="557,284,0,0" VerticalAlignment="Top" Width="133" Click="searchQueryButton_Click"/>
+        <Button x:Name="searchQueryFileButton" Grid.ColumnSpan="2" Content="Search" HorizontalAlignment="Left" Margin="629,355,0,0" VerticalAlignment="Top" Width="61" Click="searchQueryFileButton_Click" />
+        <Button x:Name="browswFileButton" Grid.ColumnSpan="2" Content="Browse" HorizontalAlignment="Left" Margin="557,356,0,0" VerticalAlignment="Top" Width="58" RenderTransformOrigin="0.516,0.35" Click="browswFileButton_Click"/>
+        <Button x:Name="browseOutputQueryButton" Grid.ColumnSpan="2" Content="Browse" HorizontalAlignment="Left" Margin="583,401,0,0" VerticalAlignment="Top" Width="80" Click="browseOutputQueryButton_Click"/>
+        <Button x:Name="resetQueryButton" Grid.ColumnSpan="2" Content="Reset Output" HorizontalAlignment="Left" Margin="431,452,0,0" VerticalAlignment="Top" Width="104" Height="27" Click="resetQueryButton_Click" />
+        <TextBox x:Name="inputQueryPath" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" Margin="29,284,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="506"/>
+        <TextBox x:Name="inputFileQueryPath" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" Margin="32,355,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="503"/>
+        <TextBox x:Name="outputQueryPath" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" Margin="32,399,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="503" RenderTransformOrigin="-1.117,-6.905" />
         <ComboBox x:Name="cityComboBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="216,453,0,0" VerticalAlignment="Top" Width="163" Height="25">
             <ComboBox.ItemTemplate>
                 <DataTemplate>

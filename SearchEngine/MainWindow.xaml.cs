@@ -155,7 +155,7 @@ namespace SearchEngine
             model.setOutPutPath(outputPathText.Text);
             TimeSpan runTime = TimeSpan.Zero;
             DateTime startTime = DateTime.Now;
-            model.Run();
+            model.RunIndexing();
             runTime = runTime.Add(DateTime.Now - startTime);
             int i = 1;
             foreach (string language in model.indexer.m_Languages)
@@ -363,6 +363,196 @@ namespace SearchEngine
             }
         }
 
+        /// <summary>
+        /// method when query check box is checked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void QueryCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            model.setQueryStemming(true);
+        }
+
+        /// <summary>
+        /// method when query check box is unchecked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void QueryCheckBox_UnChecked(object sender, RoutedEventArgs e)
+        {
+            model.setQueryStemming(false);
+        }
+
+
+        /// <summary>
+        /// method when Semantic check box is checked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SemanticCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            /// add here model.setSemantic
+        }
+
+        /// <summary>
+        /// method when Semantic check box is unchecked
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void SemanticCheckBox_UnChecked(object sender, RoutedEventArgs e)
+        {
+            /// add here model.setSemantic
+        }
+
+        private void searchQueryButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool validOutput = Directory.Exists(outputQueryPath.Text);
+            if (string.IsNullOrEmpty(inputQueryPath.Text))
+            {
+                string message = "Please enter a valid query!";
+                string caption = "No query in input";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                return;
+            }
+            else if (string.IsNullOrEmpty(outputQueryPath.Text))
+            {
+                string message = "Please enter a valid output path for query results!";
+                string caption = "Invalid outPut Path";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                return;
+            }
+            else if (!validOutput)
+            {
+                string message = "Please enter a valid OutPut Query Path!";
+                string caption = "Error Detected in OutPut";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                return;
+            }
+            else
+            {
+                Dictionary<string, IndexTerm>[] tmpDictionaries = LoadDicForQuery();
+                if (tmpDictionaries != null)
+                {
+                    model.setQueryOutPutPath(outputQueryPath.Text);
+                    model.RunQueries(tmpDictionaries, inputQueryPath.Text);
+                    // run search query
+                    string message = "Done searching for the query!";
+                    string caption = "Results have written";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                }
+            }
+        }
+
+        private void browswFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            using (var fbd = new FolderBrowserDialog())
+            {
+                DialogResult result = fbd.ShowDialog();
+                if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    inputQueryPath.Text = fbd.SelectedPath;
+                    //model.setQuerytFile(inputQueryPath.Text);    -------------------------------- change it
+                }
+            }
+        }
+
+        private void searchQueryFileButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool validInput = Directory.Exists(inputFileQueryPath.Text);
+            bool validOutput = Directory.Exists(outputQueryPath.Text);
+            if (!validInput)
+            {
+                string message = "Please enter a valid Path of Query File !";
+                string caption = "Error Detected in Input";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                return;
+            }
+            if (!validOutput)
+            {
+                string message = "Please enter a valid OutPut Query Path!";
+                string caption = "Error Detected in OutPut";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                return;
+            }
+            else
+            {
+                model.setQueryInputPath(inputFileQueryPath.Text);
+                model.setQueryOutPutPath(outputQueryPath.Text);
+            }
+        }
+
+        private void browseOutputQueryButton_Click(object sender, RoutedEventArgs e)
+        {
+            using (var fbd = new FolderBrowserDialog())
+            {
+                DialogResult result = fbd.ShowDialog();
+                if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                {
+                    outputQueryPath.Text = fbd.SelectedPath;
+                    //model.setQuerytOutput(outputQueryPath.Text);    -------------------------------- change it
+                }
+            }
+        }
+
+        private void resetQueryButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private Dictionary<string, IndexTerm>[] LoadDicForQuery()
+        {
+            bool existWithStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithStem\\Dictionary.bin"));
+            bool existWithoutStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithOutStem\\Dictionary.bin"));
+
+            if (model.m_doStemmingQuery && existWithStem)
+            {
+                return DeserializeForSearcher(System.IO.Path.Combine(outputPathText.Text, "WithStem"));
+            }
+            else if (!model.m_doStemmingQuery && existWithoutStem)
+            {
+                return DeserializeForSearcher(System.IO.Path.Combine(outputPathText.Text, "WithOutStem"));
+            }
+            else
+            {
+                string msg = "Dictionary does not exist!\n\nPlease Run the search engine first.";
+                string cap = "Dictionary Load";
+                MessageBoxButtons bttns = MessageBoxButtons.OK;
+                DialogResult res = System.Windows.Forms.MessageBox.Show(msg, cap, bttns);
+                return null;
+            }
+        }
+
+
+        /// <summary>
+        /// method for loading dictionary from disk for seacher
+        /// </summary>
+        /// <param name="path">the path of the dictionary in the disk</param>
+        private Dictionary<string, IndexTerm>[] DeserializeForSearcher(string path)
+        {
+            Dictionary<string, IndexTerm>[] dictionaries = null;
+            FileStream fs = new FileStream(System.IO.Path.Combine(path, "Dictionary.bin"), FileMode.Open, FileAccess.Read, FileShare.None);
+            try
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                dictionaries = (Dictionary<string, IndexTerm>[])formatter.Deserialize(fs);
+            }
+            catch (SerializationException e)
+            {
+                Console.WriteLine("Failed to deserialize. Reason: " + e.Message);
+                throw;
+            }
+            finally
+            {
+                fs.Close();
+            }
+            return dictionaries;
+        }
 
     }
 }
