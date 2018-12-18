@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AModel.cs" />
     <Compile Include="Document.cs" />
     <Compile Include="DocumentsTerm.cs" />
     <Compile Include="Indexer.cs" />
@@ -70,6 +71,12 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WordsSemantics\WordNet.Net.csproj">
+      <Project>{f12805b0-d74a-4e5b-a482-7c7ccb69d572}</Project>
+      <Name>WordNet.Net</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -9,35 +9,36 @@ namespace InfoRetrieval
     public class MethodScore
     {
         private double BM25;
-        private double CosSim;
+        private double InnerProduct;
         private double totalScore;
-        public MethodScore(double BM25, double CosSim)
+        public MethodScore(double BM25, double innerProduct)
         {
             this.BM25 = BM25;
-            this.CosSim = CosSim;
-            this.totalScore = this.BM25 + this.CosSim;             /// maybe we should normalize it here
+            this.InnerProduct = innerProduct;
+            this.totalScore = (0.75 * BM25) + (0.25 * InnerProduct);
+            /// maybe we should normalize it here
         }
 
         public double GetBM25()
         {
-            return BM25;
+            return this.BM25;
         }
 
-        public double GetCosSim()
+        public double GetInnerProduct()
         {
-            return CosSim;
+            return this.InnerProduct;
         }
 
         public void IncreaseBM(Double bm25)
         {
             BM25 += bm25;
-            totalScore += bm25;
+            totalScore += (0.75 * bm25);
         }
 
-        public void IncreaseCosSim(Double cosSim)
+        public void IncreaseInnerProduct(Double innerProduct)
         {
-            CosSim += cosSim;
-            totalScore += cosSim;
+            InnerProduct += innerProduct;
+            totalScore += (0.25 * innerProduct);
         }
 
         public double GetTotalScore()

@@ -30,6 +30,8 @@ namespace SearchEngine
         /// fields of MainWindow
         /// </summary>
         public static Model model = new Model();
+        public static bool m_invertedIndexIsLoaded = false;
+        public static Dictionary<string, IndexTerm>[] tmpDictionaries;
 
         /// <summary>
         /// constructor of MainWindow
@@ -39,16 +41,10 @@ namespace SearchEngine
             InitializeComponent();
             languagesComboBox.Items.Insert(0, "Choose...");
             languagesComboBox.SelectedIndex = 0;
-
-            List<ComboBoxItem> cityList = new List<ComboBoxItem>();
-            cityList.Add(new ComboBoxItem(false, "Miami"));
-            cityList.Add(new ComboBoxItem(false, "Boston"));
-            cityList.Add(new ComboBoxItem(false, "Los Angeles"));
-            cityList.Add(new ComboBoxItem(false, "Houston"));
-            cityList.Add(new ComboBoxItem(false, "Dallas"));
-            cityList.Add(new ComboBoxItem(false, "Atlantic City"));
-            cityList.Add(new ComboBoxItem(false, "Chicago"));
-            cityComboBox.ItemsSource = cityList;
+            cityComboBox.Items.Insert(0, new ComboBoxItem(false, "Choose..."));
+            cityComboBox.SelectedIndex = 0;
+            EnablePart2Buttons(false);
+            ResultsCheckBox.SetCurrentValue(System.Windows.Controls.CheckBox.IsCheckedProperty, true);
         }
 
         /// <summary>
@@ -132,7 +128,7 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void Run_button_Clicked(object sender, System.EventArgs e)
         {
-            EnableButtons(false);
+            EnablePart1Buttons(false);
             bool validInput = Directory.Exists(inputPathText.Text);
             bool validOutput = Directory.Exists(outputPathText.Text);
             if (!validInput)
@@ -170,7 +166,7 @@ namespace SearchEngine
             string caption2 = "Mission Completed Successfully";
             MessageBoxButtons buttons2 = MessageBoxButtons.OK;
             DialogResult result2 = System.Windows.Forms.MessageBox.Show(outPutMessage.ToString(), caption2, buttons2);
-            EnableButtons(true);
+            EnablePart1Buttons(true);
         }
 
         /// <summary>
@@ -186,7 +182,7 @@ namespace SearchEngine
             //dictionaryListBox.Items.Clear();
             dictionaryListBox.ItemsSource = null;
             model.ClearMemory();
-            if (outputPathText.Text.Equals(""))
+            if (string.IsNullOrEmpty(outputPathText.Text))
             {
                 string message = "The are no dictionary or posting files in the path you specified!";
                 string caption = "Reset Search Engine Process";
@@ -216,7 +212,7 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void displayDicButton_Click(object sender, RoutedEventArgs e)
         {
-            EnableButtons(false);
+            EnablePart1Buttons(false);
             // dictionaryListBox.Items.Clear();
             dictionaryListBox.ItemsSource = null;
             if (model.indexer != null)
@@ -236,7 +232,7 @@ namespace SearchEngine
                 MessageBoxButtons buttons = MessageBoxButtons.OK;
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
             }
-            EnableButtons(true);
+            EnablePart1Buttons(true);
         }
 
         /// <summary>
@@ -246,7 +242,7 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void loadDicButton_Click(object sender, RoutedEventArgs e)
         {
-            EnableButtons(false);
+            EnablePart1Buttons(false);
             bool existWithStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithStem\\Dictionary.bin"));
             bool existWithoutStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithOutStem\\Dictionary.bin"));
             if (model.indexer != null)
@@ -266,7 +262,7 @@ namespace SearchEngine
                         string cap = "Dictionary Load";
                         MessageBoxButtons bttns = MessageBoxButtons.OK;
                         DialogResult res = System.Windows.Forms.MessageBox.Show(msg, cap, bttns);
-                        EnableButtons(true);
+                        EnablePart1Buttons(true);
                         return;
                     }
                 }
@@ -285,7 +281,7 @@ namespace SearchEngine
                         string cap = "Dictionary Load";
                         MessageBoxButtons bttns = MessageBoxButtons.OK;
                         DialogResult res = System.Windows.Forms.MessageBox.Show(msg, cap, bttns);
-                        EnableButtons(true);
+                        EnablePart1Buttons(true);
                         return;
                     }
 
@@ -302,14 +298,14 @@ namespace SearchEngine
                 MessageBoxButtons buttons = MessageBoxButtons.OK;
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
             }
-            EnableButtons(true);
+            EnablePart1Buttons(true);
         }
 
         /// <summary>
         /// method to enable or disable buttons
         /// </summary>
         /// <param name="enable"></param>
-        private void EnableButtons(bool enable)
+        private void EnablePart1Buttons(bool enable)
         {
             runButton.IsEnabled = enable;
             resetButton.IsEnabled = enable;
@@ -364,34 +360,13 @@ namespace SearchEngine
         }
 
         /// <summary>
-        /// method when query check box is checked
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void QueryCheckBox_Checked(object sender, RoutedEventArgs e)
-        {
-            model.setQueryStemming(true);
-        }
-
-        /// <summary>
-        /// method when query check box is unchecked
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void QueryCheckBox_UnChecked(object sender, RoutedEventArgs e)
-        {
-            model.setQueryStemming(false);
-        }
-
-
-        /// <summary>
         /// method when Semantic check box is checked
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void SemanticCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            /// add here model.setSemantic
+            model.setSemantic(true);
         }
 
         /// <summary>
@@ -401,7 +376,7 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void SemanticCheckBox_UnChecked(object sender, RoutedEventArgs e)
         {
-            /// add here model.setSemantic
+            model.setSemantic(false);
         }
 
         private void searchQueryButton_Click(object sender, RoutedEventArgs e)
@@ -431,9 +406,16 @@ namespace SearchEngine
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
                 return;
             }
+            else if (!m_invertedIndexIsLoaded)
+            {
+                string message = "Please load Inverted Index files!";
+                string caption = "Error Detected in Input";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                return;
+            }
             else
             {
-                Dictionary<string, IndexTerm>[] tmpDictionaries = LoadDicForQuery();
                 if (tmpDictionaries != null)
                 {
                     model.setQueryOutPutPath(outputQueryPath.Text);
@@ -449,20 +431,21 @@ namespace SearchEngine
 
         private void browswFileButton_Click(object sender, RoutedEventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
-                DialogResult result = fbd.ShowDialog();
-                if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                openFileDialog.Filter = "txt files (*.txt)|*.txt";
+                openFileDialog.Title = "Open Text File";
+                DialogResult result = openFileDialog.ShowDialog();
+                if (result.ToString().Equals("OK"))
                 {
-                    inputQueryPath.Text = fbd.SelectedPath;
-                    //model.setQuerytFile(inputQueryPath.Text);    -------------------------------- change it
+                    inputFileQueryPath.Text = openFileDialog.FileName;
                 }
             }
         }
 
         private void searchQueryFileButton_Click(object sender, RoutedEventArgs e)
         {
-            bool validInput = Directory.Exists(inputFileQueryPath.Text);
+            bool validInput = File.Exists(inputFileQueryPath.Text);
             bool validOutput = Directory.Exists(outputQueryPath.Text);
             if (!validInput)
             {
@@ -472,10 +455,18 @@ namespace SearchEngine
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
                 return;
             }
-            if (!validOutput)
+            else if (!validOutput)
             {
                 string message = "Please enter a valid OutPut Query Path!";
                 string caption = "Error Detected in OutPut";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                return;
+            }
+            else if (!m_invertedIndexIsLoaded)
+            {
+                string message = "Please load Inverted Index files!";
+                string caption = "Error Detected in Input";
                 MessageBoxButtons buttons = MessageBoxButtons.OK;
                 DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
                 return;
@@ -484,6 +475,11 @@ namespace SearchEngine
             {
                 model.setQueryInputPath(inputFileQueryPath.Text);
                 model.setQueryOutPutPath(outputQueryPath.Text);
+                model.RunFileQueries(tmpDictionaries, inputFileQueryPath.Text);
+                string message = "Done searching for the query File!";
+                string caption = "Results have written";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
             }
         }
 
@@ -510,11 +506,11 @@ namespace SearchEngine
             bool existWithStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithStem\\Dictionary.bin"));
             bool existWithoutStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithOutStem\\Dictionary.bin"));
 
-            if (model.m_doStemmingQuery && existWithStem)
+            if (model.m_doStemming && existWithStem)
             {
                 return DeserializeForSearcher(System.IO.Path.Combine(outputPathText.Text, "WithStem"));
             }
-            else if (!model.m_doStemmingQuery && existWithoutStem)
+            else if (!model.m_doStemming && existWithoutStem)
             {
                 return DeserializeForSearcher(System.IO.Path.Combine(outputPathText.Text, "WithOutStem"));
             }
@@ -554,5 +550,92 @@ namespace SearchEngine
             return dictionaries;
         }
 
+
+        private void LoadCitiesToFilter()
+        {
+            string[] AllLines, cityData;
+            List<ComboBoxItem> citiesFilter = new List<ComboBoxItem>();
+            if (StemmingCheckBox.IsChecked == true)
+            {
+                AllLines = File.ReadAllLines(System.IO.Path.Combine(System.IO.Path.Combine(outputPathText.Text, "WithStem"), "Cities.txt"));
+            }
+            else
+            {
+                AllLines = File.ReadAllLines(System.IO.Path.Combine(System.IO.Path.Combine(outputPathText.Text, "WithOutStem"), "Cities.txt"));
+            }
+            foreach (string line in AllLines)
+            {
+                cityData = line.Split(new string[] { "(#)" }, StringSplitOptions.None);
+                if (cityData.Length >= 1)
+                {
+                    citiesFilter.Add(new ComboBoxItem(false, cityData[0]));
+                }
+            }
+            cityComboBox.Items.Clear();
+            cityComboBox.ItemsSource = citiesFilter;
+            if (cityComboBox.Items.Count >= 1)
+            {
+                cityComboBox.SelectedIndex = 0;
+            }
+        }
+
+        private void LoadInvertedIndexButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(outputPathText.Text))
+            {
+                string message1 = "The out put path is empty!";
+                string caption1 = "Error Detected in OutPut";
+                MessageBoxButtons buttons1 = MessageBoxButtons.OK;
+                DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
+                return;
+            }
+            /*
+            else if (!Directory.Exists(outputQueryPath.Text))
+            {
+                string message = "Please enter a valid OutPut Query Path!";
+                string caption = "Error Detected in OutPut";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                return;
+            }
+            */
+            /// before load check that all inverted files are exist in the folder of putput !!!!!!!
+            model.setInputPath(inputPathText.Text);
+            model.setOutPutPath(outputPathText.Text);
+            LoadCitiesToFilter();
+            tmpDictionaries = LoadDicForQuery();
+
+            m_invertedIndexIsLoaded = true;
+
+            string message2 = "Load Inverted Index files is done!";
+            string caption2 = "Load Finished";
+            MessageBoxButtons buttons2 = MessageBoxButtons.OK;
+            DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
+            EnablePart2Buttons(true);
+        }
+
+
+        /// <summary>
+        /// method to enable or disable buttons
+        /// </summary>
+        /// <param name="enable"></param>
+        private void EnablePart2Buttons(bool enable)
+        {
+            searchQueryButton.IsEnabled = enable;
+            browswFileButton.IsEnabled = enable;
+            searchQueryFileButton.IsEnabled = enable;
+            browseOutputQueryButton.IsEnabled = enable;
+            resetQueryButton.IsEnabled = enable;
+        }
+
+        private void ResultsCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            model.setSaveResults(true);
+        }
+
+        private void ResultsCheckBox_UnChecked(object sender, RoutedEventArgs e)
+        {
+            model.setSaveResults(false);
+        }
     }
 }

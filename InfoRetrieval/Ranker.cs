@@ -13,16 +13,18 @@ namespace InfoRetrieval
         private const double K2 = 100; // in a range of [0,1000]
         private const double b = 0.75;  //constant
 
-        public int Ri { get; set; } //amount of relevant documents containing term i (set 0 if no relevancy info is know)
-        public int Ni { get; set; }  //amount of documents that contains the term qi (from the query) 
-        public int N { get; set; }  //amount of documents in the corpus
-        public int R { get; set; }  //amount of relevant documents for this query (in the corpus) , (set 0 if no relevancy info is know)
-        public int Fi { get; set; }  //frequency of term i int the document 
-        public int qFi { get; set; }  //frequency of term i in the query
+        public double Ri { get; set; } //amount of relevant documents containing term i (set 0 if no relevancy info is known)
+        public double Ni { get; set; }  //amount of documents that contains the term qi (from the query) 
+        public double N { get; set; }  //amount of documents in the corpus
+        public double R { get; set; }  //amount of relevant documents for this query (in the corpus) , (set 0 if no relevancy info is know)
+        public double Fi { get; set; }  //frequency of term i int the document 
+        public double qFi { get; set; }  //frequency of term i in the query
         public double avgDL { get; set; }  //average document length (in the corpus)
-        public int dl { get; set; }  //document length
+        public double dl { get; set; }  //document length
 
 
+        public double Tfi { get; set; } // frequency of term i in document (normallized by length of the document)
+        public double idf { get; set; } // inverse document frequency (how much the term specializes the document)
 
         public Ranker()
         {
@@ -34,6 +36,9 @@ namespace InfoRetrieval
             qFi = 0;
             avgDL = 0;
             dl = 0;
+
+            Tfi = 0;
+            idf = 0;
         }
 
         public double CalculateBM25()
@@ -48,12 +53,12 @@ namespace InfoRetrieval
             return (Math.Log(a) * x * c);
         }
 
-        public double CalculateCosSim()
+        public double CalculateInnerProduct()
         {
-            return 0;
+            Tfi = Fi / dl;
+            idf = Math.Log(N / Ni);
+            return Tfi * idf;
         }
-
-
 
 
     }

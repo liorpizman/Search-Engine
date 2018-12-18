@@ -20,7 +20,7 @@
             </TransformGroup>
         </Grid.RenderTransform>
         <Button x:Name="runButton" Content="Run" HorizontalAlignment="Left" Margin="199,210,0,0" VerticalAlignment="Top" Width="129" Height="29" RenderTransformOrigin="0.272,0.45" Click="Run_button_Clicked" Grid.Column="1"/>
-        <CheckBox Content="Stemming" HorizontalAlignment="Left" Height="19" Margin="29,123,0,0" VerticalAlignment="Top" Width="85" Checked="CheckBox_Checked" Unchecked="CheckBox_UnChecked" Grid.Column="1"/>
+        <CheckBox x:Name="StemmingCheckBox" Content="Stemming" HorizontalAlignment="Left" Height="19" Margin="29,123,0,0" VerticalAlignment="Top" Width="85" Checked="CheckBox_Checked" Unchecked="CheckBox_UnChecked" Grid.Column="1"/>
         <TextBlock HorizontalAlignment="Left" Height="22" Margin="29,18,0,0" TextWrapping="Wrap" Text="Input and stop-words Path" VerticalAlignment="Top" Width="147" RenderTransformOrigin="0.5,0.5" Grid.Column="1">
             <TextBlock.RenderTransform>
                 <TransformGroup>
@@ -44,20 +44,19 @@
         <TextBlock HorizontalAlignment="Left" Height="17" Margin="32,152,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="100" Text="Select Language:" Grid.Column="1"/>
         <ListBox x:Name="dictionaryListBox" Grid.Column="1" Height="476" Margin="0,33,30,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="431"/>
         <TextBlock x:Name="dispalyDictionaryText" Grid.Column="1" HorizontalAlignment="Left" Height="22" Margin="866,11,0,0" TextWrapping="Wrap" Text="Dictionary Display" VerticalAlignment="Top" Width="138"/>
-        <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="32,268,0,0" TextWrapping="Wrap" Text="Insert a Query" VerticalAlignment="Top"/>
+        <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="32,289,0,0" TextWrapping="Wrap" Text="Insert a Query" VerticalAlignment="Top"/>
         <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="32,338,0,0" TextWrapping="Wrap" Text="Insert a Query File Path" VerticalAlignment="Top"/>
         <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="32,382,0,0" TextWrapping="Wrap" Text="Query Search Output Path" VerticalAlignment="Top"/>
-        <CheckBox x:Name="semanticCheckBox" Grid.ColumnSpan="2" Content="Semantic treatment" HorizontalAlignment="Left" Margin="32,0,0,81" Width="159" Height="15" VerticalAlignment="Bottom" Checked="SemanticCheckBox_Checked" Unchecked="SemanticCheckBox_UnChecked"/>
-        <CheckBox x:Name="queryStemmingCheckBox" Grid.ColumnSpan="2" Content="Stemming" HorizontalAlignment="Left" Margin="32,315,0,0" VerticalAlignment="Top" Checked="QueryCheckBox_Checked" Unchecked="QueryCheckBox_UnChecked"/>
-        <Button x:Name="searchQueryButton"  Grid.ColumnSpan="2" Content="Search For Query" HorizontalAlignment="Left" Margin="557,284,0,0" VerticalAlignment="Top" Width="133" Click="searchQueryButton_Click"/>
+        <CheckBox x:Name="semanticCheckBox" Grid.ColumnSpan="2" Content="Semantic treatment" HorizontalAlignment="Left" Margin="398,0,0,233" Width="159" Height="15" VerticalAlignment="Bottom" Checked="SemanticCheckBox_Checked" Unchecked="SemanticCheckBox_UnChecked"/>
+        <Button x:Name="searchQueryButton"  Grid.ColumnSpan="2" Content="Search For Query" HorizontalAlignment="Left" Margin="557,314,0,0" VerticalAlignment="Top" Width="133" Click="searchQueryButton_Click"/>
         <Button x:Name="searchQueryFileButton" Grid.ColumnSpan="2" Content="Search" HorizontalAlignment="Left" Margin="629,355,0,0" VerticalAlignment="Top" Width="61" Click="searchQueryFileButton_Click" />
         <Button x:Name="browswFileButton" Grid.ColumnSpan="2" Content="Browse" HorizontalAlignment="Left" Margin="557,356,0,0" VerticalAlignment="Top" Width="58" RenderTransformOrigin="0.516,0.35" Click="browswFileButton_Click"/>
         <Button x:Name="browseOutputQueryButton" Grid.ColumnSpan="2" Content="Browse" HorizontalAlignment="Left" Margin="583,401,0,0" VerticalAlignment="Top" Width="80" Click="browseOutputQueryButton_Click"/>
-        <Button x:Name="resetQueryButton" Grid.ColumnSpan="2" Content="Reset Output" HorizontalAlignment="Left" Margin="431,452,0,0" VerticalAlignment="Top" Width="104" Height="27" Click="resetQueryButton_Click" />
-        <TextBox x:Name="inputQueryPath" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" Margin="29,284,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="506"/>
+        <Button x:Name="resetQueryButton" Grid.ColumnSpan="2" Content="Reset Output" HorizontalAlignment="Left" Margin="431,452,0,0" VerticalAlignment="Top" Width="104" Height="35" Click="resetQueryButton_Click" />
+        <TextBox x:Name="inputQueryPath" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" Margin="29,312,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="506"/>
         <TextBox x:Name="inputFileQueryPath" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" Margin="32,355,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="503"/>
         <TextBox x:Name="outputQueryPath" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="23" Margin="32,399,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="503" RenderTransformOrigin="-1.117,-6.905" />
-        <ComboBox x:Name="cityComboBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="216,453,0,0" VerticalAlignment="Top" Width="163" Height="25">
+        <ComboBox x:Name="cityComboBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="557,272,0,0" VerticalAlignment="Top" Width="133" Height="33">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal">
@@ -67,7 +66,9 @@
                 </DataTemplate>
             </ComboBox.ItemTemplate>
         </ComboBox>
-        <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="217,435,0,0" TextWrapping="Wrap" Text="Select City:" VerticalAlignment="Top"/>
+        <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="557,254,0,0" TextWrapping="Wrap" Text="Filter By City:" VerticalAlignment="Top"/>
+        <Button x:Name="LoadInvertedIndexButton" Grid.ColumnSpan="2" Content="Load Inverted Index files&#xD;&#xA;       (before search)" HorizontalAlignment="Left" Margin="374,247,0,0" VerticalAlignment="Top" Width="161" RenderTransformOrigin="-3.453,-0.494" Height="36" Click="LoadInvertedIndexButton_Click"/>
+        <CheckBox x:Name="ResultsCheckBox" Grid.ColumnSpan="2" Content="Save Queries Results" HorizontalAlignment="Left" Margin="32,435,0,0" VerticalAlignment="Top" Checked="ResultsCheckBox_Checked" Unchecked="ResultsCheckBox_UnChecked"/>
 
     </Grid>
 </Window>

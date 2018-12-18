@@ -5,20 +5,32 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WnLexicon;
 
 namespace InfoRetrieval
 {
     public class Searcher
     {
-        public Dictionary<string, MethodScore> DocRank;   /// key - DocNo , Value - Rank
         public Ranker m_ranker;
         public Dictionary<string, IndexTerm>[] dictionaries { get; set; }
-        public Dictionary<string, int> docLengths { get; set; }
+        public Dictionary<string, double> docLengths { get; set; }
 
         private bool m_doStemming;
         private string m_inputPath;
         private string m_outPutPath;
+        private bool m_withSemantics;
 
+        public bool DoSemantic
+        {
+            get
+            {
+                return m_withSemantics;
+            }
+            set
+            {
+                m_withSemantics = value;
+            }
+        }
         public bool DoStemming
         {
             get
@@ -69,9 +81,8 @@ namespace InfoRetrieval
         {
             this.m_doStemming = false;
             this.m_inputPath = "";
-            this.DocRank = new Dictionary<string, MethodScore>();
             this.m_ranker = new Ranker();
-            this.docLengths = new Dictionary<string, int>();
+            this.docLengths = new Dictionary<string, double>();
             this.m_outPutPath = outPutPath;
             CalculateDocsLengths();
         }
@@ -94,7 +105,7 @@ namespace InfoRetrieval
                 docno = splittedLine[0].Trim(' ');
                 tmp = splittedLine[splittedLine.Length - 2].Trim(' ');
                 length = tmp.Split(' ')[1].Trim(' ');
-                docLengths.Add(docno, Int32.Parse(length));
+                docLengths.Add(docno, Double.Parse(length));
             }
         }
 
@@ -111,24 +122,85 @@ namespace InfoRetrieval
             }
         }
 
-        public void ParseNewQuery(string query)
+        public void ParseNewQuery(string query, bool withSemantic, string id, bool saveResults)
         {
-            Document queryDocument = new Document("DOCNO", new StringBuilder("DATE1"), new StringBuilder("TI"), query, new StringBuilder("CITY"), new StringBuilder("language"));
+            Query q;
+            if (id.Equals("-1"))
+            {
+                q = new Query(query);
+            }
+            else
+            {
+                q = new Query(query, id);
+            }
+            this.m_withSemantics = withSemantic;
+            if (withSemantic)
+            {
+                q.content += UpdateQueryBySemantics(query);
+            }
+            Document queryDocument = new Document("DOCNO", new StringBuilder("DATE1"), new StringBuilder("TI"), q.content, new StringBuilder("CITY"), new StringBuilder("language"));
             Parse parse = new Parse(m_doStemming, m_inputPath);
             parse.ParseDocuments(queryDocument);
             Dictionary<string, DocumentsTerm> queryTerms = parse.m_allTerms;
             int lineInPosting, PostNumber, CurrentqFi;
             foreach (string key in queryTerms.Keys)
             {
-                lineInPosting = GetLineInPost(key);
                 PostNumber = GetPostNumber(key);
+                if (!dictionaries[PostNumber].ContainsKey(key))
+                {
+                    continue;
+                }
+                lineInPosting = GetLineInPost(key);
                 CurrentqFi = queryTerms[key].m_Terms["DOCNO"].m_tf;
-                SelectTermDataForRanking(lineInPosting, PostNumber, CurrentqFi);
+                SelectTermDataForRanking(lineInPosting, PostNumber, CurrentqFi, q);
+            }
+            if (saveResults)
+            {
+                WriteQueryResults(q);
             }
         }
 
 
-        private void SelectTermDataForRanking(int lineInPosting, int PostNumber, int CurrentqFi)
+        public void ParseQueriesFile(string path, bool doSemantic, bool saveResults)
+        {
+            Dictionary<string, string> m_queries = new Dictionary<string, string>();
+            string text = File.ReadAllText(path);
+            string[] queries = text.Split(new[] { "<top>" }, StringSplitOptions.None);
+            string queryID, queryContent;
+            char[] toRemove = { ' ', '\n' };
+            for (int i = 1; i < queries.Length; i++)
+            {
+                queryID = GetStringInBetween("<num>", "<title>", queries[i]).Trim(toRemove);
+                queryID = queryID.Split(new[] { ": " }, StringSplitOptions.None)[1].Trim(toRemove);
+                queryContent = GetStringInBetween("<title>", "<desc>", queries[i]).Trim(toRemove);
+                m_queries.Add(queryID, queryContent);
+            }
+            foreach (string id in m_queries.Keys)
+            {
+                ParseNewQuery(m_queries[id], doSemantic, id, saveResults);
+            }
+        }
+
+        /// <summary>
+        /// method to get the string between two tags
+        /// </summary>
+        /// <param name="strBegin">first tag</param>
+        /// <param name="strEnd">second tag</param>
+        /// <param name="strSource">the source string</param>
+        /// <returns>the string between two tags</returns>
+        private string GetStringInBetween(string strBegin, string strEnd, string strSource)
+        {
+            string[] firstSplit, secondSplit;
+            firstSplit = strSource.Split(new[] { strBegin }, StringSplitOptions.None);
+            if (firstSplit.Length < 2)
+            {
+                return "";
+            }
+            secondSplit = firstSplit[1].Split(new[] { strEnd }, StringSplitOptions.None);
+            return secondSplit[0];
+        }
+
+        private void SelectTermDataForRanking(int lineInPosting, int PostNumber, int CurrentqFi, Query q)
         {
             string[] AllLines, SplitedLine, TermInstances;
             string Line, currentDoc, currentFrequency;
@@ -139,7 +211,7 @@ namespace InfoRetrieval
 
             AllLines = File.ReadAllLines(Path.Combine(m_outPutPath, "DocsData.txt"));
             m_ranker.avgDL = Double.Parse(AllLines[0].Split(' ')[1]);
-            m_ranker.N = Int32.Parse(AllLines[1].Split(' ')[1]);
+            m_ranker.N = Double.Parse(AllLines[1].Split(' ')[1]);
             m_ranker.qFi = CurrentqFi;
 
             for (int i = 1; i < TermInstances.Length; i++)
@@ -148,18 +220,51 @@ namespace InfoRetrieval
                 currentDoc = SplitedLine[0];
                 currentFrequency = SplitedLine[1];
                 m_ranker.dl = GetDocLength(currentDoc); //currentDoc = DOCNO
-                m_ranker.Fi = Int32.Parse(currentFrequency);
-                if (DocRank.ContainsKey(currentDoc))
+                m_ranker.Fi = Double.Parse(currentFrequency);
+                if (q.m_docsRanks.ContainsKey(currentDoc))
                 {
-                    DocRank[currentDoc].IncreaseBM(m_ranker.CalculateBM25());
-                    DocRank[currentDoc].IncreaseCosSim(m_ranker.CalculateCosSim());
+                    q.m_docsRanks[currentDoc].IncreaseBM(m_ranker.CalculateBM25());
+                    q.m_docsRanks[currentDoc].IncreaseInnerProduct(m_ranker.CalculateInnerProduct());
                 }
                 else
                 {
-                    DocRank.Add(currentDoc, new MethodScore(m_ranker.CalculateBM25(), m_ranker.CalculateCosSim()));
+                    q.m_docsRanks.Add(currentDoc, new MethodScore(m_ranker.CalculateBM25(), m_ranker.CalculateInnerProduct()));
                 }
             }
 
+        }
+
+        private string UpdateQueryBySemantics(string query)
+        {
+            string[] wordsBeforeSemantic, adjWords, advWords, nounWords, verbWords;
+            StringBuilder extendQuery = new StringBuilder();
+            wordsBeforeSemantic = query.Split(' ');
+            for (int i = 0; i < wordsBeforeSemantic.Length; i++)
+            {
+                adjWords = Lexicon.FindSynonyms(wordsBeforeSemantic[i], Wnlib.PartsOfSpeech.Adj, false);
+                advWords = Lexicon.FindSynonyms(wordsBeforeSemantic[i], Wnlib.PartsOfSpeech.Adv, false);
+                nounWords = Lexicon.FindSynonyms(wordsBeforeSemantic[i], Wnlib.PartsOfSpeech.Noun, false);
+                verbWords = Lexicon.FindSynonyms(wordsBeforeSemantic[i], Wnlib.PartsOfSpeech.Verb, false);
+                extendQuery.Append(updateByPartOfSpeech(adjWords));
+                extendQuery.Append(updateByPartOfSpeech(advWords));
+                extendQuery.Append(updateByPartOfSpeech(nounWords));
+                extendQuery.Append(updateByPartOfSpeech(verbWords));
+            }
+            return extendQuery.ToString();
+        }
+
+        private string updateByPartOfSpeech(string[] partOfSpeech)
+        {
+            StringBuilder extendQuery = new StringBuilder();
+            if (partOfSpeech != null)
+            {
+                for (int i = 0; i < 5 && i < partOfSpeech.Length; i++)
+                {
+                    extendQuery.Append(" " + partOfSpeech[i]);
+                }
+                return extendQuery.ToString();
+            }
+            return string.Empty;
         }
 
         private int GetLineInPost(string term)
@@ -184,59 +289,63 @@ namespace InfoRetrieval
             }
         }
 
-        /*
-        private int GetCurrentqFi(string term, Dictionary query)
-        {
-            int counter = 0;
-            string[] terms = query.Trim(' ').Split(' ');
-            foreach (string t in terms)
-            {
-                if (t.Equals(term))
-                    counter++;
-            }
-            return counter;
-        }
-        */
-
-        private int GetDocLength(string DOCNO)
+        private double GetDocLength(string DOCNO)
         {
             return docLengths[DOCNO];
         }
 
-        public void GetRelevantDocs()
+        public void WriteQueryResults(Query q)
         {
-            Dictionary<string, double> DocResults = new Dictionary<string, double>();
-            int i = 1;
-            foreach (string key in DocRank.Keys)
+            StreamWriter Writer;
+            if (!File.Exists(Path.Combine(m_outPutPath, "QueryRanksResults.txt")))
             {
-                if (i > 50)
+                using (StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, "QueryRanksResults.txt")))
                 {
-                    break;
+                    outputFile.WriteLine(new StringBuilder());
                 }
-                DocResults.Add(key, DocRank[key].GetTotalScore());
-                i++;
-
+                Writer = new StreamWriter(Path.Combine(m_outPutPath, "QueryRanksResults.txt"));
             }
-            if (!Directory.Exists(m_outPutPath))
+            else
             {
-                Directory.CreateDirectory(m_outPutPath);
+                Writer = File.AppendText(Path.Combine(m_outPutPath, "QueryRanksResults.txt"));
             }
-            using (StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, "RanksResults.txt")))
-            {
-                outputFile.WriteLine(new StringBuilder());
-            }
-            StreamWriter Writer = new StreamWriter(Path.Combine(m_outPutPath, "RanksResults.txt"));
-            StringBuilder data = new StringBuilder();
-            DocResults = DocResults.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
-            foreach (string key in DocResults.Keys)
-            {
-                data.AppendLine(key + "   " + DocResults[key]);
-            }
-            Writer.Write(data);
-            data.Clear();
+            Writer.Write(q.GetQueryData());
             Writer.Flush();
             Writer.Close();
         }
 
     }
 }
+/*
+Dictionary<string, double> DocResults = new Dictionary<string, double>();
+int i = 1;
+foreach (string key in DocRank.Keys)
+{
+    if (i > 50)
+    {
+        break;
+    }
+    DocResults.Add(key, DocRank[key].GetTotalScore());
+    i++;
+
+}
+if (!Directory.Exists(m_outPutPath))
+{
+    Directory.CreateDirectory(m_outPutPath);
+}
+using (StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, "RanksResults.txt")))
+{
+    outputFile.WriteLine(new StringBuilder());
+}
+StreamWriter Writer = new StreamWriter(Path.Combine(m_outPutPath, "RanksResults.txt"));
+StringBuilder data = new StringBuilder();
+DocResults = DocResults.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
+foreach (string key in DocResults.Keys)
+{
+    data.AppendLine(key + "   " + DocResults[key]);
+}
+Writer.Write(data);
+data.Clear();
+Writer.Flush();
+Writer.Close();
+*/

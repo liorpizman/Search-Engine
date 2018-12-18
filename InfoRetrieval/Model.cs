@@ -11,24 +11,8 @@ namespace InfoRetrieval
     /// <summary>
     /// Class which represents the model of the search engine to get inverted index 
     /// </summary>
-    public class Model
+    public class Model : AModel
     {
-        /// <summary>
-        /// fields of Model
-        /// </summary>
-        public int sizeTasks { get; private set; }
-        public int _external { get; private set; }
-        public ReadFile readFile { get; private set; }
-        public Indexer indexer { get; private set; }
-        public Searcher m_searcher { get; private set; }
-        public string inputPath { get; private set; }
-        public string outPutPath { get; private set; }
-        public bool m_doStemming { get; private set; }
-        public bool lastRunStem { get; private set; }
-        public bool m_doStemmingQuery { get; private set; }
-        public string m_queryFileInputPath { get; private set; }
-        public string m_queryFileOutputPath { get; private set; }
-
         /// <summary>
         /// constructor of Model
         /// </summary>
@@ -40,69 +24,14 @@ namespace InfoRetrieval
             this.outPutPath = "";
             this.m_doStemming = false;
             this.lastRunStem = false;
-            this.m_doStemmingQuery = false;
-        }
-
-        /// <summary>
-        /// method to set the input path of the user if changed
-        /// </summary>
-        /// <param name="userInput"> input path of the user</param>
-        public void setInputPath(string userInput)
-        {
-            inputPath = userInput;   //delete in clear
-        }
-
-        /// <summary>
-        /// method to set the output path of the user if changed
-        /// </summary>
-        /// <param name="userInput"> output path of the user</param>
-        public void setOutPutPath(string userOutput)
-        {
-            outPutPath = userOutput;  //delete in clear
-
-        }
-
-        /// <summary>
-        /// method to set the choose of the user about stemming
-        /// </summary>
-        /// <param name="doStem">the choose of the user about stemming</param>
-        public void setStemming(bool doStem)
-        {
-            m_doStemming = doStem;
-        }
-
-        /// <summary>
-        /// method to set the choose of the user about stemming of Query
-        /// </summary>
-        /// <param name="doStem">the choose of the user about stemming Query</param>
-        public void setQueryStemming(bool doStem)
-        {
-            m_doStemmingQuery = doStem;
-        }
-
-
-        /// <summary>
-        /// method to set the Query Input Path
-        /// </summary>
-        /// <param name="QueryInput">Query Input Path</param>
-        public void setQueryInputPath(string QueryInput)
-        {
-            this.m_queryFileInputPath = QueryInput;
-        }
-
-        /// <summary>
-        /// method to set the Query Output Path
-        /// </summary>
-        /// <param name="QueryOutput">Query Output Path</param>
-        public void setQueryOutPutPath(string QueryOutput)
-        {
-            this.m_queryFileOutputPath = QueryOutput;
+            this.m_doSemantic = false;
+            this.m_saveResults = true;
         }
 
         /// <summary>
         /// method to execute the model to get inverted index
         /// </summary>
-        public void RunIndexing()
+        public override void RunIndexing()
         {
             int sizeTasks, _external = 0;
             readFile = new ReadFile(inputPath);
@@ -250,34 +179,40 @@ namespace InfoRetrieval
         /// <summary>
         /// method to execute the model to results for a query
         /// </summary>
-        public void RunQueries(Dictionary<string, IndexTerm>[] dictionaries, string inputQuery)
+        public override void RunQueries(Dictionary<string, IndexTerm>[] dictionaries, string inputQuery)
         {
             if (m_searcher == null)
             {
+                Wnlib.WNCommon.path = @"dictionary\";
                 m_searcher = new Searcher(outPutPath);
                 m_searcher.dictionaries = dictionaries;
             }
             m_searcher.InputPath = this.m_queryFileInputPath;
             m_searcher.OutPutPath = this.outPutPath;
-            m_searcher.updateOutput(m_doStemmingQuery, outPutPath);
+            m_searcher.updateOutput(m_doStemming, outPutPath);
 
-            m_searcher.ParseNewQuery(inputQuery);
+            m_searcher.ParseNewQuery(inputQuery, m_doSemantic, "-1", m_saveResults);
 
-            m_searcher.GetRelevantDocs();
-            // create parser
-            // create doc from query
-            // parse this doc by new parser
-            // send each term in parse.m_allTerms to Ranker
-            //
         }
 
-        public void ClearMemory()
+        /// <summary>
+        /// method to execute the model to results for a file query
+        /// </summary>
+        public override void RunFileQueries(Dictionary<string, IndexTerm>[] dictionaries, string path)
         {
-            indexer = null;
-            readFile = null;
+            if (m_searcher == null)
+            {
+                Wnlib.WNCommon.path = @"dictionary\";
+                m_searcher = new Searcher(outPutPath);
+                m_searcher.dictionaries = dictionaries;
+            }
+            m_searcher.InputPath = this.m_queryFileInputPath;
+            m_searcher.OutPutPath = this.outPutPath;
+            m_searcher.updateOutput(m_doStemming, outPutPath);
+
+            m_searcher.ParseQueriesFile(m_queryFileInputPath, m_doSemantic, m_saveResults);
+
         }
-
         static void Main(string[] args) { }
-
     }
 }
