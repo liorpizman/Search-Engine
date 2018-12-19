@@ -190,10 +190,13 @@ namespace InfoRetrieval
                 Wnlib.WNCommon.path = @newPath;
                 m_searcher = new Searcher(outPutPath);
                 m_searcher.dictionaries = dictionaries;
+                m_searcher.StopWordsPath = inputPath;
             }
             m_searcher.InputPath = this.m_queryFileInputPath;
             m_searcher.OutPutPath = this.outPutPath;
             m_searcher.updateOutput(m_doStemming, outPutPath);
+            m_searcher.StopWordsPath = inputPath;
+
             m_searcher.ParseNewQuery(inputQuery, m_doSemantic, "-1", m_saveResults, filterByCity);
         }
 
@@ -210,10 +213,12 @@ namespace InfoRetrieval
                 Wnlib.WNCommon.path = @newPath;
                 m_searcher = new Searcher(outPutPath);
                 m_searcher.dictionaries = dictionaries;
+                m_searcher.StopWordsPath = inputPath;
             }
             m_searcher.InputPath = this.m_queryFileInputPath;
             m_searcher.OutPutPath = this.outPutPath;
             m_searcher.updateOutput(m_doStemming, outPutPath);
+            m_searcher.StopWordsPath = inputPath;
 
             m_searcher.ParseQueriesFile(m_queryFileInputPath, m_doSemantic, m_saveResults, filterByCity);
 

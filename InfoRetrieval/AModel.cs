@@ -120,7 +120,7 @@ namespace InfoRetrieval
         /// <summary>
         /// method to execute the model to results for a file query
         /// </summary>
-        public abstract void RunFileQueries(Dictionary<string, IndexTerm>[] dictionaries, string path, HashSet<string> filterByCity);
+        public abstract void RunFileQueries(Dictionary<string, IndexTerm>[] dictionaries, string path, HashSet<string> filterByCity); 
 
     }
 }

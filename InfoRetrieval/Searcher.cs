@@ -17,6 +17,7 @@ namespace InfoRetrieval
 
         private bool m_doStemming;
         private string m_inputPath;
+        private string m_stopWordsPath;
         private string m_outPutPath;
         private bool m_withSemantics;
         private Query tmpQuery;
@@ -80,6 +81,18 @@ namespace InfoRetrieval
             }
         }
 
+        public string StopWordsPath
+        {
+            get
+            {
+                return m_stopWordsPath;
+            }
+            set
+            {
+                m_stopWordsPath = value;
+            }
+        }
+
         public static Hashtable m_postingNums = new Hashtable()
         {
             {'a', 1 }, {'b', 2 }, {'c', 3 },{'d', 4 }, //{ "", "0" },
@@ -93,6 +106,7 @@ namespace InfoRetrieval
         public Searcher(string outPutPath)
         {
             this.m_doStemming = false;
+            this.m_stopWordsPath = "";
             this.m_inputPath = "";
             this.m_ranker = new Ranker();
             this.docInformation = new Dictionary<string, DocInfo>();
@@ -102,7 +116,7 @@ namespace InfoRetrieval
 
         private void CalculateDocsLengths()
         {
-            string[] AllLines, splittedLine;
+            string[] AllLines, splittedLine, tmpSplite;
             string docno, tmp, length, title, city;
             if (m_doStemming)
             {
@@ -121,7 +135,15 @@ namespace InfoRetrieval
                 tmp = splittedLine[splittedLine.Length - 1].Trim(' ');
                 city = tmp.Split(':')[1].Trim(' ');
                 tmp = splittedLine[1].Trim(' ');
-                title = tmp.Split(new string[] { "TI: " }, StringSplitOptions.None)[1];
+                tmpSplite = tmp.Split(new string[] { "TI: " }, StringSplitOptions.None);
+                if (tmpSplite.Length > 1)
+                {
+                    title = tmp.Split(new string[] { "TI: " }, StringSplitOptions.None)[1];
+                }
+                else
+                {
+                    title = "";
+                }
                 docInformation.Add(docno, new DocInfo(docno, Double.Parse(length), title, city));
             }
         }
@@ -156,19 +178,39 @@ namespace InfoRetrieval
                 q.content += UpdateQueryBySemantics(query);
             }
             Document queryDocument = new Document("DOCNO", new StringBuilder("DATE1"), new StringBuilder("TI"), q.content, new StringBuilder("CITY"), new StringBuilder("language"));
-            Parse parse = new Parse(m_doStemming, m_inputPath);
+            Parse parse = new Parse(m_doStemming, m_stopWordsPath);
             parse.ParseDocuments(queryDocument);
-            Dictionary<string, DocumentsTerm> queryTerms = parse.m_allTerms;
+            Dictionary<string, DocumentsTerm> queryTerms = new Dictionary<string, DocumentsTerm>(parse.m_allTerms);
             int lineInPosting, PostNumber, CurrentqFi;
-            foreach (string key in queryTerms.Keys)
+            string upper, lower, currKey;
+            foreach (string key in parse.m_allTerms.Keys)
             {
-                PostNumber = GetPostNumber(key);
-                if (!dictionaries[PostNumber].ContainsKey(key))
+                currKey = key;
+                PostNumber = GetPostNumber(currKey);
+                if (!dictionaries[PostNumber].ContainsKey(currKey))
                 {
-                    continue;
+                    upper = currKey.ToUpper();
+                    lower = currKey.ToLower();
+                    if (dictionaries[PostNumber].ContainsKey(upper))
+                    {
+                        currKey = upper;
+                        queryTerms.Add(currKey, queryTerms[key]);
+                        queryTerms.Remove(key);
+                    }
+                    else if (dictionaries[PostNumber].ContainsKey(lower))
+                    {
+                        currKey = lower;
+                        queryTerms.Add(currKey, queryTerms[key]);
+                        queryTerms.Remove(key);
+                    }
+                    else
+                    {
+                        continue;
+                    }
                 }
-                lineInPosting = GetLineInPost(key);
-                CurrentqFi = queryTerms[key].m_Terms["DOCNO"].m_tf;
+                //queryTerms = parse.m_allTerms;
+                lineInPosting = GetLineInPost(currKey);
+                CurrentqFi = queryTerms[currKey].m_Terms["DOCNO"].m_tf;
                 SelectTermDataForRanking(lineInPosting, PostNumber, CurrentqFi, q, filterByCity);
             }
             if (saveResults)

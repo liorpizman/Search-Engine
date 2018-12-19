@@ -537,7 +537,7 @@ namespace SearchEngine
         private Dictionary<string, IndexTerm>[] DeserializeForSearcher(string path)
         {
             Dictionary<string, IndexTerm>[] dictionaries = null;
-            FileStream fs = new FileStream(System.IO.Path.Combine(path, "Dictionary.bin"), FileMode.Open, FileAccess.Read, FileShare.None);
+            FileStream fs = new FileStream(System.IO.Path.Combine(path, "Dictionary.bin"), FileMode.Open);//, FileAccess.Read, FileShare.None);
             try
             {
                 BinaryFormatter formatter = new BinaryFormatter();

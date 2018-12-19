@@ -49,17 +49,18 @@ namespace InfoRetrieval
             StringBuilder data = new StringBuilder();
             foreach (string key in m_docsRanks.Keys)
             {
-                if (i > counter)
-                {
-                    break;
-                }
-                DocResults.Add(key, m_docsRanks[key].GetTotalScore());
-                i++;
+                DocResults.Add(key, m_docsRanks[key].GetBM25());
+                //  DocResults.Add(key, m_docsRanks[key].GetTotalScore());
             }
             DocResults = DocResults.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
             foreach (string docno in DocResults.Keys)
             {
+                if (i > 50 )
+                {
+                    break;
+                }
                 data.AppendLine(m_ID + " 0 " + docno + " 1 " + (counter--) + " mt");
+                i++;
             }
             return data;
         }

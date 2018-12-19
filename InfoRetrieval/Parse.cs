@@ -460,9 +460,61 @@ namespace InfoRetrieval
                                     AddNewTerm(currDOCNO, numValue + " " + splittedNums[0]);
                                 }
                             }
+                            else
+                            {
+                                if (splittedNums[0].All(Char.IsLetter))
+                                {
+                                    if (char.IsUpper(splittedNums[0][0]))
+                                    {
+                                        if (m_doStemming)
+                                        {
+                                            stemmedValue = m_stemmer.stemTerm(splittedNums[0].ToLower());
+                                            AddNewUpperCaseTerm(currDOCNO, stemmedValue);
+                                        }
+                                        else
+                                        {
+                                            AddNewUpperCaseTerm(currDOCNO, splittedNums[0].ToLower());
+                                        }
+                                    }
+                                    else
+                                    {
+                                        AddNewTerm(currDOCNO, splittedNums[0].ToLower());
+                                    }
+                                }
+                                else if (splittedNums[0].All(char.IsDigit))
+                                {
+                                    AddNewTerm(currDOCNO, splittedNums[0]);
+                                }
+                            }
                             if (IsIntOrDouble(splittedNums[1]) || IsFraction(splittedNums[1]))
                             {
                                 AddNewTerm(currDOCNO, splittedNums[1]);
+                            }
+                            else
+                            {
+                                if (splittedNums[1].All(Char.IsLetter))
+                                {
+                                    if (char.IsUpper(splittedNums[1][0]))
+                                    {
+                                        if (m_doStemming)
+                                        {
+                                            stemmedValue = m_stemmer.stemTerm(splittedNums[1].ToLower());
+                                            AddNewUpperCaseTerm(currDOCNO, stemmedValue);
+                                        }
+                                        else
+                                        {
+                                            AddNewUpperCaseTerm(currDOCNO, splittedNums[1].ToLower());
+                                        }
+                                    }
+                                    else
+                                    {
+                                        AddNewTerm(currDOCNO, splittedNums[1].ToLower());
+                                    }
+                                }
+                                else if (splittedNums[1].All(char.IsDigit))
+                                {
+                                    AddNewTerm(currDOCNO, splittedNums[1]);
+                                }
                             }
                             AddNewTerm(currDOCNO, currValue);
                             continue;
