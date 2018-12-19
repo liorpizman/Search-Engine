@@ -115,12 +115,12 @@ namespace InfoRetrieval
         /// <summary>
         /// method to execute the model to results for a query
         /// </summary>
-        public abstract void RunQueries(Dictionary<string, IndexTerm>[] dictionaries, string inputQuery);
+        public abstract void RunQueries(Dictionary<string, IndexTerm>[] dictionaries, string inputQuery, HashSet<string> filterByCity);
 
         /// <summary>
         /// method to execute the model to results for a file query
         /// </summary>
-        public abstract void RunFileQueries(Dictionary<string, IndexTerm>[] dictionaries, string path);
+        public abstract void RunFileQueries(Dictionary<string, IndexTerm>[] dictionaries, string path, HashSet<string> filterByCity);
 
     }
 }

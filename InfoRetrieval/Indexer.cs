@@ -169,10 +169,10 @@ namespace InfoRetrieval
                         SwitchWriterForPosting(pair.Value.postNum, "Posting");
                     }
                     postNum = pair.Value.postNum;
-                    IndexTerm currentTerm = new IndexTerm(pair.Key, postNum, currentLine[postNum]);
+                    IndexTerm currentTerm = new IndexTerm(pair.Value.m_valueOfTerm, postNum, currentLine[postNum]);
                     currentTerm.IncreaseTfc(pair.Value.countTotalFrequency());
                     currentTerm.IncreaseDf(pair.Value.m_Terms.Count);
-                    dictionaries[postNum].Add(pair.Key, currentTerm);
+                    dictionaries[postNum].Add(pair.Value.m_valueOfTerm, currentTerm);
                     //Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));
                     data.AppendLine(pair.Value.WriteToPostingFileDocDocTerm(false).ToString());
                     currentLine[postNum]++;
@@ -302,9 +302,9 @@ namespace InfoRetrieval
                     }
                     //currentLineInFile = Reader.ReadLine();
                     writeData.AppendLine(lines[indexLine++] + pair.Value.WriteToPostingFileDocDocTerm(true));
-                    //dictionaries[PostNumber][pair.Key].IncreaseTf(pair.Value.m_tfc);
-                    dictionaries[PostNumber][pair.Key].IncreaseTfc(pair.Value.countTotalFrequency());
-                    dictionaries[PostNumber][pair.Key].IncreaseDf(pair.Value.m_Terms.Count);
+                    //dictionaries[PostNumber][pair.Value.m_valueOfTerm].IncreaseTf(pair.Value.m_tfc);
+                    dictionaries[PostNumber][pair.Value.m_valueOfTerm].IncreaseTfc(pair.Value.countTotalFrequency());
+                    dictionaries[PostNumber][pair.Value.m_valueOfTerm].IncreaseDf(pair.Value.m_Terms.Count);
                     currentLineNumber++;
                 }
                 else
@@ -318,13 +318,13 @@ namespace InfoRetrieval
                         }
                         finishedUpdatePrevTerms = false;
                     }
-                    IndexTerm currentTerm = new IndexTerm(pair.Key, PostNumber, currentLine[PostNumber]);
+                    IndexTerm currentTerm = new IndexTerm(pair.Value.m_valueOfTerm, PostNumber, currentLine[PostNumber]);
                     LineNumberOfTerm = currentLine[PostNumber];
                     currentLine[PostNumber]++;
                     //currentTerm.IncreaseTf(pair.Value.m_tfc);
                     currentTerm.IncreaseTfc(pair.Value.countTotalFrequency());
                     currentTerm.IncreaseDf(pair.Value.m_Terms.Count);
-                    dictionaries[PostNumber].Add(pair.Key, currentTerm);
+                    dictionaries[PostNumber].Add(pair.Value.m_valueOfTerm, currentTerm);
                     writeData.AppendLine(pair.Value.WriteToPostingFileDocDocTerm(false).ToString());
                 }
             }
@@ -395,17 +395,40 @@ namespace InfoRetrieval
         /// </summary>
         public void InitTerms()
         {
+            int PostNumber = 0;
             foreach (KeyValuePair<string, DocumentsTerm> pair in tempDic)
             {
-                int PostNumber = pair.Value.postNum;
-                if (dictionaries[PostNumber].ContainsKey(pair.Key))
+                PostNumber = pair.Value.postNum;
+                if (dictionaries[PostNumber].ContainsKey(pair.Value.m_valueOfTerm))
                 {
-                    pair.Value.line = dictionaries[PostNumber][pair.Key].lineInPost;
+                    pair.Value.line = dictionaries[PostNumber][pair.Value.m_valueOfTerm].lineInPost;
                 }
+                else if (char.IsUpper(pair.Value.m_valueOfTerm[0]))
+                {
+                    if (dictionaries[PostNumber].ContainsKey(pair.Value.m_valueOfTerm.ToLower()))
+                    {
+                        pair.Value.m_valueOfTerm = pair.Value.m_valueOfTerm.ToLower();
+                        pair.Value.line = dictionaries[PostNumber][pair.Value.m_valueOfTerm.ToLower()].lineInPost;
+                    }
+                }
+
             }
             this.tempDic = tempDic.OrderBy(i => i.Value.postNum).ThenBy(i => i.Value.line).ToDictionary(p => p.Key, p => p.Value);
         }
-
+        /*
+       public void InitTerms()
+       {
+           foreach (KeyValuePair<string, DocumentsTerm> pair in tempDic)
+           {
+               int PostNumber = pair.Value.postNum;
+               if (dictionaries[PostNumber].ContainsKey(pair.Key))
+               {
+                   pair.Value.line = dictionaries[PostNumber][pair.Key].lineInPost;
+               }
+           }
+           this.tempDic = tempDic.OrderBy(i => i.Value.postNum).ThenBy(i => i.Value.line).ToDictionary(p => p.Key, p => p.Value);
+       }
+       */
         /// <summary>
         /// method which get the suitable post number of a current term
         /// </summary>

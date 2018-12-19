@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -179,30 +180,34 @@ namespace InfoRetrieval
         /// <summary>
         /// method to execute the model to results for a query
         /// </summary>
-        public override void RunQueries(Dictionary<string, IndexTerm>[] dictionaries, string inputQuery)
+        public override void RunQueries(Dictionary<string, IndexTerm>[] dictionaries, string inputQuery, HashSet<string> filterByCity)
         {
             if (m_searcher == null)
             {
-                Wnlib.WNCommon.path = @"dictionary\";
+                string prevPath = "", newPath = "";
+                prevPath = System.IO.Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))));
+                newPath = Path.Combine(prevPath, "DictionarySource\\");
+                Wnlib.WNCommon.path = @newPath;
                 m_searcher = new Searcher(outPutPath);
                 m_searcher.dictionaries = dictionaries;
             }
             m_searcher.InputPath = this.m_queryFileInputPath;
             m_searcher.OutPutPath = this.outPutPath;
             m_searcher.updateOutput(m_doStemming, outPutPath);
-
-            m_searcher.ParseNewQuery(inputQuery, m_doSemantic, "-1", m_saveResults);
-
+            m_searcher.ParseNewQuery(inputQuery, m_doSemantic, "-1", m_saveResults, filterByCity);
         }
 
         /// <summary>
         /// method to execute the model to results for a file query
         /// </summary>
-        public override void RunFileQueries(Dictionary<string, IndexTerm>[] dictionaries, string path)
+        public override void RunFileQueries(Dictionary<string, IndexTerm>[] dictionaries, string path, HashSet<string> filterByCity)
         {
             if (m_searcher == null)
             {
-                Wnlib.WNCommon.path = @"dictionary\";
+                string prevPath = "", newPath = "";
+                prevPath = System.IO.Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))));
+                newPath = Path.Combine(prevPath, "DictionarySource\\");
+                Wnlib.WNCommon.path = @newPath;
                 m_searcher = new Searcher(outPutPath);
                 m_searcher.dictionaries = dictionaries;
             }
@@ -210,7 +215,7 @@ namespace InfoRetrieval
             m_searcher.OutPutPath = this.outPutPath;
             m_searcher.updateOutput(m_doStemming, outPutPath);
 
-            m_searcher.ParseQueriesFile(m_queryFileInputPath, m_doSemantic, m_saveResults);
+            m_searcher.ParseQueriesFile(m_queryFileInputPath, m_doSemantic, m_saveResults, filterByCity);
 
         }
         static void Main(string[] args) { }

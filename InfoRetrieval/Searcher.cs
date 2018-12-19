@@ -13,12 +13,25 @@ namespace InfoRetrieval
     {
         public Ranker m_ranker;
         public Dictionary<string, IndexTerm>[] dictionaries { get; set; }
-        public Dictionary<string, double> docLengths { get; set; }
+        public Dictionary<string, DocInfo> docInformation { get; set; }
 
         private bool m_doStemming;
         private string m_inputPath;
         private string m_outPutPath;
         private bool m_withSemantics;
+        private Query tmpQuery;
+
+        public Query query
+        {
+            get
+            {
+                return tmpQuery;
+            }
+            set
+            {
+                tmpQuery = value;
+            }
+        }
 
         public bool DoSemantic
         {
@@ -82,7 +95,7 @@ namespace InfoRetrieval
             this.m_doStemming = false;
             this.m_inputPath = "";
             this.m_ranker = new Ranker();
-            this.docLengths = new Dictionary<string, double>();
+            this.docInformation = new Dictionary<string, DocInfo>();
             this.m_outPutPath = outPutPath;
             CalculateDocsLengths();
         }
@@ -90,7 +103,7 @@ namespace InfoRetrieval
         private void CalculateDocsLengths()
         {
             string[] AllLines, splittedLine;
-            string docno, tmp, length;
+            string docno, tmp, length, title, city;
             if (m_doStemming)
             {
                 AllLines = File.ReadAllLines(Path.Combine(Path.Combine(m_outPutPath, "WithStem"), "Documents.txt"));
@@ -105,7 +118,11 @@ namespace InfoRetrieval
                 docno = splittedLine[0].Trim(' ');
                 tmp = splittedLine[splittedLine.Length - 2].Trim(' ');
                 length = tmp.Split(' ')[1].Trim(' ');
-                docLengths.Add(docno, Double.Parse(length));
+                tmp = splittedLine[splittedLine.Length - 1].Trim(' ');
+                city = tmp.Split(':')[1].Trim(' ');
+                tmp = splittedLine[1].Trim(' ');
+                title = tmp.Split(new string[] { "TI: " }, StringSplitOptions.None)[1];
+                docInformation.Add(docno, new DocInfo(docno, Double.Parse(length), title, city));
             }
         }
 
@@ -122,7 +139,7 @@ namespace InfoRetrieval
             }
         }
 
-        public void ParseNewQuery(string query, bool withSemantic, string id, bool saveResults)
+        public void ParseNewQuery(string query, bool withSemantic, string id, bool saveResults, HashSet<string> filterByCity)
         {
             Query q;
             if (id.Equals("-1"))
@@ -152,16 +169,17 @@ namespace InfoRetrieval
                 }
                 lineInPosting = GetLineInPost(key);
                 CurrentqFi = queryTerms[key].m_Terms["DOCNO"].m_tf;
-                SelectTermDataForRanking(lineInPosting, PostNumber, CurrentqFi, q);
+                SelectTermDataForRanking(lineInPosting, PostNumber, CurrentqFi, q, filterByCity);
             }
             if (saveResults)
             {
                 WriteQueryResults(q);
             }
+            tmpQuery = q;
         }
 
 
-        public void ParseQueriesFile(string path, bool doSemantic, bool saveResults)
+        public void ParseQueriesFile(string path, bool doSemantic, bool saveResults, HashSet<string> filterByCity)
         {
             Dictionary<string, string> m_queries = new Dictionary<string, string>();
             string text = File.ReadAllText(path);
@@ -177,7 +195,7 @@ namespace InfoRetrieval
             }
             foreach (string id in m_queries.Keys)
             {
-                ParseNewQuery(m_queries[id], doSemantic, id, saveResults);
+                ParseNewQuery(m_queries[id], doSemantic, id, saveResults, filterByCity);
             }
         }
 
@@ -200,7 +218,7 @@ namespace InfoRetrieval
             return secondSplit[0];
         }
 
-        private void SelectTermDataForRanking(int lineInPosting, int PostNumber, int CurrentqFi, Query q)
+        private void SelectTermDataForRanking(int lineInPosting, int PostNumber, int CurrentqFi, Query q, HashSet<string> filterByCity)
         {
             string[] AllLines, SplitedLine, TermInstances;
             string Line, currentDoc, currentFrequency;
@@ -218,6 +236,13 @@ namespace InfoRetrieval
             {
                 SplitedLine = TermInstances[i].Split(new string[] { "(#)" }, StringSplitOptions.None);
                 currentDoc = SplitedLine[0];
+                if (filterByCity.Count > 0)
+                {
+                    if (!filterByCity.Contains(docInformation[currentDoc].city))
+                    {
+                        continue;
+                    }
+                }
                 currentFrequency = SplitedLine[1];
                 m_ranker.dl = GetDocLength(currentDoc); //currentDoc = DOCNO
                 m_ranker.Fi = Double.Parse(currentFrequency);
@@ -291,7 +316,7 @@ namespace InfoRetrieval
 
         private double GetDocLength(string DOCNO)
         {
-            return docLengths[DOCNO];
+            return docInformation[DOCNO].docLength;
         }
 
         public void WriteQueryResults(Query q)
@@ -316,36 +341,4 @@ namespace InfoRetrieval
 
     }
 }
-/*
-Dictionary<string, double> DocResults = new Dictionary<string, double>();
-int i = 1;
-foreach (string key in DocRank.Keys)
-{
-    if (i > 50)
-    {
-        break;
-    }
-    DocResults.Add(key, DocRank[key].GetTotalScore());
-    i++;
 
-}
-if (!Directory.Exists(m_outPutPath))
-{
-    Directory.CreateDirectory(m_outPutPath);
-}
-using (StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, "RanksResults.txt")))
-{
-    outputFile.WriteLine(new StringBuilder());
-}
-StreamWriter Writer = new StreamWriter(Path.Combine(m_outPutPath, "RanksResults.txt"));
-StringBuilder data = new StringBuilder();
-DocResults = DocResults.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
-foreach (string key in DocResults.Keys)
-{
-    data.AppendLine(key + "   " + DocResults[key]);
-}
-Writer.Write(data);
-data.Clear();
-Writer.Flush();
-Writer.Close();
-*/

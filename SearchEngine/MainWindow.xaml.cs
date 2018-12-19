@@ -419,8 +419,13 @@ namespace SearchEngine
                 if (tmpDictionaries != null)
                 {
                     model.setQueryOutPutPath(outputQueryPath.Text);
-                    model.RunQueries(tmpDictionaries, inputQueryPath.Text);
+                    model.RunQueries(tmpDictionaries, inputQueryPath.Text, AddCitiesToFilter());
                     // run search query
+                    queryResultsListBox.ItemsSource = null;
+                    var res = model.m_searcher.query.m_docsRanks.ToDictionary(pair => pair.Key, pair => pair.Value.GetTotalScore());
+                    res = res.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
+                    queryResultsListBox.ItemsSource = res;
+
                     string message = "Done searching for the query!";
                     string caption = "Results have written";
                     MessageBoxButtons buttons = MessageBoxButtons.OK;
@@ -475,7 +480,7 @@ namespace SearchEngine
             {
                 model.setQueryInputPath(inputFileQueryPath.Text);
                 model.setQueryOutPutPath(outputQueryPath.Text);
-                model.RunFileQueries(tmpDictionaries, inputFileQueryPath.Text);
+                model.RunFileQueries(tmpDictionaries, inputFileQueryPath.Text, AddCitiesToFilter());
                 string message = "Done searching for the query File!";
                 string caption = "Results have written";
                 MessageBoxButtons buttons = MessageBoxButtons.OK;
@@ -636,6 +641,19 @@ namespace SearchEngine
         private void ResultsCheckBox_UnChecked(object sender, RoutedEventArgs e)
         {
             model.setSaveResults(false);
+        }
+
+        private HashSet<string> AddCitiesToFilter()
+        {
+            HashSet<string> filter = new HashSet<string>();
+            foreach (ComboBoxItem city in cityComboBox.ItemContainerGenerator.Items)
+            {
+                if (city.IsChecked)
+                {
+                    filter.Add(city.CityName);
+                }
+            }
+            return filter;
         }
     }
 }
