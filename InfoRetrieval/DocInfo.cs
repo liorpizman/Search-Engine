@@ -12,6 +12,7 @@ namespace InfoRetrieval
         private double m_docLength;
         private string m_docTitle;
         private string m_city;
+        public Dictionary<string, double> m_Entities { get; set; }
 
         public DocInfo(string docNo, double docLength, string docTitle, string city)
         {
@@ -19,8 +20,13 @@ namespace InfoRetrieval
             m_docLength = docLength;
             m_docTitle = docTitle;
             m_city = city;
+            m_Entities = new Dictionary<string, double>();
         }
 
+        public void SetEntite(string entitiy, double frequency)
+        {
+            m_Entities.Add(entitiy, frequency);
+        }
         public string docNo
         {
             get

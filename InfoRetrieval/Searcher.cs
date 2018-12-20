@@ -111,12 +111,11 @@ namespace InfoRetrieval
             this.m_ranker = new Ranker();
             this.docInformation = new Dictionary<string, DocInfo>();
             this.m_outPutPath = outPutPath;
-            CalculateDocsLengths();
+            EvaluatesDocumentsInfo();
         }
-
-        private void CalculateDocsLengths()
+        private void EvaluatesDocumentsInfo()
         {
-            string[] AllLines, splittedLine, tmpSplite;
+            string[] AllLines, splittedLine, tmpSplite, Entities;
             string docno, tmp, length, title, city;
             if (m_doStemming)
             {
@@ -144,7 +143,15 @@ namespace InfoRetrieval
                 {
                     title = "";
                 }
-                docInformation.Add(docno, new DocInfo(docno, Double.Parse(length), title, city));
+                DocInfo tmpDocument = new DocInfo(docno, Double.Parse(length), title, city);
+                tmp = splittedLine[4].Trim(' ');
+                tmpSplite = tmp.Split(new string[] { "[#] " }, StringSplitOptions.None);
+                for (int j = 1; j < tmpSplite.Length; j++)
+                {
+                    Entities = tmpSplite[j].Split(new string[] { "[*]" }, StringSplitOptions.None);
+                    tmpDocument.SetEntite(Entities[0], Double.Parse(Entities[1]));
+                }
+                docInformation.Add(docno, tmpDocument);
             }
         }
 

@@ -29,6 +29,7 @@ namespace InfoRetrieval
         public Hashtable m_times { get; private set; }
         public Hashtable m_lengths { get; private set; }
         private Stemmer m_stemmer { get; set; }
+        private Dictionary<string, double> m_Entities { get; set; }
 
         /// <summary>
         /// constructor of Parse
@@ -46,6 +47,7 @@ namespace InfoRetrieval
             this.m_times = new Hashtable();
             this.m_lengths = new Hashtable();
             this.m_stopWords = new HashSet<string>();
+            this.m_Entities = new Dictionary<string, double>();
             this.tmpDoc = null;
             this._MAX_TF = 0;
             this.countPos = 0;
@@ -198,7 +200,10 @@ namespace InfoRetrieval
             else if (m_allTerms.ContainsKey(upper = current.ToUpper()))
             {
                 if (m_allTerms[upper].m_Terms.ContainsKey(DOCNO))
-                { m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos); }
+                {
+                    m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);
+                    m_Entities.Remove(upper);
+                }
                 else
                 {
                     m_allTerms[upper].m_Terms.Add(DOCNO, new Term(upper, DOCNO, countPos));
@@ -254,11 +259,13 @@ namespace InfoRetrieval
                 if (m_allTerms[upper].m_Terms.ContainsKey(DOCNO))
                 {
                     m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);
+                    m_Entities[upper]++;
                 }
                 else
                 {
                     m_allTerms[upper].m_Terms.Add(DOCNO, new Term(upper, DOCNO, countPos));
                     tmpDoc.m_uniqueCounter++;
+                    m_Entities.Add(upper, 1);
                 }
                 countPos++;
                 if (m_allTerms[upper].m_Terms[DOCNO].m_tf > _MAX_TF)
@@ -270,6 +277,7 @@ namespace InfoRetrieval
             {
                 DocumentsTerm documentTerms = new DocumentsTerm(upper);
                 documentTerms.AddToDocumentDictionary(new Term(upper, DOCNO, countPos));
+                m_Entities.Add(upper, 1);
                 m_allTerms.Add(upper, documentTerms);
                 tmpDoc.m_uniqueCounter++;
                 countPos++;
@@ -786,7 +794,25 @@ namespace InfoRetrieval
                 } // end of the if length >=2
             } // end of for loop 
             tmpDoc.m_maxTF = _MAX_TF;//document.m_maxTF = _MAX_TF;
+            setEntities();
         } // end of ParseDocuments function
+
+
+        private void setEntities()
+        {
+            m_Entities = m_Entities.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
+            int i = 1;
+            foreach (string Entity in m_Entities.Keys)
+            {
+                if (i > 5)
+                {
+                    break;
+                }
+                tmpDoc.m_Entities.Add(Entity, m_Entities[Entity]);
+                i++;
+            }
+            m_Entities.Clear();
+        }
     }
 }
 

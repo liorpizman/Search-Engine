@@ -43,7 +43,10 @@ namespace SearchEngine
             languagesComboBox.SelectedIndex = 0;
             cityComboBox.Items.Insert(0, new ComboBoxItem(false, "Choose..."));
             cityComboBox.SelectedIndex = 0;
+            EntitiesComboBox.Items.Insert(0, "Choose...");
+            EntitiesComboBox.SelectedIndex = 0;
             EnablePart2Buttons(false);
+            SearchEntitiesButton.IsEnabled = false;
             ResultsCheckBox.SetCurrentValue(System.Windows.Controls.CheckBox.IsCheckedProperty, true);
         }
 
@@ -382,6 +385,10 @@ namespace SearchEngine
         private void searchQueryButton_Click(object sender, RoutedEventArgs e)
         {
             bool validOutput = Directory.Exists(outputQueryPath.Text);
+            queryResultsListBox.ItemsSource = null;
+            queryResultsListBox.Items.Clear();
+            EntitiesListBox.ItemsSource = null;
+            EntitiesListBox.Items.Clear();
             if (string.IsNullOrEmpty(inputQueryPath.Text))
             {
                 string message = "Please enter a valid query!";
@@ -421,17 +428,43 @@ namespace SearchEngine
                     model.setQueryOutPutPath(outputQueryPath.Text);
                     model.RunQueries(inputQueryPath.Text, AddCitiesToFilter());
                     // run search query
-                    queryResultsListBox.ItemsSource = null;
                     var res = model.m_searcher.query.m_docsRanks.ToDictionary(pair => pair.Key, pair => pair.Value.GetTotalScore());
                     res = res.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
-                    queryResultsListBox.ItemsSource = res;
-
+                    int i = 1;
+                    var toShow = new Dictionary<string, double>();
+                    foreach (string doc in res.Keys)
+                    {
+                        if (i > 50)
+                        {
+                            break;
+                        }
+                        toShow.Add(doc, res[doc]);
+                        i++;
+                    }
+                    queryResultsListBox.ItemsSource = toShow;
                     string message = "Done searching for the query!";
                     string caption = "Results have written";
                     MessageBoxButtons buttons = MessageBoxButtons.OK;
                     DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                    updateEntitiesListBox();
                 }
             }
+        }
+
+        private void updateEntitiesListBox()
+        {
+            EntitiesListBox.Items.Clear();
+            int i = 1;
+            var res = model.m_searcher.query.m_docsRanks.OrderByDescending(j => j.Value.GetTotalScore()).ToDictionary(p => p.Key, p => p.Value);
+            foreach (string entity in res.Keys)
+            {
+                if (i > 50)
+                {
+                    break;
+                }
+                EntitiesComboBox.Items.Insert(i++, entity);
+            }
+            SearchEntitiesButton.IsEnabled = true;
         }
 
         private void browswFileButton_Click(object sender, RoutedEventArgs e)
@@ -450,6 +483,10 @@ namespace SearchEngine
 
         private void searchQueryFileButton_Click(object sender, RoutedEventArgs e)
         {
+            queryResultsListBox.ItemsSource = null;
+            queryResultsListBox.Items.Clear();
+            EntitiesListBox.ItemsSource = null;
+            EntitiesListBox.Items.Clear();
             bool validInput = File.Exists(inputFileQueryPath.Text);
             bool validOutput = Directory.Exists(outputQueryPath.Text);
             if (!validInput)
@@ -487,6 +524,7 @@ namespace SearchEngine
                     string caption = "Results have written";
                     MessageBoxButtons buttons = MessageBoxButtons.OK;
                     DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                    updateEntitiesListBox();
                 }
             }
         }
@@ -506,61 +544,15 @@ namespace SearchEngine
 
         private void resetQueryButton_Click(object sender, RoutedEventArgs e)
         {
-
+            EntitiesComboBox.Items.Clear();
+            EntitiesComboBox.Items.Insert(0, "Choose...");
+            EntitiesComboBox.SelectedIndex = 0;
+            SearchEntitiesButton.IsEnabled = false;
+            string message = "Queries were reset successfuly!";
+            string caption = "Reset Search Engine Process";
+            MessageBoxButtons buttons = MessageBoxButtons.OK;
+            DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
         }
-
-        /*
-        private Dictionary<string, IndexTerm>[] LoadDicForQuery()
-        {
-            bool existWithStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithStem\\Dictionary.bin"));
-            bool existWithoutStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithOutStem\\Dictionary.bin"));
-
-            if (model.m_doStemming && existWithStem)
-            {
-                return DeserializeForSearcher(System.IO.Path.Combine(outputPathText.Text, "WithStem"));
-            }
-            else if (!model.m_doStemming && existWithoutStem)
-            {
-                return DeserializeForSearcher(System.IO.Path.Combine(outputPathText.Text, "WithOutStem"));
-            }
-            else
-            {
-                string msg = "Dictionary does not exist!\n\nPlease Run the search engine first.";
-                string cap = "Dictionary Load";
-                MessageBoxButtons bttns = MessageBoxButtons.OK;
-                DialogResult res = System.Windows.Forms.MessageBox.Show(msg, cap, bttns);
-                return null;
-            }
-        }
-        */
-
-        /*
-
-        /// <summary>
-        /// method for loading dictionary from disk for seacher
-        /// </summary>
-        /// <param name="path">the path of the dictionary in the disk</param>
-        private Dictionary<string, IndexTerm>[] DeserializeForSearcher(string path)
-        {
-            Dictionary<string, IndexTerm>[] dictionaries = null;
-            FileStream fs = new FileStream(System.IO.Path.Combine(path, "Dictionary.bin"), FileMode.Open);//, FileAccess.Read, FileShare.None);
-            try
-            {
-                BinaryFormatter formatter = new BinaryFormatter();
-                dictionaries = (Dictionary<string, IndexTerm>[])formatter.Deserialize(fs);
-            }
-            catch (SerializationException e)
-            {
-                Console.WriteLine("Failed to deserialize. Reason: " + e.Message);
-                throw;
-            }
-            finally
-            {
-                fs.Close();
-            }
-            return dictionaries;
-        }
-        */
 
         private void LoadCitiesToFilter()
         {
@@ -660,6 +652,24 @@ namespace SearchEngine
                 }
             }
             return filter;
+        }
+
+        private void SearchEntitiesButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (EntitiesComboBox.SelectedIndex == 0)
+            {
+                string message2 = "Please Choose Document!";
+                string caption2 = "Invalid Choice";
+                MessageBoxButtons buttons2 = MessageBoxButtons.OK;
+                DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
+                EnablePart2Buttons(true);
+                return;
+            }
+            EntitiesListBox.ItemsSource = null;
+            string docno = EntitiesComboBox.SelectedItem.ToString();
+            var res = model.m_searcher.docInformation[docno].m_Entities.ToDictionary(pair => pair.Key, pair => pair.Value);
+            res = res.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
+            EntitiesListBox.ItemsSource = res;
         }
     }
 }
