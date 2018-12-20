@@ -26,7 +26,7 @@ namespace InfoRetrieval
         public string m_queryFileInputPath { get; set; }
         public string m_queryFileOutputPath { get; set; }
         public bool m_doSemantic { get; set; }
-
+        public Dictionary<string, IndexTerm>[] _dictionaries { get; set; }
         public bool m_saveResults { get; set; }
 
         /// <summary>
@@ -115,12 +115,12 @@ namespace InfoRetrieval
         /// <summary>
         /// method to execute the model to results for a query
         /// </summary>
-        public abstract void RunQueries(Dictionary<string, IndexTerm>[] dictionaries, string inputQuery, HashSet<string> filterByCity);
+        public abstract void RunQueries(string inputQuery, HashSet<string> filterByCity);
 
         /// <summary>
         /// method to execute the model to results for a file query
         /// </summary>
-        public abstract void RunFileQueries(Dictionary<string, IndexTerm>[] dictionaries, string path, HashSet<string> filterByCity); 
+        public abstract void RunFileQueries(string path, HashSet<string> filterByCity);
 
     }
 }

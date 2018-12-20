@@ -31,7 +31,7 @@ namespace SearchEngine
         /// </summary>
         public static Model model = new Model();
         public static bool m_invertedIndexIsLoaded = false;
-        public static Dictionary<string, IndexTerm>[] tmpDictionaries;
+        //public static Dictionary<string, IndexTerm>[] tmpDictionaries;
 
         /// <summary>
         /// constructor of MainWindow
@@ -416,10 +416,10 @@ namespace SearchEngine
             }
             else
             {
-                if (tmpDictionaries != null)
+                if (model._dictionaries != null)
                 {
                     model.setQueryOutPutPath(outputQueryPath.Text);
-                    model.RunQueries(tmpDictionaries, inputQueryPath.Text, AddCitiesToFilter());
+                    model.RunQueries(inputQueryPath.Text, AddCitiesToFilter());
                     // run search query
                     queryResultsListBox.ItemsSource = null;
                     var res = model.m_searcher.query.m_docsRanks.ToDictionary(pair => pair.Key, pair => pair.Value.GetTotalScore());
@@ -478,13 +478,16 @@ namespace SearchEngine
             }
             else
             {
-                model.setQueryInputPath(inputFileQueryPath.Text);
-                model.setQueryOutPutPath(outputQueryPath.Text);
-                model.RunFileQueries(tmpDictionaries, inputFileQueryPath.Text, AddCitiesToFilter());
-                string message = "Done searching for the query File!";
-                string caption = "Results have written";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                if (model._dictionaries != null)
+                {
+                    model.setQueryInputPath(inputFileQueryPath.Text);
+                    model.setQueryOutPutPath(outputQueryPath.Text);
+                    model.RunFileQueries(inputFileQueryPath.Text, AddCitiesToFilter());
+                    string message = "Done searching for the query File!";
+                    string caption = "Results have written";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                }
             }
         }
 
@@ -506,6 +509,7 @@ namespace SearchEngine
 
         }
 
+        /*
         private Dictionary<string, IndexTerm>[] LoadDicForQuery()
         {
             bool existWithStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithStem\\Dictionary.bin"));
@@ -528,7 +532,9 @@ namespace SearchEngine
                 return null;
             }
         }
+        */
 
+        /*
 
         /// <summary>
         /// method for loading dictionary from disk for seacher
@@ -554,7 +560,7 @@ namespace SearchEngine
             }
             return dictionaries;
         }
-
+        */
 
         private void LoadCitiesToFilter()
         {
@@ -608,8 +614,8 @@ namespace SearchEngine
             model.setInputPath(inputPathText.Text);
             model.setOutPutPath(outputPathText.Text);
             LoadCitiesToFilter();
-            tmpDictionaries = LoadDicForQuery();
-
+            //tmpDictionaries = LoadDicForQuery();
+            model.LoadDictionary();
             m_invertedIndexIsLoaded = true;
 
             string message2 = "Load Inverted Index files is done!";

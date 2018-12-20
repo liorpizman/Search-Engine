@@ -9,7 +9,7 @@ namespace InfoRetrieval
 {
     public class Ranker
     {
-        private const double K1 = 1.2; // in a range of [1.2,2.0]
+        private const double K1 = 1.5; // in a range of [1.2,2.0]
         private const double K2 = 100; // in a range of [0,1000]
         private const double b = 0.75;  //constant
 
@@ -25,6 +25,9 @@ namespace InfoRetrieval
 
         public double Tfi { get; set; } // frequency of term i in document (normallized by length of the document)
         public double idf { get; set; } // inverse document frequency (how much the term specializes the document)
+
+        public double titleLen { get; set; } // amount of terms in the tile
+        public double tileFi { get; set; }//frequency of term i in the title
 
         public Ranker()
         {
@@ -60,6 +63,10 @@ namespace InfoRetrieval
             return Tfi * idf;
         }
 
+        public double CalculateTitleRank()
+        {
+            return (tileFi / titleLen);
+        }
 
     }
 }

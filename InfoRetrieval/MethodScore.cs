@@ -11,10 +11,12 @@ namespace InfoRetrieval
         private double BM25;
         private double InnerProduct;
         private double totalScore;
-        public MethodScore(double BM25, double innerProduct)
+        private double existsInTitle;
+        public MethodScore(double BM25, double innerProduct, double inTitle)
         {
             this.BM25 = BM25;
             this.InnerProduct = innerProduct;
+            this.existsInTitle = inTitle;
             this.totalScore = (0.75 * BM25) + (0.25 * InnerProduct);
             /// maybe we should normalize it here
         }
@@ -29,16 +31,45 @@ namespace InfoRetrieval
             return this.InnerProduct;
         }
 
-        public void IncreaseBM(Double bm25)
+        public double GetTitleScore()
         {
-            BM25 += bm25;
-            totalScore += (0.75 * bm25);
+            return this.existsInTitle;
         }
 
-        public void IncreaseInnerProduct(Double innerProduct)
+        public void IncreaseTitleScore(double titleScore)
+        {
+            existsInTitle += titleScore;
+            totalScore += (0.2 * titleScore);
+        }
+
+        public void IncreaseBM(double bm25)
+        {
+            BM25 += bm25;
+            totalScore += (0.65 * bm25);
+        }
+
+        public void IncreaseInnerProduct(double innerProduct)
         {
             InnerProduct += innerProduct;
-            totalScore += (0.25 * innerProduct);
+            totalScore += (0.15 * innerProduct);
+        }
+
+        public void SetSemanticTitleScore(double titleScore)
+        {
+            existsInTitle += 0.1 * titleScore;
+            totalScore += (0.2 * 0.1 * titleScore);
+        }
+
+        public void SetSemanticBM(double bm25)
+        {
+            BM25 += 0.1 * bm25;
+            totalScore += (0.65 * 0.1 * bm25);
+        }
+
+        public void SetSemanticInnerProduct(double innerProduct)
+        {
+            InnerProduct += 0.1 * innerProduct;
+            totalScore += (0.15 * 0.1 * innerProduct);
         }
 
         public double GetTotalScore()

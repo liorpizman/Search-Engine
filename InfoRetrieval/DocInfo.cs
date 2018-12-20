@@ -13,7 +13,7 @@ namespace InfoRetrieval
         private string m_docTitle;
         private string m_city;
 
-        public DocInfo(string docNo, double docLength, string docTitle,string city)
+        public DocInfo(string docNo, double docLength, string docTitle, string city)
         {
             m_docNo = docNo;
             m_docLength = docLength;
@@ -68,9 +68,6 @@ namespace InfoRetrieval
                 m_city = value;
             }
         }
-
-
-
 
 
     }

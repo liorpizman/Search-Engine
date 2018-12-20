@@ -163,7 +163,7 @@ namespace InfoRetrieval
 
         public void ParseNewQuery(string query, bool withSemantic, string id, bool saveResults, HashSet<string> filterByCity)
         {
-            Query q;
+            Query q, semanticQuery;
             if (id.Equals("-1"))
             {
                 q = new Query(query);
@@ -173,10 +173,32 @@ namespace InfoRetrieval
                 q = new Query(query, id);
             }
             this.m_withSemantics = withSemantic;
+
+            IterateOverQuery(q, filterByCity);
             if (withSemantic)
             {
-                q.content += UpdateQueryBySemantics(query);
+                // q.content += UpdateQueryBySemantics(query);
+                semanticQuery = new Query(UpdateQueryBySemantics(query));
+                IterateOverQuery(semanticQuery, filterByCity);
+                foreach (string key in semanticQuery.m_docsRanks.Keys)
+                {
+                    if (q.m_docsRanks.ContainsKey(key))
+                    {
+                        q.m_docsRanks[key].SetSemanticBM(semanticQuery.m_docsRanks[key].GetBM25());
+                        q.m_docsRanks[key].SetSemanticInnerProduct(semanticQuery.m_docsRanks[key].GetInnerProduct());
+                        q.m_docsRanks[key].SetSemanticTitleScore(semanticQuery.m_docsRanks[key].GetTitleScore());
+                    }
+                }
             }
+            if (saveResults)
+            {
+                WriteQueryResults(q);
+            }
+            tmpQuery = q;
+        }
+
+        private void IterateOverQuery(Query q, HashSet<string> filterByCity)
+        {
             Document queryDocument = new Document("DOCNO", new StringBuilder("DATE1"), new StringBuilder("TI"), q.content, new StringBuilder("CITY"), new StringBuilder("language"));
             Parse parse = new Parse(m_doStemming, m_stopWordsPath);
             parse.ParseDocuments(queryDocument);
@@ -208,16 +230,11 @@ namespace InfoRetrieval
                         continue;
                     }
                 }
-                //queryTerms = parse.m_allTerms;
+                //queryTerms = parse.m_allTerms;              
                 lineInPosting = GetLineInPost(currKey);
                 CurrentqFi = queryTerms[currKey].m_Terms["DOCNO"].m_tf;
                 SelectTermDataForRanking(lineInPosting, PostNumber, CurrentqFi, q, filterByCity);
             }
-            if (saveResults)
-            {
-                WriteQueryResults(q);
-            }
-            tmpQuery = q;
         }
 
 
@@ -263,7 +280,7 @@ namespace InfoRetrieval
         private void SelectTermDataForRanking(int lineInPosting, int PostNumber, int CurrentqFi, Query q, HashSet<string> filterByCity)
         {
             string[] AllLines, SplitedLine, TermInstances;
-            string Line, currentDoc, currentFrequency;
+            string Line, currentDoc, currentFrequency, title;
             AllLines = File.ReadAllLines(Path.Combine(m_outPutPath, "Posting" + PostNumber + ".txt"));
             Line = AllLines[lineInPosting];
             TermInstances = Line.Split(new string[] { "[#]" }, StringSplitOptions.None);
@@ -288,17 +305,39 @@ namespace InfoRetrieval
                 currentFrequency = SplitedLine[1];
                 m_ranker.dl = GetDocLength(currentDoc); //currentDoc = DOCNO
                 m_ranker.Fi = Double.Parse(currentFrequency);
+                title = docInformation[currentDoc].docTitle;
+                m_ranker.titleLen = title.Split(' ').Length;
+                m_ranker.tileFi = CountInstancesOfTermInTitle(TermInstances[0], title);
+
                 if (q.m_docsRanks.ContainsKey(currentDoc))
                 {
                     q.m_docsRanks[currentDoc].IncreaseBM(m_ranker.CalculateBM25());
                     q.m_docsRanks[currentDoc].IncreaseInnerProduct(m_ranker.CalculateInnerProduct());
+                    q.m_docsRanks[currentDoc].IncreaseTitleScore(m_ranker.CalculateTitleRank());
                 }
                 else
                 {
-                    q.m_docsRanks.Add(currentDoc, new MethodScore(m_ranker.CalculateBM25(), m_ranker.CalculateInnerProduct()));
+                    q.m_docsRanks.Add(currentDoc, new MethodScore(m_ranker.CalculateBM25(), m_ranker.CalculateInnerProduct(), m_ranker.CalculateTitleRank()));
                 }
             }
 
+        }
+
+        private double CountInstancesOfTermInTitle(string term, string title)
+        {
+            return CountStringOccurrences(title.ToLower(), term.ToLower());
+        }
+
+        private double CountStringOccurrences(string text, string pattern)
+        {
+            double count = 0;
+            int index = 0;
+            while ((index = text.IndexOf(pattern, index)) != -1)
+            {
+                index += pattern.Length;
+                count++;
+            }
+            return count;
         }
 
         private string UpdateQueryBySemantics(string query)

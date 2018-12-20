@@ -180,7 +180,7 @@ namespace InfoRetrieval
         /// <summary>
         /// method to execute the model to results for a query
         /// </summary>
-        public override void RunQueries(Dictionary<string, IndexTerm>[] dictionaries, string inputQuery, HashSet<string> filterByCity)
+        public override void RunQueries(string inputQuery, HashSet<string> filterByCity)
         {
             if (m_searcher == null)
             {
@@ -189,7 +189,7 @@ namespace InfoRetrieval
                 newPath = Path.Combine(prevPath, "DictionarySource\\");
                 Wnlib.WNCommon.path = @newPath;
                 m_searcher = new Searcher(outPutPath);
-                m_searcher.dictionaries = dictionaries;
+                m_searcher.dictionaries = _dictionaries;
                 m_searcher.StopWordsPath = inputPath;
             }
             m_searcher.InputPath = this.m_queryFileInputPath;
@@ -203,7 +203,7 @@ namespace InfoRetrieval
         /// <summary>
         /// method to execute the model to results for a file query
         /// </summary>
-        public override void RunFileQueries(Dictionary<string, IndexTerm>[] dictionaries, string path, HashSet<string> filterByCity)
+        public override void RunFileQueries(string path, HashSet<string> filterByCity)
         {
             if (m_searcher == null)
             {
@@ -212,7 +212,7 @@ namespace InfoRetrieval
                 newPath = Path.Combine(prevPath, "DictionarySource\\");
                 Wnlib.WNCommon.path = @newPath;
                 m_searcher = new Searcher(outPutPath);
-                m_searcher.dictionaries = dictionaries;
+                m_searcher.dictionaries = _dictionaries;
                 m_searcher.StopWordsPath = inputPath;
             }
             m_searcher.InputPath = this.m_queryFileInputPath;
@@ -223,6 +223,49 @@ namespace InfoRetrieval
             m_searcher.ParseQueriesFile(m_queryFileInputPath, m_doSemantic, m_saveResults, filterByCity);
 
         }
+
+
+        public void LoadDictionary()
+        {
+            string[] AllLines, splittedLine;
+            string term, df, tfc, PN, LN;
+            int postNum;
+            Dictionary<string, IndexTerm>[] dictionaries = new Dictionary<string, IndexTerm>[27];
+            bool existWithStem = File.Exists(Path.Combine(outPutPath, "WithStem\\Dictionary.txt"));
+            bool existWithoutStem = File.Exists(Path.Combine(outPutPath, "WithOutStem\\Dictionary.txt"));
+            if (m_doStemming && existWithStem)
+            {
+                AllLines = File.ReadAllLines(Path.Combine(outPutPath, "WithStem\\Dictionary.txt"));
+            }
+            else if (!m_doStemming && existWithoutStem)
+            {
+                AllLines = File.ReadAllLines(Path.Combine(outPutPath, "WithOutStem\\Dictionary.txt"));
+            }
+            else
+            {
+                return;
+            }
+            for (int i = 0; i < 27; i++)
+            {
+                dictionaries[i] = new Dictionary<string, IndexTerm>();
+            }
+            for (int j = 0; j < AllLines.Length; j++)
+            {
+                splittedLine = AllLines[j].Split(new string[] { "(#)" }, StringSplitOptions.None);
+                term = splittedLine[0];
+                df = splittedLine[1].Split(':')[1];
+                tfc = splittedLine[2].Split(':')[1];
+                PN = splittedLine[3].Split(':')[1];
+                LN = splittedLine[4].Split(':')[1];
+                postNum = Int32.Parse(PN);
+                IndexTerm temp = new IndexTerm(term, postNum, Int32.Parse(LN));
+                temp.IncreaseDf(Int32.Parse(df));
+                temp.IncreaseTfc(Int32.Parse(tfc));
+                dictionaries[postNum].Add(term, temp);
+            }
+            _dictionaries = dictionaries;
+        }
+
         static void Main(string[] args) { }
     }
 }
