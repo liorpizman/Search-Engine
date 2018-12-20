@@ -259,7 +259,14 @@ namespace InfoRetrieval
                 if (m_allTerms[upper].m_Terms.ContainsKey(DOCNO))
                 {
                     m_allTerms[upper].m_Terms[DOCNO].AddNewIndex(countPos);
-                    m_Entities[upper]++;
+                    if (m_Entities.ContainsKey(upper))
+                    {
+                        m_Entities[upper]++;
+                    }
+                    else
+                    {
+                        m_Entities.Add(upper, 1);
+                    }
                 }
                 else
                 {

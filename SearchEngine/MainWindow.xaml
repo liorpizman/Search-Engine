@@ -67,7 +67,7 @@
             </ComboBox.ItemTemplate>
         </ComboBox>
         <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="557,254,0,0" TextWrapping="Wrap" Text="Filter By City:" VerticalAlignment="Top"/>
-        <Button x:Name="LoadInvertedIndexButton" Grid.ColumnSpan="2" Content="Load Inverted Index files&#xD;&#xA;       (before search)" HorizontalAlignment="Left" Margin="374,247,0,0" VerticalAlignment="Top" Width="161" RenderTransformOrigin="-3.453,-0.494" Height="36" Click="LoadInvertedIndexButton_Click"/>
+        <Button x:Name="LoadInvertedIndexButton" Grid.ColumnSpan="2" Content="Load Inverted Index Files&#xA;       (before search)" HorizontalAlignment="Left" Margin="374,247,0,0" VerticalAlignment="Top" Width="161" RenderTransformOrigin="-3.453,-0.494" Height="36" Click="LoadInvertedIndexButton_Click"/>
         <CheckBox x:Name="ResultsCheckBox" Grid.ColumnSpan="2" Content="Save Queries Results" HorizontalAlignment="Left" Margin="32,435,0,0" VerticalAlignment="Top" Checked="ResultsCheckBox_Checked" Unchecked="ResultsCheckBox_UnChecked"/>
         <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="881,325,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Text="Query Resutls"/><LineBreak/><Run/></TextBlock>
         <ListBox x:Name="queryResultsListBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="214" Margin="714,346,0,0" VerticalAlignment="Top" Width="431"/>
