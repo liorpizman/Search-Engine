@@ -112,7 +112,8 @@ namespace InfoRetrieval
                 DOCNO = GetStringInBetween("<DOCNO>", "</DOCNO>", docs[i]).Trim(' ');
                 StringBuilder DATE1 = new StringBuilder(GetDateInBetween(docs[i]).Trim(' '));  // add condition with DATE
                 StringBuilder TI = new StringBuilder(GetStringInBetween("<TI>", "</TI>", docs[i]).Trim(' '));
-                TEXT = GetStringInBetween("<TEXT>", "</TEXT>", docs[i]);                                     // add condition when TEXT does not exist
+                TEXT = TI.ToString() + " ";
+                TEXT += GetStringInBetween("<TEXT>", "</TEXT>", docs[i]);                                     // add condition when TEXT does not exist
                 StringBuilder City = new StringBuilder(GetCityInBetween(docs[i]));
                 StringBuilder language = new StringBuilder(GetLanguageInBetween(docs[i]));
                 masterFile.m_documents.Add(DOCNO.ToString(), new Document(DOCNO, DATE1, TI, TEXT, City, language));
