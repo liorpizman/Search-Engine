@@ -215,6 +215,7 @@ namespace InfoRetrieval
                 m_searcher.dictionaries = _dictionaries;
                 m_searcher.StopWordsPath = inputPath;
             }
+            m_searcher.toWriteOutPutPath = this.m_queryFileOutputPath;
             m_searcher.InputPath = this.m_queryFileInputPath;
             m_searcher.OutPutPath = this.outPutPath;
             m_searcher.updateOutput(m_doStemming, outPutPath);
@@ -264,6 +265,47 @@ namespace InfoRetrieval
                 dictionaries[postNum].Add(term, temp);
             }
             _dictionaries = dictionaries;
+        }
+
+        public bool CheckFilesExists(string path)
+        {
+            string currentPath;
+
+            bool existWithStem = Directory.Exists(Path.Combine(outPutPath, "WithStem"));
+            bool existWithoutStem = Directory.Exists(Path.Combine(outPutPath, "WithOutStem"));
+            if (m_doStemming && !existWithStem)
+            {
+                return false;
+            }
+            else if (!m_doStemming && !existWithoutStem)
+            {
+                return false;
+            }
+            if (m_doStemming)
+            {
+                currentPath = Path.Combine(outPutPath, "WithStem");
+            }
+            else
+            {
+                currentPath = Path.Combine(outPutPath, "WithOutStem");
+            }
+            if (!File.Exists(Path.Combine(currentPath, "Cities.txt")))
+            {
+                return false; //            DocsData
+            }
+            if (!File.Exists(Path.Combine(currentPath, "DocsData.txt")))
+            {
+                return false; //            DocsData
+            }
+            for (int i = 0; i < 27; i++)
+            {
+
+                if (!File.Exists(Path.Combine(currentPath, "Posting" + i + ".txt")))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         static void Main(string[] args) { }

@@ -25,6 +25,7 @@ namespace InfoRetrieval
         public int m_maxTF { get; set; }
         public int m_length { get; set; }
         public Dictionary<string, double> m_Entities { get; set; }
+        public StringBuilder m_KFirstWords { get; set; }
         /// <summary>
         /// constructor of a Document
         /// </summary>
@@ -45,6 +46,7 @@ namespace InfoRetrieval
             this.m_maxTF = 0;
             this.m_length = 0;
             this.m_Entities = new Dictionary<string, double>();
+            this.m_KFirstWords = new StringBuilder();
             //this.m_termsInDictionary = new Dictionary<string, int>();               // we should check if we need delete this??
         }
 
@@ -60,6 +62,12 @@ namespace InfoRetrieval
             return sol.ToString();
         }
 
+
+        public void AddKWord(string nextWord)
+        {
+            m_KFirstWords.Append(nextWord + " ");
+        }
+
         public StringBuilder WriteDocumentToIndexFile()
         {
             string title = m_TI.ToString();
@@ -67,7 +75,7 @@ namespace InfoRetrieval
             {
                 title = title.Split('\n')[0];
             }
-            StringBuilder data = new StringBuilder(m_DOCNO + " (#)" + "TI: " + title + " (#)" + "unique words: " + m_uniqueCounter + " (#)" + "maxTF: " + m_maxTF + " (#)" + "Entities: " + GetEntities() + " (#)" + "length: " + m_length);
+            StringBuilder data = new StringBuilder(m_DOCNO + " (#)" + "TI: " + title + " (#)" + "Kwords:" + m_KFirstWords.ToString() + " (#)" + "unique words: " + m_uniqueCounter + " (#)" + "maxTF: " + m_maxTF + " (#)" + "Entities: " + GetEntities() + " (#)" + "length: " + m_length);
             if (!m_CITY.ToString().Equals(""))
             {
                 string[] city = m_CITY.ToString().Split(' ');

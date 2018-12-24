@@ -446,6 +446,11 @@ namespace InfoRetrieval
             _MAX_TF = 0;
             countPos = 0;
             tmpDoc = document;
+            int lengthOfTitle = document.m_TI.ToString().Split(' ').Length;
+            for (int i = lengthOfTitle; i < (30 + lengthOfTitle) && i < tokensSize; i++)
+            {
+                tmpDoc.AddKWord(tokens[i]);
+            }
             for (int tokIndex = 0; tokIndex < tokensSize; tokIndex++)
             {
                 currValue = tokens[tokIndex] = tokens[tokIndex].Trim(toDelete).Replace("\"", "").Replace("&", "").Replace("#", "").Replace("!", "").Replace("?", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace("--", "-").Replace("|", "").Replace("*", "");

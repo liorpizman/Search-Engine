@@ -605,6 +605,14 @@ namespace SearchEngine
             /// before load check that all inverted files are exist in the folder of putput !!!!!!!
             model.setInputPath(inputPathText.Text);
             model.setOutPutPath(outputPathText.Text);
+            if (model.CheckFilesExists(outputPathText.Text))
+            {
+                string message1 = "Not all index files are exist in the outPut file";
+                string caption1 = "Error Detected in Load";
+                MessageBoxButtons buttons1 = MessageBoxButtons.OK;
+                DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
+                return;
+            }
             LoadCitiesToFilter();
             //tmpDictionaries = LoadDicForQuery();
             model.LoadDictionary();

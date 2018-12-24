@@ -9,7 +9,7 @@ namespace InfoRetrieval
 {
     public class Ranker
     {
-        private const double K1 = 1.5; // in a range of [1.2,2.0]
+        private const double K1 = 1.2; // in a range of [1.2,2.0]
         private const double K2 = 100; // in a range of [0,1000]
         private const double b = 0.75;  //constant
 

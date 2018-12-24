@@ -19,6 +19,7 @@ namespace InfoRetrieval
         private string m_inputPath;
         private string m_stopWordsPath;
         private string m_outPutPath;
+        private string m_toWriteOutPutPath;
         private bool m_withSemantics;
         private Query tmpQuery;
 
@@ -66,6 +67,18 @@ namespace InfoRetrieval
             set
             {
                 m_inputPath = value;
+            }
+        }
+
+        public string toWriteOutPutPath
+        {
+            get
+            {
+                return m_toWriteOutPutPath;
+            }
+            set
+            {
+                m_toWriteOutPutPath = value;
             }
         }
 
@@ -410,17 +423,17 @@ namespace InfoRetrieval
         public void WriteQueryResults(Query q)
         {
             StreamWriter Writer;
-            if (!File.Exists(Path.Combine(m_outPutPath, "QueryRanksResults.txt")))
+            if (!File.Exists(Path.Combine(m_toWriteOutPutPath, "QueryRanksResults.txt")))
             {
-                using (StreamWriter outputFile = new StreamWriter(Path.Combine(m_outPutPath, "QueryRanksResults.txt")))
+                using (StreamWriter outputFile = new StreamWriter(Path.Combine(m_toWriteOutPutPath, "QueryRanksResults.txt")))
                 {
                     outputFile.WriteLine(new StringBuilder());
                 }
-                Writer = new StreamWriter(Path.Combine(m_outPutPath, "QueryRanksResults.txt"));
+                Writer = new StreamWriter(Path.Combine(m_toWriteOutPutPath, "QueryRanksResults.txt"));
             }
             else
             {
-                Writer = File.AppendText(Path.Combine(m_outPutPath, "QueryRanksResults.txt"));
+                Writer = File.AppendText(Path.Combine(m_toWriteOutPutPath, "QueryRanksResults.txt"));
             }
             Writer.Write(q.GetQueryData());
             Writer.Flush();
