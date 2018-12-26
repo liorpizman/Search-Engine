@@ -13,14 +13,28 @@ namespace InfoRetrieval
         private string m_docTitle;
         private string m_city;
         public Dictionary<string, double> m_Entities { get; set; }
+        public string m_KWords { get; set; }
 
-        public DocInfo(string docNo, double docLength, string docTitle, string city)
+        public DocInfo(string docNo, double docLength, string docTitle, string city, string kWords, bool doStemming, string stopWordsPath)
         {
-            m_docNo = docNo;
-            m_docLength = docLength;
-            m_docTitle = docTitle;
-            m_city = city;
-            m_Entities = new Dictionary<string, double>();
+            this.m_docNo = docNo;
+            this.m_docLength = docLength;
+            this.m_docTitle = docTitle;
+            this.m_city = city;
+            this.m_Entities = new Dictionary<string, double>();
+            this.m_KWords = "";
+            SetKFirstWords(doStemming, stopWordsPath, kWords);
+        }
+
+        private void SetKFirstWords(bool doStemming, string stopWordsPath, string _kFirstWords)
+        {
+            Document kWordsDocument = new Document("DOCNO", new StringBuilder("DATE1"), new StringBuilder("TI"), _kFirstWords, new StringBuilder("CITY"), new StringBuilder("language"));
+            Parse parse = new Parse(doStemming, stopWordsPath);
+            parse.ParseDocuments(kWordsDocument);
+            foreach (DocumentsTerm docsOfterm in parse.m_allTerms.Values)
+            {
+                m_KWords = docsOfterm.m_valueOfTerm + " ";
+            }
         }
 
         public void SetEntite(string entitiy, double frequency)

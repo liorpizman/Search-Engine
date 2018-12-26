@@ -426,7 +426,7 @@ namespace SearchEngine
                 if (model._dictionaries != null)
                 {
                     model.setQueryOutPutPath(outputQueryPath.Text);
-                    model.RunQueries(inputQueryPath.Text, AddCitiesToFilter());
+                    model.RunQuery(inputQueryPath.Text, AddCitiesToFilter());
                     // run search query
                     var res = model.m_searcher.query.m_docsRanks.ToDictionary(pair => pair.Key, pair => pair.Value.GetTotalScore());
                     res = res.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
@@ -605,6 +605,7 @@ namespace SearchEngine
             /// before load check that all inverted files are exist in the folder of putput !!!!!!!
             model.setInputPath(inputPathText.Text);
             model.setOutPutPath(outputPathText.Text);
+            /*
             if (model.CheckFilesExists(outputPathText.Text))
             {
                 string message1 = "Not all index files are exist in the outPut file";
@@ -613,12 +614,18 @@ namespace SearchEngine
                 DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
                 return;
             }
+            */
             LoadCitiesToFilter();
             //tmpDictionaries = LoadDicForQuery();
             model.LoadDictionary();
+
+            //TimeSpan runTime = TimeSpan.Zero;
+            //DateTime startTime = DateTime.Now;
+            model.LoadDocumentsInformation();
+            //runTime = runTime.Add(DateTime.Now - startTime);
             m_invertedIndexIsLoaded = true;
 
-            string message2 = "Load Inverted Index files is done!";
+            string message2 = "Load Inverted Index files is done!";// LoadDocumentsInformation Time: " + runTime;
             string caption2 = "Load Finished";
             MessageBoxButtons buttons2 = MessageBoxButtons.OK;
             DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
@@ -649,14 +656,14 @@ namespace SearchEngine
             model.setSaveResults(false);
         }
 
-        private HashSet<string> AddCitiesToFilter()
+        private Dictionary<string, string> AddCitiesToFilter()
         {
-            HashSet<string> filter = new HashSet<string>();
+            Dictionary<string, string> filter = new Dictionary<string, string>();
             foreach (ComboBoxItem city in cityComboBox.ItemContainerGenerator.Items)
             {
                 if (city.IsChecked)
                 {
-                    filter.Add(city.CityName);
+                    filter.Add(city.CityName, "");
                 }
             }
             return filter;

@@ -9,9 +9,9 @@ namespace InfoRetrieval
 {
     public class Ranker
     {
-        private const double K1 = 1.2; // in a range of [1.2,2.0]
-        private const double K2 = 100; // in a range of [0,1000]
-        private const double b = 0.75;  //constant
+        private const double K1 = 1; // in a range of [1.2,2.0]
+        private const double K2 = 0; // in a range of [0,1000]
+        private const double b = 0.65;  //constant
 
         public double Ri { get; set; } //amount of relevant documents containing term i (set 0 if no relevancy info is known)
         public double Ni { get; set; }  //amount of documents that contains the term qi (from the query) 
@@ -27,7 +27,10 @@ namespace InfoRetrieval
         public double idf { get; set; } // inverse document frequency (how much the term specializes the document)
 
         public double titleLen { get; set; } // amount of terms in the tile
-        public double tileFi { get; set; }//frequency of term i in the title
+        public double titleFi { get; set; }//frequency of term i in the title
+
+        public double kFirstWordsTotal { get; set; }
+        public double termInKfirstWordsTotal { get; set; }
 
         public Ranker()
         {
@@ -42,6 +45,11 @@ namespace InfoRetrieval
 
             Tfi = 0;
             idf = 0;
+
+            titleFi = 0;
+
+            kFirstWordsTotal = 30;// K=30 first words
+            termInKfirstWordsTotal = 0;
         }
 
         public double CalculateBM25()
@@ -65,8 +73,12 @@ namespace InfoRetrieval
 
         public double CalculateTitleRank()
         {
-            return (tileFi / titleLen);
+            return (titleFi / titleLen);
         }
 
+        public double CalculateKFirstWordsRank()
+        {
+            return (termInKfirstWordsTotal / kFirstWordsTotal);
+        }
     }
 }

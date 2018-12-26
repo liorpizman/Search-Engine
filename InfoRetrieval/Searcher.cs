@@ -22,6 +22,8 @@ namespace InfoRetrieval
         private string m_toWriteOutPutPath;
         private bool m_withSemantics;
         private Query tmpQuery;
+        private string[][] m_PostingLines { get; set; }
+
 
         public Query query
         {
@@ -116,58 +118,34 @@ namespace InfoRetrieval
             { 'y', 25 } ,{'z', 26 }
         };
 
-        public Searcher(string outPutPath)
+        public Searcher(string outPutPath, string inputPath, bool m_doStemming)
         {
-            this.m_doStemming = false;
-            this.m_stopWordsPath = "";
+            this.m_doStemming = m_doStemming;
+            this.m_stopWordsPath = inputPath;
             this.m_inputPath = "";
             this.m_ranker = new Ranker();
             this.docInformation = new Dictionary<string, DocInfo>();
             this.m_outPutPath = outPutPath;
-            EvaluatesDocumentsInfo();
+            this.m_PostingLines = new string[27][];
+            SetPostingLines();
         }
-        private void EvaluatesDocumentsInfo()
+
+        private void SetPostingLines()
         {
-            string[] AllLines, splittedLine, tmpSplite, Entities;
-            string docno, tmp, length, title, city;
+            string path = m_outPutPath;
             if (m_doStemming)
             {
-                AllLines = File.ReadAllLines(Path.Combine(Path.Combine(m_outPutPath, "WithStem"), "Documents.txt"));
+                path = Path.Combine(path, "WithStem");
             }
             else
             {
-                AllLines = File.ReadAllLines(Path.Combine(Path.Combine(m_outPutPath, "WithOutStem"), "Documents.txt"));
+                path = Path.Combine(path, "WithOutStem");
             }
-            for (int i = 0; i < AllLines.Length; i++)
+            for (int i = 0; i < 27; i++)
             {
-                splittedLine = AllLines[i].Split(new string[] { "(#)" }, StringSplitOptions.None);
-                docno = splittedLine[0].Trim(' ');
-                tmp = splittedLine[splittedLine.Length - 2].Trim(' ');
-                length = tmp.Split(' ')[1].Trim(' ');
-                tmp = splittedLine[splittedLine.Length - 1].Trim(' ');
-                city = tmp.Split(':')[1].Trim(' ');
-                tmp = splittedLine[1].Trim(' ');
-                tmpSplite = tmp.Split(new string[] { "TI: " }, StringSplitOptions.None);
-                if (tmpSplite.Length > 1)
-                {
-                    title = tmp.Split(new string[] { "TI: " }, StringSplitOptions.None)[1];
-                }
-                else
-                {
-                    title = "";
-                }
-                DocInfo tmpDocument = new DocInfo(docno, Double.Parse(length), title, city);
-                tmp = splittedLine[4].Trim(' ');
-                tmpSplite = tmp.Split(new string[] { "[#] " }, StringSplitOptions.None);
-                for (int j = 1; j < tmpSplite.Length; j++)
-                {
-                    Entities = tmpSplite[j].Split(new string[] { "[*]" }, StringSplitOptions.None);
-                    tmpDocument.SetEntite(Entities[0], Double.Parse(Entities[1]));
-                }
-                docInformation.Add(docno, tmpDocument);
+                this.m_PostingLines[i] = File.ReadAllLines(Path.Combine(path, "Posting" + i + ".txt"));
             }
         }
-
         public void updateOutput(bool doStem, string path)
         {
             m_doStemming = doStem;
@@ -181,7 +159,38 @@ namespace InfoRetrieval
             }
         }
 
-        public void ParseNewQuery(string query, bool withSemantic, string id, bool saveResults, HashSet<string> filterByCity)
+        public Query ParseWithDescription(string query, string description, bool withSemantic, string id, Dictionary<string, string> filterByCity)
+        {
+            Query qDescription = new Query(""), qQuery;
+            qDescription = ParseNewDescription(description, id, filterByCity);
+            qQuery = ParseNewQuery(query, withSemantic, id, filterByCity);
+            foreach (string docno in qQuery.m_docsRanks.Keys)
+            {
+                if (qDescription.m_docsRanks.ContainsKey(docno))
+                {
+                    qQuery.m_docsRanks[docno].IncreaseDescription(qDescription.m_docsRanks[docno].GetTotalScore());
+                }
+            }
+            tmpQuery = qQuery;
+            return qQuery;
+        }
+
+        public Query ParseNewDescription(string description, string id, Dictionary<string, string> filterByCity)
+        {
+            Query qDescription;
+            if (id.Equals("-1"))
+            {
+                qDescription = new Query(description);
+            }
+            else
+            {
+                qDescription = new Query(description, id);
+            }
+            IterateOverQuery(qDescription, filterByCity);
+            return qDescription;
+        }
+
+        public Query ParseNewQuery(string query, bool withSemantic, string id, Dictionary<string, string> filterByCity)
         {
             Query q, semanticQuery;
             if (id.Equals("-1"))
@@ -210,14 +219,11 @@ namespace InfoRetrieval
                     }
                 }
             }
-            if (saveResults)
-            {
-                WriteQueryResults(q);
-            }
             tmpQuery = q;
+            return q;
         }
 
-        private void IterateOverQuery(Query q, HashSet<string> filterByCity)
+        private void IterateOverQuery(Query q, Dictionary<string, string> filterByCity)
         {
             Document queryDocument = new Document("DOCNO", new StringBuilder("DATE1"), new StringBuilder("TI"), q.content, new StringBuilder("CITY"), new StringBuilder("language"));
             Parse parse = new Parse(m_doStemming, m_stopWordsPath);
@@ -258,23 +264,32 @@ namespace InfoRetrieval
         }
 
 
-        public void ParseQueriesFile(string path, bool doSemantic, bool saveResults, HashSet<string> filterByCity)
+        public void ParseQueriesFile(string path, bool doSemantic, bool saveResults, Dictionary<string, string> filterByCity)
         {
-            Dictionary<string, string> m_queries = new Dictionary<string, string>();
+            Dictionary<string, queryInfo> m_queries = new Dictionary<string, queryInfo>();
             string text = File.ReadAllText(path);
             string[] queries = text.Split(new[] { "<top>" }, StringSplitOptions.None);
-            string queryID, queryContent;
+            string queryID, queryContent, description;
             char[] toRemove = { ' ', '\n' };
             for (int i = 1; i < queries.Length; i++)
             {
                 queryID = GetStringInBetween("<num>", "<title>", queries[i]).Trim(toRemove);
                 queryID = queryID.Split(new[] { ": " }, StringSplitOptions.None)[1].Trim(toRemove);
+
+                description = GetStringInBetween("<desc>", "<narr>", queries[i]).Trim(toRemove);
+                description = description.Split(new[] { "Description: " }, StringSplitOptions.None)[1].Trim(toRemove);
+
                 queryContent = GetStringInBetween("<title>", "<desc>", queries[i]).Trim(toRemove);
-                m_queries.Add(queryID, queryContent);
+                m_queries.Add(queryID, new queryInfo(queryContent, description));
             }
             foreach (string id in m_queries.Keys)
             {
-                ParseNewQuery(m_queries[id], doSemantic, id, saveResults, filterByCity);
+                //ParseNewQuery(m_queries[id], doSemantic, id, filterByCity);
+                Query q = ParseWithDescription(m_queries[id].m_queryContent, m_queries[id].m_queryDescription, doSemantic, id, filterByCity);
+                if (saveResults)
+                {
+                    WriteQueryResults(q);
+                }
             }
         }
 
@@ -297,12 +312,14 @@ namespace InfoRetrieval
             return secondSplit[0];
         }
 
-        private void SelectTermDataForRanking(int lineInPosting, int PostNumber, int CurrentqFi, Query q, HashSet<string> filterByCity)
+        private void SelectTermDataForRanking(int lineInPosting, int PostNumber, int CurrentqFi, Query q, Dictionary<string, string> filterByCity)
         {
             string[] AllLines, SplitedLine, TermInstances;
-            string Line, currentDoc, currentFrequency, title;
-            AllLines = File.ReadAllLines(Path.Combine(m_outPutPath, "Posting" + PostNumber + ".txt"));
-            Line = AllLines[lineInPosting];
+            string Line, currentDoc, currentFrequency, title, upper, lower;
+            int cityPostNumber;
+            //AllLines = File.ReadAllLines(Path.Combine(m_outPutPath, "Posting" + PostNumber + ".txt"));
+            //Line = AllLines[lineInPosting];
+            Line = m_PostingLines[PostNumber][lineInPosting];
             TermInstances = Line.Split(new string[] { "[#]" }, StringSplitOptions.None);
             m_ranker.Ni = TermInstances.Length - 1;
 
@@ -311,13 +328,40 @@ namespace InfoRetrieval
             m_ranker.N = Double.Parse(AllLines[1].Split(' ')[1]);
             m_ranker.qFi = CurrentqFi;
 
+            foreach (string city in filterByCity.Keys)
+            {
+                cityPostNumber = GetPostNumber(city);
+                upper = city.ToUpper();
+                lower = city.ToLower();
+                if (dictionaries[cityPostNumber].ContainsKey(upper))
+                {
+                    lineInPosting = dictionaries[cityPostNumber][upper].lineInPost;
+                    //AllLines = File.ReadAllLines(Path.Combine(m_outPutPath, "Posting" + cityPostNumber + ".txt"));
+                    Line = m_PostingLines[cityPostNumber][lineInPosting];
+                    //Line = AllLines[lineInPosting];
+                    filterByCity[upper] = Line;
+                }
+                else if (dictionaries[cityPostNumber].ContainsKey(lower))
+                {
+                    lineInPosting = dictionaries[cityPostNumber][lower].lineInPost;
+                    //AllLines = File.ReadAllLines(Path.Combine(m_outPutPath, "Posting" + cityPostNumber + ".txt"));
+                    Line = m_PostingLines[cityPostNumber][lineInPosting];
+                    //Line = AllLines[lineInPosting];
+                    filterByCity[lower] = Line;
+                }
+            }
+            bool containsDoc = false;
             for (int i = 1; i < TermInstances.Length; i++)
             {
                 SplitedLine = TermInstances[i].Split(new string[] { "(#)" }, StringSplitOptions.None);
                 currentDoc = SplitedLine[0];
                 if (filterByCity.Count > 0)
                 {
-                    if (!filterByCity.Contains(docInformation[currentDoc].city))
+                    foreach (string city in filterByCity.Keys) //checks whether the city in the text
+                    {
+                        containsDoc = containsDoc || filterByCity[city].Contains(currentDoc);
+                    }
+                    if (!containsDoc && !filterByCity.ContainsKey(docInformation[currentDoc].city)) // checks whether the city is in the text or in the tag
                     {
                         continue;
                     }
@@ -327,23 +371,29 @@ namespace InfoRetrieval
                 m_ranker.Fi = Double.Parse(currentFrequency);
                 title = docInformation[currentDoc].docTitle;
                 m_ranker.titleLen = title.Split(' ').Length;
-                m_ranker.tileFi = CountInstancesOfTermInTitle(TermInstances[0], title);
-
+                //m_ranker.titleFi = CountInstancesOfTermInString(TermInstances[0], title);----- not in use right now
+                //m_ranker.termInKfirstWordsTotal = RankByFirstKWords(TermInstances[0], currentDoc);----- not in use right now
                 if (q.m_docsRanks.ContainsKey(currentDoc))
                 {
+                    //q.m_docsRanks[currentDoc].IncreaseKfirstWords(m_ranker.CalculateKFirstWordsRank()); ----- not in use right now
                     q.m_docsRanks[currentDoc].IncreaseBM(m_ranker.CalculateBM25());
                     q.m_docsRanks[currentDoc].IncreaseInnerProduct(m_ranker.CalculateInnerProduct());
                     q.m_docsRanks[currentDoc].IncreaseTitleScore(m_ranker.CalculateTitleRank());
                 }
                 else
                 {
-                    q.m_docsRanks.Add(currentDoc, new MethodScore(m_ranker.CalculateBM25(), m_ranker.CalculateInnerProduct(), m_ranker.CalculateTitleRank()));
+                    q.m_docsRanks.Add(currentDoc, new MethodScore(m_ranker.CalculateBM25(), m_ranker.CalculateInnerProduct(), m_ranker.CalculateTitleRank(), m_ranker.CalculateKFirstWordsRank()));
                 }
             }
 
         }
 
-        private double CountInstancesOfTermInTitle(string term, string title)
+        private double RankByFirstKWords(string term, string docno)
+        {
+            return CountInstancesOfTermInString(term, docInformation[docno].m_KWords);
+        }
+
+        private double CountInstancesOfTermInString(string term, string title)
         {
             return CountStringOccurrences(title.ToLower(), term.ToLower());
         }
@@ -440,6 +490,20 @@ namespace InfoRetrieval
             Writer.Close();
         }
 
+    }
+
+
+
+    public class queryInfo
+    {
+        public string m_queryContent { get; set; }
+        public string m_queryDescription { get; set; }
+
+        public queryInfo(string queryContent, string queryDescription)
+        {
+            this.m_queryContent = queryContent;
+            this.m_queryDescription = queryDescription;
+        }
     }
 }
 

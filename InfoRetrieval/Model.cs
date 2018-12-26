@@ -27,6 +27,7 @@ namespace InfoRetrieval
             this.lastRunStem = false;
             this.m_doSemantic = false;
             this.m_saveResults = true;
+            this.documentsInformation = new Dictionary<string, DocInfo>();
         }
 
         /// <summary>
@@ -180,7 +181,7 @@ namespace InfoRetrieval
         /// <summary>
         /// method to execute the model to results for a query
         /// </summary>
-        public override void RunQueries(string inputQuery, HashSet<string> filterByCity)
+        public override void RunQuery(string inputQuery, Dictionary<string, string> filterByCity)
         {
             if (m_searcher == null)
             {
@@ -188,22 +189,27 @@ namespace InfoRetrieval
                 prevPath = System.IO.Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))));
                 newPath = Path.Combine(prevPath, "DictionarySource\\");
                 Wnlib.WNCommon.path = @newPath;
-                m_searcher = new Searcher(outPutPath);
+                m_searcher = new Searcher(outPutPath, inputPath, m_doStemming);
                 m_searcher.dictionaries = _dictionaries;
                 m_searcher.StopWordsPath = inputPath;
+                m_searcher.docInformation = documentsInformation;
             }
             m_searcher.InputPath = this.m_queryFileInputPath;
             m_searcher.OutPutPath = this.outPutPath;
             m_searcher.updateOutput(m_doStemming, outPutPath);
             m_searcher.StopWordsPath = inputPath;
 
-            m_searcher.ParseNewQuery(inputQuery, m_doSemantic, "-1", m_saveResults, filterByCity);
+            Query q = m_searcher.ParseNewQuery(inputQuery, m_doSemantic, "-1", filterByCity);
+            if (m_saveResults)
+            {
+                m_searcher.WriteQueryResults(q);
+            }
         }
 
         /// <summary>
         /// method to execute the model to results for a file query
         /// </summary>
-        public override void RunFileQueries(string path, HashSet<string> filterByCity)
+        public override void RunFileQueries(string path, Dictionary<string, string> filterByCity)
         {
             if (m_searcher == null)
             {
@@ -211,9 +217,10 @@ namespace InfoRetrieval
                 prevPath = System.IO.Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))));
                 newPath = Path.Combine(prevPath, "DictionarySource\\");
                 Wnlib.WNCommon.path = @newPath;
-                m_searcher = new Searcher(outPutPath);
+                m_searcher = new Searcher(outPutPath, inputPath, m_doStemming);
                 m_searcher.dictionaries = _dictionaries;
                 m_searcher.StopWordsPath = inputPath;
+                m_searcher.docInformation = documentsInformation;
             }
             m_searcher.toWriteOutPutPath = this.m_queryFileOutputPath;
             m_searcher.InputPath = this.m_queryFileInputPath;
@@ -265,6 +272,50 @@ namespace InfoRetrieval
                 dictionaries[postNum].Add(term, temp);
             }
             _dictionaries = dictionaries;
+        }
+
+        public void LoadDocumentsInformation()
+        {
+            string[] AllLines, splittedLine, tmpSplite, Entities;
+            string docno, tmp, length, title, city, kFirstWords;
+            if (m_doStemming)
+            {
+                AllLines = File.ReadAllLines(Path.Combine(Path.Combine(outPutPath, "WithStem"), "Documents.txt"));
+            }
+            else
+            {
+                AllLines = File.ReadAllLines(Path.Combine(Path.Combine(outPutPath, "WithOutStem"), "Documents.txt"));
+            }
+            for (int i = 0; i < AllLines.Length; i++)
+            {
+                splittedLine = AllLines[i].Split(new string[] { "(#)" }, StringSplitOptions.None);
+                docno = splittedLine[0].Trim(' ');
+                tmp = splittedLine[splittedLine.Length - 2].Trim(' ');
+                length = tmp.Split(' ')[1].Trim(' ');
+                tmp = splittedLine[splittedLine.Length - 1].Trim(' ');
+                city = tmp.Split(':')[1].Trim(' ');
+                tmp = splittedLine[2].Trim(' ');
+                kFirstWords = tmp.Split(new string[] { "KW:" }, StringSplitOptions.None)[1];
+                tmp = splittedLine[1].Trim(' ');
+                tmpSplite = tmp.Split(new string[] { "TI: " }, StringSplitOptions.None);
+                if (tmpSplite.Length > 1)
+                {
+                    title = tmp.Split(new string[] { "TI: " }, StringSplitOptions.None)[1];
+                }
+                else
+                {
+                    title = "";
+                }
+                DocInfo tmpDocument = new DocInfo(docno, Double.Parse(length), title, city, kFirstWords, m_doStemming, inputPath);
+                tmp = splittedLine[5].Trim(' ');
+                tmpSplite = tmp.Split(new string[] { "[#] " }, StringSplitOptions.None);
+                for (int j = 1; j < tmpSplite.Length; j++)
+                {
+                    Entities = tmpSplite[j].Split(new string[] { "[*]" }, StringSplitOptions.None);
+                    tmpDocument.SetEntite(Entities[0], Double.Parse(Entities[1]));
+                }
+                documentsInformation.Add(docno, tmpDocument);
+            }
         }
 
         public bool CheckFilesExists(string path)

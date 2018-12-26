@@ -28,6 +28,7 @@ namespace InfoRetrieval
         public bool m_doSemantic { get; set; }
         public Dictionary<string, IndexTerm>[] _dictionaries { get; set; }
         public bool m_saveResults { get; set; }
+        public Dictionary<string, DocInfo> documentsInformation { get; set; }
 
         /// <summary>
         /// method to set the input path of the user if changed
@@ -115,12 +116,12 @@ namespace InfoRetrieval
         /// <summary>
         /// method to execute the model to results for a query
         /// </summary>
-        public abstract void RunQueries(string inputQuery, HashSet<string> filterByCity);
+        public abstract void RunQuery(string inputQuery, Dictionary<string, string> filterByCity);
 
         /// <summary>
         /// method to execute the model to results for a file query
         /// </summary>
-        public abstract void RunFileQueries(string path, HashSet<string> filterByCity);
+        public abstract void RunFileQueries(string path, Dictionary<string, string> filterByCity);
 
     }
 }
