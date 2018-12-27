@@ -14,21 +14,22 @@ namespace InfoRetrieval
         /// <summary>
         /// fields of AModel
         /// </summary>
-        public int sizeTasks { get; set; }
-        public int _external { get; set; }
-        public ReadFile readFile { get; set; }
+        protected int sizeTasks { get; set; }
+        protected int _external { get; set; }
+        protected ReadFile readFile { get; set; }
         public Indexer indexer { get; set; }
         public Searcher m_searcher { get; set; }
-        public string inputPath { get; set; }
-        public string outPutPath { get; set; }
+        protected string inputPath { get; set; }
+        protected string outPutPath { get; set; }
         public bool m_doStemming { get; set; }
         public bool lastRunStem { get; set; }
-        public string m_queryFileInputPath { get; set; }
-        public string m_queryFileOutputPath { get; set; }
-        public bool m_doSemantic { get; set; }
+        protected string m_queryFileInputPath { get; set; }
+        protected string m_queryFileOutputPath { get; set; }
+        protected bool m_doSemantic { get; set; }
         public Dictionary<string, IndexTerm>[] _dictionaries { get; set; }
-        public bool m_saveResults { get; set; }
-        public Dictionary<string, DocInfo> documentsInformation { get; set; }
+        protected bool m_saveResults { get; set; }
+        protected Dictionary<string, DocInfo> documentsInformation { get; set; }
+        protected string[][] m_PostingLines { get; set; }
 
         /// <summary>
         /// method to set the input path of the user if changed
@@ -36,7 +37,7 @@ namespace InfoRetrieval
         /// <param name="userInput"> input path of the user</param>
         public void setInputPath(string userInput)
         {
-            inputPath = userInput;   //delete in clear
+            inputPath = userInput;  
         }
 
         /// <summary>
@@ -65,7 +66,7 @@ namespace InfoRetrieval
         /// <param name="userInput"> output path of the user</param>
         public void setOutPutPath(string userOutput)
         {
-            outPutPath = userOutput;  //delete in clear
+            outPutPath = userOutput; 
 
         }
 

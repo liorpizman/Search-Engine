@@ -35,7 +35,7 @@
         <TextBox x:Name="inputPathText" HorizontalAlignment="Left" Height="22" Margin="29,34,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="549" Grid.Column="1"/>
         <TextBox x:Name="outputPathText" HorizontalAlignment="Left" Height="23" Margin="29,79,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="549" Grid.Column="1"/>
         <Button x:Name="browseInputButton" Content="Browse" HorizontalAlignment="Left" Height="23" Margin="610,33,0,0" VerticalAlignment="Top" Width="80" Click="Input_browse_Clicked" Grid.Column="1"/>
-        <Button x:Name="browseOutputButton" Content="Browse" HorizontalAlignment="Left" Margin="610,79,0,675" Width="80" Click="Output_browse_Clicked" Grid.Column="1"/>
+        <Button x:Name="browseOutputButton" Content="Browse" HorizontalAlignment="Left" Margin="610,79,0,471" Width="80" Click="Output_browse_Clicked" Grid.Column="1"/>
         <Button x:Name="exitButton" Content="Exit" HorizontalAlignment="Left" Height="36" Margin="29,516,0,0" VerticalAlignment="Top" Width="72" Click="Exit_button_Clicked" Grid.Column="1"/>
         <Button x:Name="displayDicButton" Content="Display dictionary" HorizontalAlignment="Left" Height="28" Margin="449,174,0,0" VerticalAlignment="Top" Width="129" Grid.Column="1" Click="displayDicButton_Click"/>
         <Button x:Name="resetButton" Content="Reset" HorizontalAlignment="Left" Height="28" Margin="29,210,0,0" VerticalAlignment="Top" Width="129" RenderTransformOrigin="0.368,1.309" Click="resetButton_Click" Grid.Column="1"/>
@@ -70,7 +70,7 @@
         <Button x:Name="LoadInvertedIndexButton" Grid.ColumnSpan="2" Content="Load Inverted Index Files&#xA;       (before search)" HorizontalAlignment="Left" Margin="374,247,0,0" VerticalAlignment="Top" Width="161" RenderTransformOrigin="-3.453,-0.494" Height="36" Click="LoadInvertedIndexButton_Click"/>
         <CheckBox x:Name="ResultsCheckBox" Grid.ColumnSpan="2" Content="Save Queries Results" HorizontalAlignment="Left" Margin="32,435,0,0" VerticalAlignment="Top" Checked="ResultsCheckBox_Checked" Unchecked="ResultsCheckBox_UnChecked"/>
         <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="881,325,0,0" TextWrapping="Wrap" VerticalAlignment="Top"><Run Text="Query Resutls"/><LineBreak/><Run/></TextBlock>
-        <ListBox x:Name="queryResultsListBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="214" Margin="714,346,0,0" VerticalAlignment="Top" Width="431"/>
+        <ListBox x:Name="queryResultsListBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="214" Margin="713,346,0,0" VerticalAlignment="Top" Width="431"/>
         <ComboBox x:Name="EntitiesComboBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="228,457,0,0" VerticalAlignment="Top" Width="154" Height="25"/>
         <TextBlock Grid.ColumnSpan="2" HorizontalAlignment="Left" Margin="228,439,0,0" TextWrapping="Wrap" VerticalAlignment="Top" RenderTransformOrigin="-0.059,0.505"><Run Text="Search Entities By Document:"/><LineBreak/><Run/></TextBlock>
         <ListBox x:Name="EntitiesListBox" Grid.ColumnSpan="2" HorizontalAlignment="Left" Height="124" Margin="406,437,0,0" VerticalAlignment="Top" Width="284" RenderTransformOrigin="0.5,0.5">
@@ -84,6 +84,6 @@
             </ListBox.RenderTransform>
         </ListBox>
         <Button x:Name="SearchEntitiesButton" Grid.ColumnSpan="2" Content="Search Entities  ---&gt;" HorizontalAlignment="Left" Margin="228,507,0,0" VerticalAlignment="Top" Width="154" Height="29" Click="SearchEntitiesButton_Click" />
-
+      
     </Grid>
 </Window>

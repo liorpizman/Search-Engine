@@ -31,7 +31,6 @@ namespace InfoRetrieval
             this.m_value = m_value;
             this.m_tf = 1;
             this.m_positions = new StringBuilder("" + newPOS);
-            //add poisition index add in the constructor for the first step
             this.m_DOCNO = docno;
         }
 

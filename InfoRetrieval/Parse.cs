@@ -36,7 +36,7 @@ namespace InfoRetrieval
         /// </summary>
         /// <param name="m_doStemming"></param>
         /// <param name="stopWordsPath"></param>
-        public Parse(bool m_doStemming, string stopWordsPath) //
+        public Parse(bool m_doStemming, string stopWordsPath) 
         {
             this.m_doStemming = m_doStemming;
             this.m_stemmer = new Stemmer();
@@ -447,7 +447,7 @@ namespace InfoRetrieval
             countPos = 0;
             tmpDoc = document;
             int lengthOfTitle = document.m_TI.ToString().Split(' ').Length;
-            for (int i = lengthOfTitle; i < (30 + lengthOfTitle) && i < tokensSize; i++)
+            for (int i = lengthOfTitle; i < (2 + lengthOfTitle) && i < tokensSize; i++)
             {
                 tmpDoc.AddKWord(tokens[i]);
             }
@@ -809,7 +809,9 @@ namespace InfoRetrieval
             setEntities();
         } // end of ParseDocuments function
 
-
+        /// <summary>
+        /// methos to set entities of current document to documnet's information
+        /// </summary>
         private void setEntities()
         {
             m_Entities = m_Entities.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
@@ -825,6 +827,7 @@ namespace InfoRetrieval
             }
             m_Entities.Clear();
         }
+
     }
 }
 

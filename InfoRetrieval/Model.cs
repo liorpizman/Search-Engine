@@ -28,6 +28,7 @@ namespace InfoRetrieval
             this.m_doSemantic = false;
             this.m_saveResults = true;
             this.documentsInformation = new Dictionary<string, DocInfo>();
+            this.m_PostingLines = new string[27][];
         }
 
         /// <summary>
@@ -115,7 +116,7 @@ namespace InfoRetrieval
                     Task.WaitAll(lastTaskArray);
                 }
             }
-            ////////////////////////////////////////////////////////////////////////////////
+
             Task[][] m_tasks = new Task[7][];
             for (int i = 0; i < 6; i++)
             {
@@ -163,7 +164,7 @@ namespace InfoRetrieval
             m_tasks[6][1] = Task.Factory.StartNew(() => updateRuleTask(25));
             m_tasks[6][2] = Task.Factory.StartNew(() => updateRuleTask(26));
             Task.WaitAll(m_tasks[6]);
-            ////////////////////////////////////////////////////////////////////////////////
+
             Task dictionaryIndex = Task.Factory.StartNew(indexDictionary, "taskDictionary");
             dictionaryIndex.Wait();
 
@@ -176,8 +177,6 @@ namespace InfoRetrieval
 
         }
 
-
-
         /// <summary>
         /// method to execute the model to results for a query
         /// </summary>
@@ -186,14 +185,17 @@ namespace InfoRetrieval
             if (m_searcher == null)
             {
                 string prevPath = "", newPath = "";
-                prevPath = System.IO.Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))));
+                prevPath = System.IO.Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName
+                    (Assembly.GetEntryAssembly().Location))));
                 newPath = Path.Combine(prevPath, "DictionarySource\\");
                 Wnlib.WNCommon.path = @newPath;
                 m_searcher = new Searcher(outPutPath, inputPath, m_doStemming);
+                m_searcher.m_LocalPostingLines = this.m_PostingLines;
                 m_searcher.dictionaries = _dictionaries;
                 m_searcher.StopWordsPath = inputPath;
                 m_searcher.docInformation = documentsInformation;
             }
+            m_searcher.toWriteOutPutPath = this.m_queryFileOutputPath;
             m_searcher.InputPath = this.m_queryFileInputPath;
             m_searcher.OutPutPath = this.outPutPath;
             m_searcher.updateOutput(m_doStemming, outPutPath);
@@ -214,10 +216,12 @@ namespace InfoRetrieval
             if (m_searcher == null)
             {
                 string prevPath = "", newPath = "";
-                prevPath = System.IO.Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))));
+                prevPath = System.IO.Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName
+                    (Assembly.GetEntryAssembly().Location))));
                 newPath = Path.Combine(prevPath, "DictionarySource\\");
                 Wnlib.WNCommon.path = @newPath;
                 m_searcher = new Searcher(outPutPath, inputPath, m_doStemming);
+                m_searcher.m_LocalPostingLines = this.m_PostingLines;
                 m_searcher.dictionaries = _dictionaries;
                 m_searcher.StopWordsPath = inputPath;
                 m_searcher.docInformation = documentsInformation;
@@ -232,7 +236,29 @@ namespace InfoRetrieval
 
         }
 
-
+        /// <summary>
+        /// method to load posting files to memory
+        /// </summary>
+        public void SetPostingLines()
+        {
+            string path = outPutPath;
+            if (m_doStemming)
+            {
+                path = Path.Combine(path, "WithStem");
+            }
+            else
+            {
+                path = Path.Combine(path, "WithOutStem");
+            }
+            for (int i = 0; i < 27; i++)
+            {
+                this.m_PostingLines[i] = File.ReadAllLines(Path.Combine(path, "Posting" + i + ".txt"));
+            }
+        }
+        
+        /// <summary>
+        /// method to load dictionary to memory
+        /// </summary>
         public void LoadDictionary()
         {
             string[] AllLines, splittedLine;
@@ -274,6 +300,9 @@ namespace InfoRetrieval
             _dictionaries = dictionaries;
         }
 
+        /// <summary>
+        /// method to load documents information to memory
+        /// </summary>
         public void LoadDocumentsInformation()
         {
             string[] AllLines, splittedLine, tmpSplite, Entities;
@@ -295,7 +324,7 @@ namespace InfoRetrieval
                 tmp = splittedLine[splittedLine.Length - 1].Trim(' ');
                 city = tmp.Split(':')[1].Trim(' ');
                 tmp = splittedLine[2].Trim(' ');
-                kFirstWords = tmp.Split(new string[] { "KW:" }, StringSplitOptions.None)[1];
+                kFirstWords = tmp.Split(new string[] { "Kwords:" }, StringSplitOptions.None)[1];
                 tmp = splittedLine[1].Trim(' ');
                 tmpSplite = tmp.Split(new string[] { "TI: " }, StringSplitOptions.None);
                 if (tmpSplite.Length > 1)
@@ -318,19 +347,41 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// method to clear documents information from the memory
+        /// </summary>
+        public void ClearDocumentsInformation()
+        {
+            documentsInformation.Clear();
+        }
+
+        /// <summary>
+        /// method to check whether all output files are exist
+        /// </summary>
+        /// <param name="path">current path to check</param>
+        /// <returns>if the files are exist</returns>
         public bool CheckFilesExists(string path)
         {
             string currentPath;
-
             bool existWithStem = Directory.Exists(Path.Combine(outPutPath, "WithStem"));
             bool existWithoutStem = Directory.Exists(Path.Combine(outPutPath, "WithOutStem"));
-            if (m_doStemming && !existWithStem)
+            if (!existWithStem && !existWithoutStem)
             {
                 return false;
             }
-            else if (!m_doStemming && !existWithoutStem)
+            if (m_doStemming)
             {
-                return false;
+                if (!existWithStem)
+                {
+                    return false;
+                }
+            }
+            else if (!m_doStemming)
+            {
+                if (!existWithoutStem)
+                {
+                    return false;
+                }
             }
             if (m_doStemming)
             {
@@ -342,11 +393,19 @@ namespace InfoRetrieval
             }
             if (!File.Exists(Path.Combine(currentPath, "Cities.txt")))
             {
-                return false; //            DocsData
+                return false;
             }
             if (!File.Exists(Path.Combine(currentPath, "DocsData.txt")))
             {
-                return false; //            DocsData
+                return false;
+            }
+            if (!File.Exists(Path.Combine(currentPath, "Dictionary.txt")))
+            {
+                return false;
+            }
+            if (!File.Exists(Path.Combine(currentPath, "Documents.txt")))
+            {
+                return false;
             }
             for (int i = 0; i < 27; i++)
             {

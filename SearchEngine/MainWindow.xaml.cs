@@ -31,7 +31,6 @@ namespace SearchEngine
         /// </summary>
         public static Model model = new Model();
         public static bool m_invertedIndexIsLoaded = false;
-        //public static Dictionary<string, IndexTerm>[] tmpDictionaries;
 
         /// <summary>
         /// constructor of MainWindow
@@ -182,7 +181,6 @@ namespace SearchEngine
             languagesComboBox.Items.Clear();
             languagesComboBox.Items.Insert(0, "Choose...");
             languagesComboBox.SelectedIndex = 0;
-            //dictionaryListBox.Items.Clear();
             dictionaryListBox.ItemsSource = null;
             model.ClearMemory();
             if (string.IsNullOrEmpty(outputPathText.Text))
@@ -216,7 +214,6 @@ namespace SearchEngine
         private void displayDicButton_Click(object sender, RoutedEventArgs e)
         {
             EnablePart1Buttons(false);
-            // dictionaryListBox.Items.Clear();
             dictionaryListBox.ItemsSource = null;
             if (model.indexer != null)
             {
@@ -349,12 +346,20 @@ namespace SearchEngine
         /// </summary>
         public class ComboBoxItem
         {
+            /// <summary>
+            /// fields of ComboBoxItem
+            /// </summary>
             public Boolean IsChecked
             { get; set; }
 
             public String CityName
             { get; set; }
 
+            /// <summary>
+            /// Constructor of ComboBoxItem
+            /// </summary>
+            /// <param name="isChecked">if the item is checked</param>
+            /// <param name="cityName">the citys</param>
             public ComboBoxItem(bool isChecked, string cityName)
             {
                 this.IsChecked = isChecked;
@@ -382,6 +387,11 @@ namespace SearchEngine
             model.setSemantic(false);
         }
 
+        /// <summary>
+        /// method to search user's single query
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void searchQueryButton_Click(object sender, RoutedEventArgs e)
         {
             bool validOutput = Directory.Exists(outputQueryPath.Text);
@@ -427,20 +437,8 @@ namespace SearchEngine
                 {
                     model.setQueryOutPutPath(outputQueryPath.Text);
                     model.RunQuery(inputQueryPath.Text, AddCitiesToFilter());
-                    // run search query
-                    var res = model.m_searcher.query.m_docsRanks.ToDictionary(pair => pair.Key, pair => pair.Value.GetTotalScore());
-                    res = res.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
-                    int i = 1;
                     var toShow = new Dictionary<string, double>();
-                    foreach (string doc in res.Keys)
-                    {
-                        if (i > 50)
-                        {
-                            break;
-                        }
-                        toShow.Add(doc, res[doc]);
-                        i++;
-                    }
+                    ShowSingleQueryResults(toShow, model.m_searcher.query);
                     queryResultsListBox.ItemsSource = toShow;
                     string message = "Done searching for the query!";
                     string caption = "Results have written";
@@ -451,8 +449,36 @@ namespace SearchEngine
             }
         }
 
+        /// <summary>
+        /// method to show results of single query
+        /// </summary>
+        /// <param name="showResults"></param>
+        /// <param name="q"></param>
+        private void ShowSingleQueryResults(Dictionary<string, double> showResults, Query q)
+        {
+            var res = q.m_docsRanks.ToDictionary(pair => pair.Key, pair => pair.Value.GetTotalScore());
+            res = res.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
+            int i = 1;
+            foreach (string doc in res.Keys)
+            {
+                if (i > 50)
+                {
+                    break;
+                }
+                showResults.Add("QueryID: " + q.m_ID + ", DocNo : " + doc, res[doc]);
+                i++;
+            }
+        }
+
+        /// <summary>
+        /// method to update entities in the list box
+        /// </summary>
         private void updateEntitiesListBox()
         {
+            EntitiesComboBox.ItemsSource = null;
+            EntitiesComboBox.Items.Clear();
+            EntitiesComboBox.Items.Insert(0, "Choose...");
+            EntitiesComboBox.SelectedIndex = 0;
             EntitiesListBox.Items.Clear();
             int i = 1;
             var res = model.m_searcher.query.m_docsRanks.OrderByDescending(j => j.Value.GetTotalScore()).ToDictionary(p => p.Key, p => p.Value);
@@ -467,6 +493,11 @@ namespace SearchEngine
             SearchEntitiesButton.IsEnabled = true;
         }
 
+        /// <summary>
+        /// method to open file dialog for get file of queries
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void browswFileButton_Click(object sender, RoutedEventArgs e)
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
@@ -481,6 +512,11 @@ namespace SearchEngine
             }
         }
 
+        /// <summary>
+        /// method to search user's file of queries
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void searchQueryFileButton_Click(object sender, RoutedEventArgs e)
         {
             queryResultsListBox.ItemsSource = null;
@@ -520,6 +556,12 @@ namespace SearchEngine
                     model.setQueryInputPath(inputFileQueryPath.Text);
                     model.setQueryOutPutPath(outputQueryPath.Text);
                     model.RunFileQueries(inputFileQueryPath.Text, AddCitiesToFilter());
+                    var toShow = new Dictionary<string, double>();
+                    foreach (Query q in model.m_searcher.m_toShowQueries)
+                    {
+                        ShowSingleQueryResults(toShow, q);
+                    }
+                    queryResultsListBox.ItemsSource = toShow;
                     string message = "Done searching for the query File!";
                     string caption = "Results have written";
                     MessageBoxButtons buttons = MessageBoxButtons.OK;
@@ -529,6 +571,11 @@ namespace SearchEngine
             }
         }
 
+        /// <summary>
+        /// method to get the folder for output od query's results
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void browseOutputQueryButton_Click(object sender, RoutedEventArgs e)
         {
             using (var fbd = new FolderBrowserDialog())
@@ -537,23 +584,46 @@ namespace SearchEngine
                 if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
                 {
                     outputQueryPath.Text = fbd.SelectedPath;
-                    //model.setQuerytOutput(outputQueryPath.Text);    -------------------------------- change it
                 }
             }
         }
 
+        /// <summary>
+        /// method to clear all results up until now
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void resetQueryButton_Click(object sender, RoutedEventArgs e)
         {
+            queryResultsListBox.ItemsSource = null;
+            queryResultsListBox.Items.Clear();
+            EntitiesListBox.ItemsSource = null;
             EntitiesComboBox.Items.Clear();
             EntitiesComboBox.Items.Insert(0, "Choose...");
             EntitiesComboBox.SelectedIndex = 0;
             SearchEntitiesButton.IsEnabled = false;
+            if (!Directory.Exists(outputQueryPath.Text))
+            {
+                string message2 = "Your output path is invalid. Please Try again!";
+                string caption2 = "Error in reset";
+                MessageBoxButtons buttons2 = MessageBoxButtons.OK;
+                DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
+                return;
+            }
+            string pathResults = System.IO.Path.Combine(outputQueryPath.Text, "results.txt");
+            if (File.Exists(pathResults))
+            {
+                File.Delete(pathResults);
+            }
             string message = "Queries were reset successfuly!";
             string caption = "Reset Search Engine Process";
             MessageBoxButtons buttons = MessageBoxButtons.OK;
             DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
         }
 
+        /// <summary>
+        /// method to load cities
+        /// </summary>
         private void LoadCitiesToFilter()
         {
             string[] AllLines, cityData;
@@ -574,6 +644,7 @@ namespace SearchEngine
                     citiesFilter.Add(new ComboBoxItem(false, cityData[0]));
                 }
             }
+            cityComboBox.ItemsSource = null;
             cityComboBox.Items.Clear();
             cityComboBox.ItemsSource = citiesFilter;
             if (cityComboBox.Items.Count >= 1)
@@ -582,56 +653,60 @@ namespace SearchEngine
             }
         }
 
+        /// <summary>
+        /// method to load all files of inverted index
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void LoadInvertedIndexButton_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(outputPathText.Text))
+            model.m_searcher = null;
+            model.ClearDocumentsInformation();
+            if (string.IsNullOrEmpty(inputPathText.Text) || string.IsNullOrEmpty(outputPathText.Text))
             {
-                string message1 = "The out put path is empty!";
+                string message1 = "Please fill the input and output paths!";
+                string caption1 = "Error Detected in InPut\\Output";
+                MessageBoxButtons buttons1 = MessageBoxButtons.OK;
+                DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
+                return;
+            }
+            if (!Directory.Exists(inputPathText.Text))
+            {
+                string message1 = "The directory in the input is not valid!";
+                string caption1 = "Error Detected in InPut";
+                MessageBoxButtons buttons1 = MessageBoxButtons.OK;
+                DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
+                return;
+            }
+            if (!Directory.Exists(outputPathText.Text))
+            {
+                string message1 = "The directory in the output is not valid!";
                 string caption1 = "Error Detected in OutPut";
                 MessageBoxButtons buttons1 = MessageBoxButtons.OK;
                 DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
                 return;
             }
-            /*
-            else if (!Directory.Exists(outputQueryPath.Text))
-            {
-                string message = "Please enter a valid OutPut Query Path!";
-                string caption = "Error Detected in OutPut";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                return;
-            }
-            */
-            /// before load check that all inverted files are exist in the folder of putput !!!!!!!
             model.setInputPath(inputPathText.Text);
             model.setOutPutPath(outputPathText.Text);
-            /*
-            if (model.CheckFilesExists(outputPathText.Text))
+            if (!model.CheckFilesExists(outputPathText.Text))
             {
-                string message1 = "Not all index files are exist in the outPut file";
+                string message1 = "Not all index files are exist in the outPut file.";
                 string caption1 = "Error Detected in Load";
                 MessageBoxButtons buttons1 = MessageBoxButtons.OK;
                 DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
                 return;
             }
-            */
+            model.SetPostingLines();
             LoadCitiesToFilter();
-            //tmpDictionaries = LoadDicForQuery();
             model.LoadDictionary();
-
-            //TimeSpan runTime = TimeSpan.Zero;
-            //DateTime startTime = DateTime.Now;
             model.LoadDocumentsInformation();
-            //runTime = runTime.Add(DateTime.Now - startTime);
             m_invertedIndexIsLoaded = true;
-
-            string message2 = "Load Inverted Index files is done!";// LoadDocumentsInformation Time: " + runTime;
+            string message2 = "Load Inverted Index files is done!";
             string caption2 = "Load Finished";
             MessageBoxButtons buttons2 = MessageBoxButtons.OK;
             DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
             EnablePart2Buttons(true);
         }
-
 
         /// <summary>
         /// method to enable or disable buttons
@@ -646,16 +721,30 @@ namespace SearchEngine
             resetQueryButton.IsEnabled = enable;
         }
 
+        /// <summary>
+        /// method to save results in a txt file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ResultsCheckBox_Checked(object sender, RoutedEventArgs e)
         {
             model.setSaveResults(true);
         }
 
+        /// <summary>
+        /// method to do not save results in a txt file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ResultsCheckBox_UnChecked(object sender, RoutedEventArgs e)
         {
             model.setSaveResults(false);
         }
 
+        /// <summary>
+        /// method to add new cities to filter
+        /// </summary>
+        /// <returns></returns>
         private Dictionary<string, string> AddCitiesToFilter()
         {
             Dictionary<string, string> filter = new Dictionary<string, string>();
@@ -669,6 +758,11 @@ namespace SearchEngine
             return filter;
         }
 
+        /// <summary>
+        /// method to show entities of current document to the user
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void SearchEntitiesButton_Click(object sender, RoutedEventArgs e)
         {
             if (EntitiesComboBox.SelectedIndex == 0)

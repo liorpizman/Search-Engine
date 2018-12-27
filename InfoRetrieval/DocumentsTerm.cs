@@ -61,7 +61,6 @@ namespace InfoRetrieval
             if (!printed)
             {
                 data.Append(m_valueOfTerm);
-                //printed = true;
             }
             foreach (KeyValuePair<string, Term> pair in m_Terms)
             {

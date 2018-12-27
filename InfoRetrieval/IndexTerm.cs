@@ -20,7 +20,6 @@ namespace InfoRetrieval
         public string m_value { get; private set; } //value of the term
         public int postNum { get; private set; }
         public int lineInPost { get; set; }
-        //public bool updated;
 
         /// <summary>
         /// constructor of IndexTerm
@@ -32,8 +31,6 @@ namespace InfoRetrieval
         {
             this.df = 0;
             this.tfc = 0;
-            //updated = true;
-            //initPostNumer();
             this.m_value = m_value;
             this.postNum = postNum;
             this.lineInPost = lineInPost;
@@ -64,10 +61,7 @@ namespace InfoRetrieval
         public StringBuilder PrintTerm()
         {
             return new StringBuilder(m_value + "(#)" + "df:" + df + "(#)" + "tfc:" + tfc + "(#)" + "PN:" + postNum + "(#)" + "LN:" + lineInPost);
-            //PN - postNumber LN -lineNumber
-            //return new StringBuilder(m_value + "(#)" + "tfc:" + tfc);
         }
-
 
     }
 }

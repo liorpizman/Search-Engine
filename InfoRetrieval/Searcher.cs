@@ -9,8 +9,14 @@ using WnLexicon;
 
 namespace InfoRetrieval
 {
+    /// <summary>
+    /// Class which represent the Searcher
+    /// </summary>
     public class Searcher
     {
+        /// <summary>
+        /// fields of Searcher
+        /// </summary>
         public Ranker m_ranker;
         public Dictionary<string, IndexTerm>[] dictionaries { get; set; }
         public Dictionary<string, DocInfo> docInformation { get; set; }
@@ -22,9 +28,22 @@ namespace InfoRetrieval
         private string m_toWriteOutPutPath;
         private bool m_withSemantics;
         private Query tmpQuery;
-        private string[][] m_PostingLines { get; set; }
+        public List<Query> m_toShowQueries { get; set; }
+        public string[][] m_LocalPostingLines { get; set; }
 
+        public static Hashtable m_postingNums = new Hashtable()
+        {
+            {'a', 1 }, {'b', 2 }, {'c', 3 },{'d', 4 }, //{ "", "0" },
+            { 'e', 5 }, {'f', 6 }, {'g', 7 }, {'h', 8 },{'i', 9 },
+            { 'j', 10 }, {'k', 11 }, {'l', 12 }, {'m', 13 }, {'n', 14 },
+            {'o', 15 }, {'p', 16 },{'q', 17 },{'r', 18 }, {'s', 19 },
+            {'t', 20 }, {'u', 21 },{'v', 22 },{'w', 23 }, {'x', 24 },
+            { 'y', 25 } ,{'z', 26 }
+        };
 
+        /// <summary>
+        /// getter of tmpQuery
+        /// </summary>
         public Query query
         {
             get
@@ -37,6 +56,9 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// getter of m_withSemantics
+        /// </summary>
         public bool DoSemantic
         {
             get
@@ -48,6 +70,10 @@ namespace InfoRetrieval
                 m_withSemantics = value;
             }
         }
+
+        /// <summary>
+        /// getter of m_doStemming
+        /// </summary>
         public bool DoStemming
         {
             get
@@ -60,6 +86,9 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// getter of m_inputPath
+        /// </summary>
         public string InputPath
         {
             get
@@ -72,6 +101,9 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// getter of m_toWriteOutPutPath
+        /// </summary>
         public string toWriteOutPutPath
         {
             get
@@ -84,6 +116,9 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// getter of m_outPutPath
+        /// </summary>
         public string OutPutPath
         {
             get
@@ -96,6 +131,9 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// getter of m_stopWordsPath
+        /// </summary>
         public string StopWordsPath
         {
             get
@@ -108,16 +146,12 @@ namespace InfoRetrieval
             }
         }
 
-        public static Hashtable m_postingNums = new Hashtable()
-        {
-            {'a', 1 }, {'b', 2 }, {'c', 3 },{'d', 4 }, //{ "", "0" },
-            { 'e', 5 }, {'f', 6 }, {'g', 7 }, {'h', 8 },{'i', 9 },
-            { 'j', 10 }, {'k', 11 }, {'l', 12 }, {'m', 13 }, {'n', 14 },
-            {'o', 15 }, {'p', 16 },{'q', 17 },{'r', 18 }, {'s', 19 },
-            {'t', 20 }, {'u', 21 },{'v', 22 },{'w', 23 }, {'x', 24 },
-            { 'y', 25 } ,{'z', 26 }
-        };
-
+        /// <summary>
+        /// Constructor of Searcher
+        /// </summary>
+        /// <param name="outPutPath">path of output</param>
+        /// <param name="inputPath">path of input</param>
+        /// <param name="m_doStemming">bool if do stemming</param>
         public Searcher(string outPutPath, string inputPath, bool m_doStemming)
         {
             this.m_doStemming = m_doStemming;
@@ -126,26 +160,15 @@ namespace InfoRetrieval
             this.m_ranker = new Ranker();
             this.docInformation = new Dictionary<string, DocInfo>();
             this.m_outPutPath = outPutPath;
-            this.m_PostingLines = new string[27][];
-            SetPostingLines();
+            this.m_LocalPostingLines = new string[27][];
+            this.m_toShowQueries = new List<Query>();
         }
 
-        private void SetPostingLines()
-        {
-            string path = m_outPutPath;
-            if (m_doStemming)
-            {
-                path = Path.Combine(path, "WithStem");
-            }
-            else
-            {
-                path = Path.Combine(path, "WithOutStem");
-            }
-            for (int i = 0; i < 27; i++)
-            {
-                this.m_PostingLines[i] = File.ReadAllLines(Path.Combine(path, "Posting" + i + ".txt"));
-            }
-        }
+        /// <summary>
+        /// method to update the output path with or without stemming 
+        /// </summary>
+        /// <param name="doStem">bool of doing stemming</param>
+        /// <param name="path">the path</param>
         public void updateOutput(bool doStem, string path)
         {
             m_doStemming = doStem;
@@ -159,6 +182,15 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// method to parse using description of a query
+        /// </summary>
+        /// <param name="query">content of query</param>
+        /// <param name="description">description of query</param>
+        /// <param name="withSemantic">user choice of semantics</param>
+        /// <param name="id">is of query</param>
+        /// <param name="filterByCity">user choice in filter of cities</param>
+        /// <returns>query</returns>
         public Query ParseWithDescription(string query, string description, bool withSemantic, string id, Dictionary<string, string> filterByCity)
         {
             Query qDescription = new Query(""), qQuery;
@@ -172,9 +204,17 @@ namespace InfoRetrieval
                 }
             }
             tmpQuery = qQuery;
+            m_toShowQueries.Add(tmpQuery);
             return qQuery;
         }
 
+        /// <summary>
+        /// method to parse using description of a new query
+        /// </summary>
+        /// <param name="description">content of description</param>
+        /// <param name="id">id of query</param>
+        /// <param name="filterByCity">user choice in filter of cities</param>
+        /// <returns>query</returns>
         public Query ParseNewDescription(string description, string id, Dictionary<string, string> filterByCity)
         {
             Query qDescription;
@@ -190,8 +230,17 @@ namespace InfoRetrieval
             return qDescription;
         }
 
+        /// <summary>
+        /// method to parse new query
+        /// </summary>
+        /// <param name="query">content of query</param>
+        /// <param name="withSemantic">user choice of semantics</param>
+        /// <param name="id">id of query</param>
+        /// <param name="filterByCity">user choice in filter of cities</param>
+        /// <returns>query</returns>
         public Query ParseNewQuery(string query, bool withSemantic, string id, Dictionary<string, string> filterByCity)
         {
+            tmpQuery = null;
             Query q, semanticQuery;
             if (id.Equals("-1"))
             {
@@ -206,16 +255,15 @@ namespace InfoRetrieval
             IterateOverQuery(q, filterByCity);
             if (withSemantic)
             {
-                // q.content += UpdateQueryBySemantics(query);
                 semanticQuery = new Query(UpdateQueryBySemantics(query));
                 IterateOverQuery(semanticQuery, filterByCity);
                 foreach (string key in semanticQuery.m_docsRanks.Keys)
                 {
                     if (q.m_docsRanks.ContainsKey(key))
                     {
-                        q.m_docsRanks[key].SetSemanticBM(semanticQuery.m_docsRanks[key].GetBM25());
-                        q.m_docsRanks[key].SetSemanticInnerProduct(semanticQuery.m_docsRanks[key].GetInnerProduct());
-                        q.m_docsRanks[key].SetSemanticTitleScore(semanticQuery.m_docsRanks[key].GetTitleScore());
+                        q.m_docsRanks[key].SetSemanticBM(m_ranker.CalculateSemanticsRank(semanticQuery.m_docsRanks[key].GetBM25(), 1));
+                        q.m_docsRanks[key].SetSemanticInnerProduct(m_ranker.CalculateSemanticsRank(semanticQuery.m_docsRanks[key].GetInnerProduct(), 1));
+                        q.m_docsRanks[key].SetSemanticTitleScore(m_ranker.CalculateSemanticsRank(semanticQuery.m_docsRanks[key].GetTitleScore(), 1));
                     }
                 }
             }
@@ -223,9 +271,15 @@ namespace InfoRetrieval
             return q;
         }
 
+        /// <summary>
+        /// method to iterate over the query by it's terms
+        /// </summary>
+        /// <param name="q">the query</param>
+        /// <param name="filterByCity">user choice in filter of cities</param>
         private void IterateOverQuery(Query q, Dictionary<string, string> filterByCity)
         {
-            Document queryDocument = new Document("DOCNO", new StringBuilder("DATE1"), new StringBuilder("TI"), q.content, new StringBuilder("CITY"), new StringBuilder("language"));
+            Document queryDocument = new Document("DOCNO", new StringBuilder("DATE1"), new StringBuilder("TI"), q.content, new StringBuilder("CITY"),
+                new StringBuilder("language"));
             Parse parse = new Parse(m_doStemming, m_stopWordsPath);
             parse.ParseDocuments(queryDocument);
             Dictionary<string, DocumentsTerm> queryTerms = new Dictionary<string, DocumentsTerm>(parse.m_allTerms);
@@ -256,17 +310,23 @@ namespace InfoRetrieval
                         continue;
                     }
                 }
-                //queryTerms = parse.m_allTerms;              
                 lineInPosting = GetLineInPost(currKey);
                 CurrentqFi = queryTerms[currKey].m_Terms["DOCNO"].m_tf;
                 SelectTermDataForRanking(lineInPosting, PostNumber, CurrentqFi, q, filterByCity);
             }
         }
 
-
+        /// <summary>
+        /// method to parse a file of queries
+        /// </summary>
+        /// <param name="path">the path of the file</param>
+        /// <param name="doSemantic">user choice of semantics</param>
+        /// <param name="saveResults">user choice of save results</param>
+        /// <param name="filterByCity">user choice in filter of cities</param>
         public void ParseQueriesFile(string path, bool doSemantic, bool saveResults, Dictionary<string, string> filterByCity)
         {
-            Dictionary<string, queryInfo> m_queries = new Dictionary<string, queryInfo>();
+            m_toShowQueries.Clear();
+            Dictionary<string, QueryInfo> m_queries = new Dictionary<string, QueryInfo>();
             string text = File.ReadAllText(path);
             string[] queries = text.Split(new[] { "<top>" }, StringSplitOptions.None);
             string queryID, queryContent, description;
@@ -280,11 +340,10 @@ namespace InfoRetrieval
                 description = description.Split(new[] { "Description: " }, StringSplitOptions.None)[1].Trim(toRemove);
 
                 queryContent = GetStringInBetween("<title>", "<desc>", queries[i]).Trim(toRemove);
-                m_queries.Add(queryID, new queryInfo(queryContent, description));
+                m_queries.Add(queryID, new QueryInfo(queryContent, description));
             }
             foreach (string id in m_queries.Keys)
             {
-                //ParseNewQuery(m_queries[id], doSemantic, id, filterByCity);
                 Query q = ParseWithDescription(m_queries[id].m_queryContent, m_queries[id].m_queryDescription, doSemantic, id, filterByCity);
                 if (saveResults)
                 {
@@ -312,14 +371,20 @@ namespace InfoRetrieval
             return secondSplit[0];
         }
 
+        /// <summary>
+        /// method to set all data for ranking 
+        /// </summary>
+        /// <param name="lineInPosting">the line in posting of current term</param>
+        /// <param name="PostNumber">the post number of term</param>
+        /// <param name="CurrentqFi">the frequency of term in query</param>
+        /// <param name="q">query</param>
+        /// <param name="filterByCity">user choice in filter of cities</param>
         private void SelectTermDataForRanking(int lineInPosting, int PostNumber, int CurrentqFi, Query q, Dictionary<string, string> filterByCity)
         {
             string[] AllLines, SplitedLine, TermInstances;
             string Line, currentDoc, currentFrequency, title, upper, lower;
             int cityPostNumber;
-            //AllLines = File.ReadAllLines(Path.Combine(m_outPutPath, "Posting" + PostNumber + ".txt"));
-            //Line = AllLines[lineInPosting];
-            Line = m_PostingLines[PostNumber][lineInPosting];
+            Line = m_LocalPostingLines[PostNumber][lineInPosting];
             TermInstances = Line.Split(new string[] { "[#]" }, StringSplitOptions.None);
             m_ranker.Ni = TermInstances.Length - 1;
 
@@ -327,8 +392,7 @@ namespace InfoRetrieval
             m_ranker.avgDL = Double.Parse(AllLines[0].Split(' ')[1]);
             m_ranker.N = Double.Parse(AllLines[1].Split(' ')[1]);
             m_ranker.qFi = CurrentqFi;
-
-            foreach (string city in filterByCity.Keys)
+            foreach (string city in filterByCity.Keys.ToList())
             {
                 cityPostNumber = GetPostNumber(city);
                 upper = city.ToUpper();
@@ -336,21 +400,17 @@ namespace InfoRetrieval
                 if (dictionaries[cityPostNumber].ContainsKey(upper))
                 {
                     lineInPosting = dictionaries[cityPostNumber][upper].lineInPost;
-                    //AllLines = File.ReadAllLines(Path.Combine(m_outPutPath, "Posting" + cityPostNumber + ".txt"));
-                    Line = m_PostingLines[cityPostNumber][lineInPosting];
-                    //Line = AllLines[lineInPosting];
+                    Line = m_LocalPostingLines[cityPostNumber][lineInPosting];
                     filterByCity[upper] = Line;
                 }
                 else if (dictionaries[cityPostNumber].ContainsKey(lower))
                 {
                     lineInPosting = dictionaries[cityPostNumber][lower].lineInPost;
-                    //AllLines = File.ReadAllLines(Path.Combine(m_outPutPath, "Posting" + cityPostNumber + ".txt"));
-                    Line = m_PostingLines[cityPostNumber][lineInPosting];
-                    //Line = AllLines[lineInPosting];
+                    Line = m_LocalPostingLines[cityPostNumber][lineInPosting];
                     filterByCity[lower] = Line;
                 }
             }
-            bool containsDoc = false;
+            bool containsDoc = true;
             for (int i = 1; i < TermInstances.Length; i++)
             {
                 SplitedLine = TermInstances[i].Split(new string[] { "(#)" }, StringSplitOptions.None);
@@ -359,7 +419,7 @@ namespace InfoRetrieval
                 {
                     foreach (string city in filterByCity.Keys) //checks whether the city in the text
                     {
-                        containsDoc = containsDoc || filterByCity[city].Contains(currentDoc);
+                        containsDoc = containsDoc && filterByCity[city].Contains(currentDoc);
                     }
                     if (!containsDoc && !filterByCity.ContainsKey(docInformation[currentDoc].city)) // checks whether the city is in the text or in the tag
                     {
@@ -379,6 +439,7 @@ namespace InfoRetrieval
                     q.m_docsRanks[currentDoc].IncreaseBM(m_ranker.CalculateBM25());
                     q.m_docsRanks[currentDoc].IncreaseInnerProduct(m_ranker.CalculateInnerProduct());
                     q.m_docsRanks[currentDoc].IncreaseTitleScore(m_ranker.CalculateTitleRank());
+                    q.m_docsRanks[currentDoc].IncreaseEntitiesScore(m_ranker.CalculateEntitiesRank(EvaluateEntitiesInQuery(currentDoc, TermInstances[i]), 10));
                 }
                 else
                 {
@@ -388,16 +449,54 @@ namespace InfoRetrieval
 
         }
 
+        /// <summary>
+        /// method to check wether a term in the query is an entity
+        /// </summary>
+        /// <param name="currentDoc">docno</param>
+        /// <param name="term">term</param>
+        /// <returns>'1' if is entity, otherwise '0' </returns>
+        private int EvaluateEntitiesInQuery(string currentDoc, string term)
+        {
+            int counter = 0;
+            Dictionary<string, double> entities = docInformation[currentDoc].m_Entities;
+            foreach (string entity in entities.Keys)
+            {
+                if (string.Equals(entity, term, StringComparison.OrdinalIgnoreCase))
+                {
+                    counter++;
+                }
+            }
+            return counter;
+        }
+
+        /// <summary>
+        /// method to count term's instances in the first k words
+        /// </summary>
+        /// <param name="term">term</param>
+        /// <param name="docno">docno</param>
+        /// <returns>counter of term's instances in the first k words</returns>
         private double RankByFirstKWords(string term, string docno)
         {
             return CountInstancesOfTermInString(term, docInformation[docno].m_KWords);
         }
 
-        private double CountInstancesOfTermInString(string term, string title)
+        /// <summary>
+        ///  method to count term's instances in the string
+        /// </summary>
+        /// <param name="term">term</param>
+        /// <param name="str">the string</param>
+        /// <returns>counter of term's instances in the string</returns>
+        private double CountInstancesOfTermInString(string term, string str)
         {
-            return CountStringOccurrences(title.ToLower(), term.ToLower());
+            return CountStringOccurrences(str.ToLower(), term.ToLower());
         }
 
+        /// <summary>
+        /// method which counts string occurrences
+        /// </summary>
+        /// <param name="text">the string </param>
+        /// <param name="pattern">the term</param>
+        /// <returns>amount of string occurrences</returns>
         private double CountStringOccurrences(string text, string pattern)
         {
             double count = 0;
@@ -410,6 +509,11 @@ namespace InfoRetrieval
             return count;
         }
 
+        /// <summary>
+        /// method which updates the current query with semantic words
+        /// </summary>
+        /// <param name="query">content of query</param>
+        /// <returns>new query with semantics</returns>
         private string UpdateQueryBySemantics(string query)
         {
             string[] wordsBeforeSemantic, adjWords, advWords, nounWords, verbWords;
@@ -429,6 +533,11 @@ namespace InfoRetrieval
             return extendQuery.ToString();
         }
 
+        /// <summary>
+        /// method to get new terms which are suitable to current part of the speech
+        /// </summary>
+        /// <param name="partOfSpeech"></param>
+        /// <returns>new string with semantics</returns>
         private string updateByPartOfSpeech(string[] partOfSpeech)
         {
             StringBuilder extendQuery = new StringBuilder();
@@ -443,11 +552,21 @@ namespace InfoRetrieval
             return string.Empty;
         }
 
+        /// <summary>
+        /// method to get line in the posting
+        /// </summary>
+        /// <param name="term">current term</param>
+        /// <returns>the line in posting</returns>
         private int GetLineInPost(string term)
         {
             return dictionaries[GetPostNumber(term)][term].lineInPost; ;
         }
 
+        /// <summary>
+        /// method to get the post number
+        /// </summary>
+        /// <param name="term">current term</param>
+        /// <returns>the post number</returns>
         private int GetPostNumber(string term)
         {
             if (term.Equals(""))
@@ -465,25 +584,34 @@ namespace InfoRetrieval
             }
         }
 
+        /// <summary>
+        /// method to get the length of the document
+        /// </summary>
+        /// <param name="DOCNO">current docno</param>
+        /// <returns>the length of the document</returns>
         private double GetDocLength(string DOCNO)
         {
             return docInformation[DOCNO].docLength;
         }
 
+        /// <summary>
+        /// method to write the query results to txt file
+        /// </summary>
+        /// <param name="q">current query</param>
         public void WriteQueryResults(Query q)
         {
             StreamWriter Writer;
-            if (!File.Exists(Path.Combine(m_toWriteOutPutPath, "QueryRanksResults.txt")))
+            if (!File.Exists(Path.Combine(m_toWriteOutPutPath, "results.txt")))
             {
-                using (StreamWriter outputFile = new StreamWriter(Path.Combine(m_toWriteOutPutPath, "QueryRanksResults.txt")))
+                using (StreamWriter outputFile = new StreamWriter(Path.Combine(m_toWriteOutPutPath, "results.txt")))
                 {
                     outputFile.WriteLine(new StringBuilder());
                 }
-                Writer = new StreamWriter(Path.Combine(m_toWriteOutPutPath, "QueryRanksResults.txt"));
+                Writer = new StreamWriter(Path.Combine(m_toWriteOutPutPath, "results.txt"));
             }
             else
             {
-                Writer = File.AppendText(Path.Combine(m_toWriteOutPutPath, "QueryRanksResults.txt"));
+                Writer = File.AppendText(Path.Combine(m_toWriteOutPutPath, "results.txt"));
             }
             Writer.Write(q.GetQueryData());
             Writer.Flush();
@@ -492,14 +620,23 @@ namespace InfoRetrieval
 
     }
 
-
-
-    public class queryInfo
+    /// <summary>
+    /// Class which represents the information of the query
+    /// </summary>
+    public class QueryInfo
     {
+        /// <summary>
+        /// fields of queryInfo
+        /// </summary>
         public string m_queryContent { get; set; }
         public string m_queryDescription { get; set; }
 
-        public queryInfo(string queryContent, string queryDescription)
+        /// <summary>
+        /// Constructor of QueryInfo
+        /// </summary>
+        /// <param name="queryContent">the content of the query</param>
+        /// <param name="queryDescription">the description of the query</param>
+        public QueryInfo(string queryContent, string queryDescription)
         {
             this.m_queryContent = queryContent;
             this.m_queryDescription = queryDescription;

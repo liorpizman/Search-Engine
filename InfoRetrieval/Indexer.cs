@@ -24,8 +24,8 @@ namespace InfoRetrieval
         /// <summary>
         /// fields of Indexer
         /// </summary>
-        public int m_indexCounter;  ////////////////////////////////////////////////////////////////////// should be deleted!!!!!
-        public int indexNumber = 0;  ///////////////////////////////////////////////////////////// //delete it - it is for testing
+        public int m_indexCounter;
+        public int indexNumber = 0;
         public string m_outPutPath { get; private set; }
         public bool doStem { get; private set; }
         public Dictionary<int, int> currentLine { get; private set; }
@@ -173,7 +173,6 @@ namespace InfoRetrieval
                     currentTerm.IncreaseTfc(pair.Value.countTotalFrequency());
                     currentTerm.IncreaseDf(pair.Value.m_Terms.Count);
                     dictionaries[postNum].Add(pair.Value.m_valueOfTerm, currentTerm);
-                    //Writer.WriteLine(pair.Value.WriteToPostingFileDocDocTerm(false));
                     data.AppendLine(pair.Value.WriteToPostingFileDocDocTerm(false).ToString());
                     currentLine[postNum]++;
                 }
@@ -235,29 +234,9 @@ namespace InfoRetrieval
             //if (currentPos == -1 || termPost != currentPos)
             //{
             StreamHasChanged = true;
-            Writer = new StreamWriter(Path.Combine(m_outPutPath, fileName + termPost + ".txt")); //fileName- newPosting for all and Posting for first
-                                                                                                 //Reader = new StreamReader(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt"));
-                                                                                                 //}
+            Writer = new StreamWriter(Path.Combine(m_outPutPath, fileName + termPost + ".txt"));
         }
-        /*
-        /// <summary>
-        /// method to switch the writer stream
-        /// </summary>
-        /// <param name="termPost">the post number of the current term</param>
-        /// <param name="currentPos">the position of the stream</param>
-        public void SwitchWriterForFirstPosting(int termPost, int currentPos, string fileName)
-        {
-            if (currentPos == -1 || termPost != currentPos)
-            {
-                if (Writer != null)
-                {
-                    Writer.Flush();
-                    Writer.Close();
-                }
-                Writer = new StreamWriter(Path.Combine(m_outPutPath, "Posting" + termPost + ".txt"));
-            }
-        }
-        */
+
         /// <summary>
         /// method which updates current posting files
         /// </summary>
@@ -296,13 +275,10 @@ namespace InfoRetrieval
                 {
                     while (LineNumberOfTerm > currentLineNumber)
                     {
-                        //currentLineInFile = Reader.ReadLine();
                         writeData.AppendLine(lines[indexLine++]);
                         currentLineNumber++;
                     }
-                    //currentLineInFile = Reader.ReadLine();
                     writeData.AppendLine(lines[indexLine++] + pair.Value.WriteToPostingFileDocDocTerm(true));
-                    //dictionaries[PostNumber][pair.Value.m_valueOfTerm].IncreaseTf(pair.Value.m_tfc);
                     dictionaries[PostNumber][pair.Value.m_valueOfTerm].IncreaseTfc(pair.Value.countTotalFrequency());
                     dictionaries[PostNumber][pair.Value.m_valueOfTerm].IncreaseDf(pair.Value.m_Terms.Count);
                     currentLineNumber++;
@@ -321,7 +297,6 @@ namespace InfoRetrieval
                     IndexTerm currentTerm = new IndexTerm(pair.Value.m_valueOfTerm, PostNumber, currentLine[PostNumber]);
                     LineNumberOfTerm = currentLine[PostNumber];
                     currentLine[PostNumber]++;
-                    //currentTerm.IncreaseTf(pair.Value.m_tfc);
                     currentTerm.IncreaseTfc(pair.Value.countTotalFrequency());
                     currentTerm.IncreaseDf(pair.Value.m_Terms.Count);
                     dictionaries[PostNumber].Add(pair.Value.m_valueOfTerm, currentTerm);
@@ -335,10 +310,7 @@ namespace InfoRetrieval
             }
             Writer.Flush();
             Writer.Close();
-            //Reader.Close();
             Writer = null;
-            //Reader = null;
-            ///in the end:
             tempDic.Clear();
         }
 
@@ -368,24 +340,17 @@ namespace InfoRetrieval
         {
             CreateEmptyTxtFile("Dictionary.txt");
             Writer = new StreamWriter(Path.Combine(m_outPutPath, "Dictionary.txt"));
-            //Dictionary<string, IndexTerm> temp;
-            //foreach (Dictionary<string, IndexTerm> dic in dictionaries)
-            //{
             StringBuilder data = new StringBuilder();
             for (int j = 0; j < dictionaries.Length; j++)
             {
                 uniqueCorpusCounter += dictionaries[j].Count;
-                //temp = dic.OrderBy(i => i.Value.m_value).ToDictionary(p => p.Key, p => p.Value);
-                //  dictionaries[j] = dictionaries[j].OrderBy(i => i.Value.m_value).ToDictionary(p => p.Key, p => p.Value);  ///////// check if we need it
                 foreach (KeyValuePair<string, IndexTerm> currentTerm in dictionaries[j])
                 {
-                    //Writer.WriteLine(currentTerm.Value.PrintTerm());
                     data.AppendLine(currentTerm.Value.PrintTerm().ToString());
                 }
             }
             Writer.Write(data);
             data.Clear();
-            //}
             Writer.Flush();
             Writer.Close();
         }
@@ -415,20 +380,7 @@ namespace InfoRetrieval
             }
             this.tempDic = tempDic.OrderBy(i => i.Value.postNum).ThenBy(i => i.Value.line).ToDictionary(p => p.Key, p => p.Value);
         }
-        /*
-       public void InitTerms()
-       {
-           foreach (KeyValuePair<string, DocumentsTerm> pair in tempDic)
-           {
-               int PostNumber = pair.Value.postNum;
-               if (dictionaries[PostNumber].ContainsKey(pair.Key))
-               {
-                   pair.Value.line = dictionaries[PostNumber][pair.Key].lineInPost;
-               }
-           }
-           this.tempDic = tempDic.OrderBy(i => i.Value.postNum).ThenBy(i => i.Value.line).ToDictionary(p => p.Key, p => p.Value);
-       }
-       */
+
         /// <summary>
         /// method which get the suitable post number of a current term
         /// </summary>
@@ -499,71 +451,7 @@ namespace InfoRetrieval
                 }
             }
         }
-        /*
-        /// <summary>
-        /// method to write the Cities index file
-        /// </summary>
-        public void WriteCitiesIndexFile()
-        {
-            int postNum;
-            string currency, state, population;
-            StringBuilder cityData = new StringBuilder();
-            if (!File.Exists(Path.Combine(m_outPutPath, "Cities.txt")))
-            {
-                CreateEmptyTxtFile("Cities.txt");
-            }
-            Writer = new StreamWriter(Path.Combine(m_outPutPath, "Cities.txt"));
-            foreach (string city in m_Cities)
-            {
-                postNum = GetPostNumber(city);
-                var webRequest = WebRequest.Create("http://getcitydetails.geobytes.com/GetCityDetails?fqcn=" + city) as HttpWebRequest;
-                if (webRequest != null)
-                {
-                    using (var s = webRequest.GetResponse().GetResponseStream())
-                    {
-                        using (var sr = new StreamReader(s))
-                        {
-                            var contributorsAsJson = sr.ReadToEnd();
-                            JObject jObject = JObject.Parse(contributorsAsJson);
-                            cityData.Append(city + "(#)");
-                            currency = (string)jObject.SelectToken("geobytescurrencycode");
-                            state = (string)jObject.SelectToken("geobytescountry");
-                            population = (string)jObject.SelectToken("geobytespopulation");
-                            if (!currency.Equals(""))
-                            {
-                                cityData.Append(currency + "(#)"); //currency
-                            }
-                            if (!state.Equals(""))
-                            {
-                                cityData.Append(state + "(#)"); // state
-                            }
-                            if (!population.Equals(""))
-                            {
-                                population = AddPerfixToNumber(population);
-                                cityData.Append(population + "(#)"); // population
-                            }
 
-                            if (dictionaries[postNum].ContainsKey(city))
-                            {
-                                cityData.Append(" postNum: " + postNum + " lineNumber: " + dictionaries[postNum][city].lineInPost); // positions pointer
-                                Writer.WriteLine(cityData);
-                                cityData.Clear();
-                            }
-                            else
-                            {
-                                cityData.Append(" not exist in Posting"); // positions
-                                Writer.WriteLine(cityData);
-                                cityData.Clear();
-                            }
-                        }
-                    }
-                }
-            }
-            Writer.Flush();
-            Writer.Close();
-            Writer = null;
-        }
-        */
         /// <summary>
         /// method to serialize the dictionary of all terms into bin file
         /// </summary>
@@ -659,6 +547,11 @@ namespace InfoRetrieval
             CreateTxtFile("Posting" + dicNumber + ".txt", data);
         }
 
+        /// <summary>
+        /// method to add the right prefix to current number
+        /// </summary>
+        /// <param name="currentValue">the current number</param>
+        /// <returns>the number with the prefix</returns>
         public string AddPerfixToNumber(string currentValue)
         {
             double number = Convert.ToDouble(currentValue.Replace(",", ""));
@@ -680,9 +573,9 @@ namespace InfoRetrieval
             }
         }
 
-
-
-
+        /// <summary>
+        /// method which gets the cities from API
+        /// </summary>
         public void WriteCitiesIndexFile()
         {
             if (!File.Exists(Path.Combine(m_outPutPath, "Cities.txt")))
@@ -704,16 +597,16 @@ namespace InfoRetrieval
                 {
                     var contributorsAsJson = sr.ReadToEnd();
                     JArray jarr = JArray.Parse(contributorsAsJson);
-                    HashSet<string> m_States = new HashSet<string>();                                            //delete it
+                    HashSet<string> m_States = new HashSet<string>();
                     foreach (JObject content in jarr.Children<JObject>())
-                    {//fields[0] - currencies ,fields[1] - name ,fields[2] - capital ,fields[3] - population ,
+                    {
                         JProperty[] fields = content.Properties().ToArray();
                         city = "" + fields[2].Value;
                         postNum = GetPostNumber(city);
                         city = (city).ToUpper();
                         if (m_Cities.Contains(city))
                         {
-                            if (!m_States.Contains(fields[1].Value + ""))                                 //delete it
+                            if (!m_States.Contains(fields[1].Value + ""))
                             {
                                 m_States.Add(fields[1].Value + "");
                             }
@@ -743,7 +636,7 @@ namespace InfoRetrieval
                         }
                         Writer.WriteLine(city + "(#)" + line);
                     }
-                    Console.WriteLine("counter of states: " + m_States.Count);                                       //delete it
+                    Console.WriteLine("counter of states: " + m_States.Count);
                     m_Cities.Clear();
                 }
             }
@@ -778,7 +671,6 @@ namespace InfoRetrieval
             }
             Writer.WriteLine("avgDL: " + GetAvgDL());
             Writer.WriteLine("docsCounter: " + docCounter);
-
             Writer.Flush();
             Writer.Close();
             Writer = null;

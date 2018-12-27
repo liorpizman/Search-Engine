@@ -14,7 +14,6 @@ namespace InfoRetrieval
         /// <summary>
         /// fields of a Document
         /// </summary>
-        //public Dictionary<string, int> m_termsInDictionary { get; private set; }// all terms (strings) in document with (int) counter of instances
         public string m_DOCNO { get; private set; }
         public StringBuilder m_DATE1 { get; private set; }
         public StringBuilder m_TI { get; private set; }
@@ -47,9 +46,12 @@ namespace InfoRetrieval
             this.m_length = 0;
             this.m_Entities = new Dictionary<string, double>();
             this.m_KFirstWords = new StringBuilder();
-            //this.m_termsInDictionary = new Dictionary<string, int>();               // we should check if we need delete this??
         }
 
+        /// <summary>
+        /// method to get all entities of current document
+        /// </summary>
+        /// <returns>a string of the entities</returns>
         private string GetEntities()
         {
             StringBuilder sol = new StringBuilder();
@@ -62,12 +64,19 @@ namespace InfoRetrieval
             return sol.ToString();
         }
 
-
+        /// <summary>
+        /// method to add new word of the first k first words
+        /// </summary>
+        /// <param name="nextWord">the word to add</param>
         public void AddKWord(string nextWord)
         {
             m_KFirstWords.Append(nextWord + " ");
         }
 
+        /// <summary>
+        /// method to write the document to index file
+        /// </summary>
+        /// <returns>the string to write</returns>
         public StringBuilder WriteDocumentToIndexFile()
         {
             string title = m_TI.ToString();
@@ -75,7 +84,9 @@ namespace InfoRetrieval
             {
                 title = title.Split('\n')[0];
             }
-            StringBuilder data = new StringBuilder(m_DOCNO + " (#)" + "TI: " + title + " (#)" + "Kwords:" + m_KFirstWords.ToString() + " (#)" + "unique words: " + m_uniqueCounter + " (#)" + "maxTF: " + m_maxTF + " (#)" + "Entities: " + GetEntities() + " (#)" + "length: " + m_length);
+            StringBuilder data = new StringBuilder(m_DOCNO + " (#)" + "TI: " + title + " (#)" + "Kwords:" + m_KFirstWords.ToString() +
+                " (#)" + "unique words: " + m_uniqueCounter + " (#)" + "maxTF: " + m_maxTF + " (#)" + "Entities: " + GetEntities() +
+                " (#)" + "length: " + m_length);
             if (!m_CITY.ToString().Equals(""))
             {
                 string[] city = m_CITY.ToString().Split(' ');

@@ -17,7 +17,6 @@ namespace InfoRetrieval
         /// <summary>
         /// fields of ReadFile
         /// </summary>
-        //public Dictionary<string, masterFile> m_files;
         public string m_mainPath { get; private set; }
         public string[] m_paths { get; private set; }
         public int m_indexCurrFile { get; private set; }
@@ -36,7 +35,6 @@ namespace InfoRetrieval
             MainRead();
             ChunkSize = Math.Min(120, m_paths.Length);
             InitList();
-            //this.m_files = new Dictionary<string, masterFile>();
         }
 
         /// <summary>
@@ -44,13 +42,11 @@ namespace InfoRetrieval
         /// </summary>
         public void InitList()
         {
-            //ChankSize
             int sumFiles = 0;
             int currentListSize = Math.Min(ChunkSize, m_paths.Length - sumFiles);
             bool doChank = currentListSize != 0;
             for (int i = 0, step = 0; currentListSize != 0; i++, step += ChunkSize)
             {
-                // path_Chank[i] = new string[currentListSize];
                 path_Chank.Add(new string[currentListSize]);
                 for (int j = 0; j < currentListSize; j++)
                 {
@@ -58,7 +54,6 @@ namespace InfoRetrieval
                 }
                 sumFiles += currentListSize;
                 currentListSize = Math.Min(ChunkSize, m_paths.Length - sumFiles);
-
             }
         }
 
@@ -78,8 +73,6 @@ namespace InfoRetrieval
                 ReadDocuments(currentChunk[j], masterFile);
             }
             return masterFile;
-            /// we can return masterFile and send it to parser and do not sent the whole dictionary
-
         }
 
         /// <summary>
@@ -87,7 +80,6 @@ namespace InfoRetrieval
         /// </summary>
         public void MainRead()
         {
-            //Parse parse = new Parse(true, m_mainPath);
             string[] directories = Directory.GetDirectories(Directory.GetDirectories(m_mainPath)[0]);
             m_paths = new string[directories.Length];
 
@@ -110,10 +102,10 @@ namespace InfoRetrieval
             for (int i = 1; i < docs.Length; i++)
             {
                 DOCNO = GetStringInBetween("<DOCNO>", "</DOCNO>", docs[i]).Trim(' ');
-                StringBuilder DATE1 = new StringBuilder(GetDateInBetween(docs[i]).Trim(' '));  // add condition with DATE
+                StringBuilder DATE1 = new StringBuilder(GetDateInBetween(docs[i]).Trim(' '));
                 StringBuilder TI = new StringBuilder(GetStringInBetween("<TI>", "</TI>", docs[i]).Trim(' '));
                 TEXT = TI.ToString() + " ";
-                TEXT += GetStringInBetween("<TEXT>", "</TEXT>", docs[i]);                                     // add condition when TEXT does not exist
+                TEXT += GetStringInBetween("<TEXT>", "</TEXT>", docs[i]);
                 StringBuilder City = new StringBuilder(GetCityInBetween(docs[i]));
                 StringBuilder language = new StringBuilder(GetLanguageInBetween(docs[i]));
                 masterFile.m_documents.Add(DOCNO.ToString(), new Document(DOCNO, DATE1, TI, TEXT, City, language));
