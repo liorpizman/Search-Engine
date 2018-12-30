@@ -453,6 +453,29 @@ namespace InfoRetrieval
         }
 
         /// <summary>
+        /// method to write all languages to file
+        /// </summary>
+        public void WriteLanguagesToFile()
+        {
+            if (!File.Exists(Path.Combine(m_outPutPath, "Languages.txt")))
+            {
+                CreateEmptyTxtFile("Languages.txt");
+                Writer = new StreamWriter(Path.Combine(m_outPutPath, "Languages.txt"));
+            }
+            else
+            {
+                Writer = File.AppendText(Path.Combine(m_outPutPath, "Languages.txt"));
+            }
+            foreach (String language in m_Languages)
+            {
+                Writer.WriteLine(language);
+            }
+            Writer.Flush();
+            Writer.Close();
+            Writer = null;
+        }
+
+        /// <summary>
         /// method to serialize the dictionary of all terms into bin file
         /// </summary>
         public void SerializeDictionary()

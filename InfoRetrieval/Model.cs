@@ -93,6 +93,12 @@ namespace InfoRetrieval
                 parse.m_allTerms.Clear();
             };
 
+
+            Action<object> LanguagesAction = (object obj) =>
+            {
+                indexer.WriteLanguagesToFile();
+            };
+
             sizeTasks = readFile.path_Chank.Count;
             Task[] taskArray = new Task[4];
             Task[] lastTaskArray = new Task[sizeTasks % 4];
@@ -175,6 +181,9 @@ namespace InfoRetrieval
             Task DataOfDocsTask = Task.Factory.StartNew(DataOfDocsAction, "taskData");
             DataOfDocsTask.Wait();
 
+            Task LanguagesTask = Task.Factory.StartNew(LanguagesAction, "taskLanguages");
+            LanguagesTask.Wait();
+
         }
 
         /// <summary>
@@ -255,7 +264,7 @@ namespace InfoRetrieval
                 this.m_PostingLines[i] = File.ReadAllLines(Path.Combine(path, "Posting" + i + ".txt"));
             }
         }
-        
+
         /// <summary>
         /// method to load dictionary to memory
         /// </summary>

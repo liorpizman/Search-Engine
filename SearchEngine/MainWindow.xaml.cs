@@ -76,15 +76,23 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void Input_browse_Clicked(object sender, System.EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            try
             {
-                DialogResult result = fbd.ShowDialog();
-                if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                using (var fbd = new FolderBrowserDialog())
                 {
-                    inputPathText.Text = fbd.SelectedPath;
-                    model.setInputPath(inputPathText.Text);
+                    DialogResult result = fbd.ShowDialog();
+                    if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                    {
+                        inputPathText.Text = fbd.SelectedPath;
+                        model.setInputPath(inputPathText.Text);
+                    }
                 }
             }
+            catch (Exception exception)
+            {
+                Console.WriteLine();
+            }
+
         }
 
         /// <summary>
@@ -94,14 +102,21 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void Output_browse_Clicked(object sender, System.EventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            try
             {
-                DialogResult result = fbd.ShowDialog();
-                if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                using (var fbd = new FolderBrowserDialog())
                 {
-                    outputPathText.Text = fbd.SelectedPath;
-                    model.setOutPutPath(outputPathText.Text);
+                    DialogResult result = fbd.ShowDialog();
+                    if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                    {
+                        outputPathText.Text = fbd.SelectedPath;
+                        model.setOutPutPath(outputPathText.Text);
+                    }
                 }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine();
             }
         }
 
@@ -130,45 +145,52 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void Run_button_Clicked(object sender, System.EventArgs e)
         {
-            EnablePart1Buttons(false);
-            bool validInput = Directory.Exists(inputPathText.Text);
-            bool validOutput = Directory.Exists(outputPathText.Text);
-            if (!validInput)
+            try
             {
-                string message = "Please enter a valid Input Path!";
-                string caption = "Error Detected in Input";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                return;
+                EnablePart1Buttons(false);
+                bool validInput = Directory.Exists(inputPathText.Text);
+                bool validOutput = Directory.Exists(outputPathText.Text);
+                if (!validInput)
+                {
+                    string message = "Please enter a valid Input Path!";
+                    string caption = "Error Detected in Input";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                    return;
+                }
+                if (!validOutput)
+                {
+                    string message = "Please enter a valid OutPut Path!";
+                    string caption = "Error Detected in OutPut";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                    return;
+                }
+                model.setInputPath(inputPathText.Text);
+                model.setOutPutPath(outputPathText.Text);
+                TimeSpan runTime = TimeSpan.Zero;
+                DateTime startTime = DateTime.Now;
+                model.RunIndexing();
+                runTime = runTime.Add(DateTime.Now - startTime);
+                int i = 1;
+                foreach (string language in model.indexer.m_Languages)
+                {
+                    languagesComboBox.Items.Insert(i++, language);
+                }
+                StringBuilder outPutMessage = new StringBuilder("The execution is finished!");
+                outPutMessage.AppendLine();
+                outPutMessage.AppendLine("Total run time: " + runTime);
+                outPutMessage.AppendLine("Total unique terms indexed: " + model.indexer.uniqueCorpusCounter);
+                outPutMessage.AppendLine("Total documents indexed: " + model.indexer.docCounter);
+                string caption2 = "Mission Completed Successfully";
+                MessageBoxButtons buttons2 = MessageBoxButtons.OK;
+                DialogResult result2 = System.Windows.Forms.MessageBox.Show(outPutMessage.ToString(), caption2, buttons2);
+                EnablePart1Buttons(true);
             }
-            if (!validOutput)
+            catch (Exception exception)
             {
-                string message = "Please enter a valid OutPut Path!";
-                string caption = "Error Detected in OutPut";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                return;
+                Console.WriteLine();
             }
-            model.setInputPath(inputPathText.Text);
-            model.setOutPutPath(outputPathText.Text);
-            TimeSpan runTime = TimeSpan.Zero;
-            DateTime startTime = DateTime.Now;
-            model.RunIndexing();
-            runTime = runTime.Add(DateTime.Now - startTime);
-            int i = 1;
-            foreach (string language in model.indexer.m_Languages)
-            {
-                languagesComboBox.Items.Insert(i++, language);
-            }
-            StringBuilder outPutMessage = new StringBuilder("The execution is finished!");
-            outPutMessage.AppendLine();
-            outPutMessage.AppendLine("Total run time: " + runTime);
-            outPutMessage.AppendLine("Total unique terms indexed: " + model.indexer.uniqueCorpusCounter);
-            outPutMessage.AppendLine("Total documents indexed: " + model.indexer.docCounter);
-            string caption2 = "Mission Completed Successfully";
-            MessageBoxButtons buttons2 = MessageBoxButtons.OK;
-            DialogResult result2 = System.Windows.Forms.MessageBox.Show(outPutMessage.ToString(), caption2, buttons2);
-            EnablePart1Buttons(true);
         }
 
         /// <summary>
@@ -178,32 +200,39 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void resetButton_Click(object sender, RoutedEventArgs e)
         {
-            languagesComboBox.Items.Clear();
-            languagesComboBox.Items.Insert(0, "Choose...");
-            languagesComboBox.SelectedIndex = 0;
-            dictionaryListBox.ItemsSource = null;
-            model.ClearMemory();
-            if (string.IsNullOrEmpty(outputPathText.Text))
+            try
             {
-                string message = "The are no dictionary or posting files in the path you specified!";
-                string caption = "Reset Search Engine Process";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                languagesComboBox.Items.Clear();
+                languagesComboBox.Items.Insert(0, "Choose...");
+                languagesComboBox.SelectedIndex = 0;
+                dictionaryListBox.ItemsSource = null;
+                model.ClearMemory();
+                if (string.IsNullOrEmpty(outputPathText.Text))
+                {
+                    string message = "The are no dictionary or posting files in the path you specified!";
+                    string caption = "Reset Search Engine Process";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                }
+                else
+                {
+                    string pathWithStem = System.IO.Path.Combine(outputPathText.Text, "WithStem");
+                    string pathWithOutStem = System.IO.Path.Combine(outputPathText.Text, "WithOutStem");
+                    if (Directory.Exists(pathWithStem))
+                        Directory.Delete(pathWithStem, true);
+                    if (Directory.Exists(pathWithOutStem))
+                        Directory.Delete(pathWithOutStem, true);
+                    string message = "The search engine initialization was successful!";
+                    string caption = "Reset Search Engine Process";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                }
+                GC.Collect();
             }
-            else
+            catch (Exception exception)
             {
-                string pathWithStem = System.IO.Path.Combine(outputPathText.Text, "WithStem");
-                string pathWithOutStem = System.IO.Path.Combine(outputPathText.Text, "WithOutStem");
-                if (Directory.Exists(pathWithStem))
-                    Directory.Delete(pathWithStem, true);
-                if (Directory.Exists(pathWithOutStem))
-                    Directory.Delete(pathWithOutStem, true);
-                string message = "The search engine initialization was successful!";
-                string caption = "Reset Search Engine Process";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                Console.WriteLine();
             }
-            GC.Collect();
         }
 
         /// <summary>
@@ -213,26 +242,33 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void displayDicButton_Click(object sender, RoutedEventArgs e)
         {
-            EnablePart1Buttons(false);
-            dictionaryListBox.ItemsSource = null;
-            if (model.indexer != null)
+            try
             {
-                var res = model.indexer.dictionaries.SelectMany(dict => dict)
-            .ToDictionary(pair => pair.Key, pair => pair.Value.tfc);
-                dictionaryListBox.ItemsSource = res;
-                string message = "Mission done!";
-                string caption = "Dictionary display";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                EnablePart1Buttons(false);
+                dictionaryListBox.ItemsSource = null;
+                if (model.indexer != null)
+                {
+                    var res = model.indexer.dictionaries.SelectMany(dict => dict)
+                .ToDictionary(pair => pair.Key, pair => pair.Value.tfc);
+                    dictionaryListBox.ItemsSource = res;
+                    string message = "Mission done!";
+                    string caption = "Dictionary display";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                }
+                else
+                {
+                    string message = "Dictionary does not exist!\n\nPlease Load the Dictionary or Run the search engine first.";
+                    string caption = "Dictionary display";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                }
+                EnablePart1Buttons(true);
             }
-            else
+            catch (Exception exception)
             {
-                string message = "Dictionary does not exist!\n\nPlease Load the Dictionary or Run the search engine first.";
-                string caption = "Dictionary display";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                Console.WriteLine();
             }
-            EnablePart1Buttons(true);
         }
 
         /// <summary>
@@ -242,63 +278,70 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void loadDicButton_Click(object sender, RoutedEventArgs e)
         {
-            EnablePart1Buttons(false);
-            bool existWithStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithStem\\Dictionary.bin"));
-            bool existWithoutStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithOutStem\\Dictionary.bin"));
-            if (model.indexer != null)
+            try
             {
-                if (!model.m_doStemming) // Without Stemming
+                EnablePart1Buttons(false);
+                bool existWithStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithStem\\Dictionary.bin"));
+                bool existWithoutStem = File.Exists(System.IO.Path.Combine(outputPathText.Text, "WithOutStem\\Dictionary.bin"));
+                if (model.indexer != null)
                 {
-                    if (existWithoutStem)
+                    if (!model.m_doStemming) // Without Stemming
                     {
-                        if (model.lastRunStem)// last run stem - false when the last run was without stemming
+                        if (existWithoutStem)
                         {
-                            Deserialize(System.IO.Path.Combine(outputPathText.Text, "WithOutStem"));
+                            if (model.lastRunStem)// last run stem - false when the last run was without stemming
+                            {
+                                Deserialize(System.IO.Path.Combine(outputPathText.Text, "WithOutStem"));
+                            }
+                        }
+                        else
+                        {
+                            string msg = "Dictionary with out stemming does not exist!\n\nPlease Run the search engine first.";
+                            string cap = "Dictionary Load";
+                            MessageBoxButtons bttns = MessageBoxButtons.OK;
+                            DialogResult res = System.Windows.Forms.MessageBox.Show(msg, cap, bttns);
+                            EnablePart1Buttons(true);
+                            return;
                         }
                     }
-                    else
+                    else // With Stemming
                     {
-                        string msg = "Dictionary with out stemming does not exist!\n\nPlease Run the search engine first.";
-                        string cap = "Dictionary Load";
-                        MessageBoxButtons bttns = MessageBoxButtons.OK;
-                        DialogResult res = System.Windows.Forms.MessageBox.Show(msg, cap, bttns);
-                        EnablePart1Buttons(true);
-                        return;
-                    }
-                }
-                else // With Stemming
-                {
-                    if (existWithStem)
-                    {
-                        if (!model.lastRunStem)// last run stem - true when the last run was with stemming
+                        if (existWithStem)
                         {
-                            Deserialize(System.IO.Path.Combine(outputPathText.Text, "WithStem"));
+                            if (!model.lastRunStem)// last run stem - true when the last run was with stemming
+                            {
+                                Deserialize(System.IO.Path.Combine(outputPathText.Text, "WithStem"));
+                            }
                         }
-                    }
-                    else
-                    {
-                        string msg = "Dictionary with stemming does not exist!\n\nPlease Run the search engine first.";
-                        string cap = "Dictionary Load";
-                        MessageBoxButtons bttns = MessageBoxButtons.OK;
-                        DialogResult res = System.Windows.Forms.MessageBox.Show(msg, cap, bttns);
-                        EnablePart1Buttons(true);
-                        return;
-                    }
+                        else
+                        {
+                            string msg = "Dictionary with stemming does not exist!\n\nPlease Run the search engine first.";
+                            string cap = "Dictionary Load";
+                            MessageBoxButtons bttns = MessageBoxButtons.OK;
+                            DialogResult res = System.Windows.Forms.MessageBox.Show(msg, cap, bttns);
+                            EnablePart1Buttons(true);
+                            return;
+                        }
 
+                    }
+                    string message = "Done loading the dictionary!";
+                    string caption = "Dictionary Load";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
                 }
-                string message = "Done loading the dictionary!";
-                string caption = "Dictionary Load";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                else
+                {
+                    string message = "Dictionary does not exist!\n\nPlease Run the search engine first.";
+                    string caption = "Dictionary Load";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                }
+                EnablePart1Buttons(true);
             }
-            else
+            catch (Exception exception)
             {
-                string message = "Dictionary does not exist!\n\nPlease Run the search engine first.";
-                string caption = "Dictionary Load";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                Console.WriteLine();
             }
-            EnablePart1Buttons(true);
         }
 
         /// <summary>
@@ -338,7 +381,14 @@ namespace SearchEngine
             {
                 fs.Close();
             }
-            model.indexer.dictionaries = dictionaries;
+            try
+            {
+                model.indexer.dictionaries = dictionaries;
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine();
+            }
         }
 
         /// <summary>
@@ -394,58 +444,65 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void searchQueryButton_Click(object sender, RoutedEventArgs e)
         {
-            bool validOutput = Directory.Exists(outputQueryPath.Text);
-            queryResultsListBox.ItemsSource = null;
-            queryResultsListBox.Items.Clear();
-            EntitiesListBox.ItemsSource = null;
-            EntitiesListBox.Items.Clear();
-            if (string.IsNullOrEmpty(inputQueryPath.Text))
+            try
             {
-                string message = "Please enter a valid query!";
-                string caption = "No query in input";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                return;
-            }
-            else if (string.IsNullOrEmpty(outputQueryPath.Text))
-            {
-                string message = "Please enter a valid output path for query results!";
-                string caption = "Invalid outPut Path";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                return;
-            }
-            else if (!validOutput)
-            {
-                string message = "Please enter a valid OutPut Query Path!";
-                string caption = "Error Detected in OutPut";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                return;
-            }
-            else if (!m_invertedIndexIsLoaded)
-            {
-                string message = "Please load Inverted Index files!";
-                string caption = "Error Detected in Input";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                return;
-            }
-            else
-            {
-                if (model._dictionaries != null)
+                bool validOutput = Directory.Exists(outputQueryPath.Text);
+                queryResultsListBox.ItemsSource = null;
+                queryResultsListBox.Items.Clear();
+                EntitiesListBox.ItemsSource = null;
+                EntitiesListBox.Items.Clear();
+                if (string.IsNullOrEmpty(inputQueryPath.Text))
                 {
-                    model.setQueryOutPutPath(outputQueryPath.Text);
-                    model.RunQuery(inputQueryPath.Text, AddCitiesToFilter());
-                    var toShow = new Dictionary<string, double>();
-                    ShowSingleQueryResults(toShow, model.m_searcher.query);
-                    queryResultsListBox.ItemsSource = toShow;
-                    string message = "Done searching for the query!";
-                    string caption = "Results have written";
+                    string message = "Please enter a valid query!";
+                    string caption = "No query in input";
                     MessageBoxButtons buttons = MessageBoxButtons.OK;
                     DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                    updateEntitiesListBox();
+                    return;
                 }
+                else if (string.IsNullOrEmpty(outputQueryPath.Text))
+                {
+                    string message = "Please enter a valid output path for query results!";
+                    string caption = "Invalid outPut Path";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                    return;
+                }
+                else if (!validOutput)
+                {
+                    string message = "Please enter a valid OutPut Query Path!";
+                    string caption = "Error Detected in OutPut";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                    return;
+                }
+                else if (!m_invertedIndexIsLoaded)
+                {
+                    string message = "Please load Inverted Index files!";
+                    string caption = "Error Detected in Input";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                    return;
+                }
+                else
+                {
+                    if (model._dictionaries != null)
+                    {
+                        model.setQueryOutPutPath(outputQueryPath.Text);
+                        model.RunQuery(inputQueryPath.Text, AddCitiesToFilter());
+                        var toShow = new Dictionary<string, double>();
+                        ShowSingleQueryResults(toShow, model.m_searcher.query);
+                        queryResultsListBox.ItemsSource = toShow;
+                        string message = "Done searching for the query!";
+                        string caption = "Results have written";
+                        MessageBoxButtons buttons = MessageBoxButtons.OK;
+                        DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                        updateEntitiesListBox();
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine();
             }
         }
 
@@ -456,17 +513,24 @@ namespace SearchEngine
         /// <param name="q"></param>
         private void ShowSingleQueryResults(Dictionary<string, double> showResults, Query q)
         {
-            var res = q.m_docsRanks.ToDictionary(pair => pair.Key, pair => pair.Value.GetTotalScore());
-            res = res.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
-            int i = 1;
-            foreach (string doc in res.Keys)
+            try
             {
-                if (i > 50)
+                var res = q.m_docsRanks.ToDictionary(pair => pair.Key, pair => pair.Value.GetTotalScore());
+                res = res.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
+                int i = 1;
+                foreach (string doc in res.Keys)
                 {
-                    break;
+                    if (i > 50)
+                    {
+                        break;
+                    }
+                    showResults.Add("QueryID: " + q.m_ID + ", DocNo : " + doc, res[doc]);
+                    i++;
                 }
-                showResults.Add("QueryID: " + q.m_ID + ", DocNo : " + doc, res[doc]);
-                i++;
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine();
             }
         }
 
@@ -475,22 +539,29 @@ namespace SearchEngine
         /// </summary>
         private void updateEntitiesListBox()
         {
-            EntitiesComboBox.ItemsSource = null;
-            EntitiesComboBox.Items.Clear();
-            EntitiesComboBox.Items.Insert(0, "Choose...");
-            EntitiesComboBox.SelectedIndex = 0;
-            EntitiesListBox.Items.Clear();
-            int i = 1;
-            var res = model.m_searcher.query.m_docsRanks.OrderByDescending(j => j.Value.GetTotalScore()).ToDictionary(p => p.Key, p => p.Value);
-            foreach (string entity in res.Keys)
+            try
             {
-                if (i > 50)
+                EntitiesComboBox.ItemsSource = null;
+                EntitiesComboBox.Items.Clear();
+                EntitiesComboBox.Items.Insert(0, "Choose...");
+                EntitiesComboBox.SelectedIndex = 0;
+                EntitiesListBox.Items.Clear();
+                int i = 1;
+                var res = model.m_searcher.query.m_docsRanks.OrderByDescending(j => j.Value.GetTotalScore()).ToDictionary(p => p.Key, p => p.Value);
+                foreach (string entity in res.Keys)
                 {
-                    break;
+                    if (i > 50)
+                    {
+                        break;
+                    }
+                    EntitiesComboBox.Items.Insert(i++, entity);
                 }
-                EntitiesComboBox.Items.Insert(i++, entity);
+                SearchEntitiesButton.IsEnabled = true;
             }
-            SearchEntitiesButton.IsEnabled = true;
+            catch (Exception exception)
+            {
+                Console.WriteLine();
+            }
         }
 
         /// <summary>
@@ -500,15 +571,22 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void browswFileButton_Click(object sender, RoutedEventArgs e)
         {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            try
             {
-                openFileDialog.Filter = "txt files (*.txt)|*.txt";
-                openFileDialog.Title = "Open Text File";
-                DialogResult result = openFileDialog.ShowDialog();
-                if (result.ToString().Equals("OK"))
+                using (OpenFileDialog openFileDialog = new OpenFileDialog())
                 {
-                    inputFileQueryPath.Text = openFileDialog.FileName;
+                    openFileDialog.Filter = "txt files (*.txt)|*.txt";
+                    openFileDialog.Title = "Open Text File";
+                    DialogResult result = openFileDialog.ShowDialog();
+                    if (result.ToString().Equals("OK"))
+                    {
+                        inputFileQueryPath.Text = openFileDialog.FileName;
+                    }
                 }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine();
             }
         }
 
@@ -519,55 +597,62 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void searchQueryFileButton_Click(object sender, RoutedEventArgs e)
         {
-            queryResultsListBox.ItemsSource = null;
-            queryResultsListBox.Items.Clear();
-            EntitiesListBox.ItemsSource = null;
-            EntitiesListBox.Items.Clear();
-            bool validInput = File.Exists(inputFileQueryPath.Text);
-            bool validOutput = Directory.Exists(outputQueryPath.Text);
-            if (!validInput)
+            try
             {
-                string message = "Please enter a valid Path of Query File !";
-                string caption = "Error Detected in Input";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                return;
-            }
-            else if (!validOutput)
-            {
-                string message = "Please enter a valid OutPut Query Path!";
-                string caption = "Error Detected in OutPut";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                return;
-            }
-            else if (!m_invertedIndexIsLoaded)
-            {
-                string message = "Please load Inverted Index files!";
-                string caption = "Error Detected in Input";
-                MessageBoxButtons buttons = MessageBoxButtons.OK;
-                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                return;
-            }
-            else
-            {
-                if (model._dictionaries != null)
+                queryResultsListBox.ItemsSource = null;
+                queryResultsListBox.Items.Clear();
+                EntitiesListBox.ItemsSource = null;
+                EntitiesListBox.Items.Clear();
+                bool validInput = File.Exists(inputFileQueryPath.Text);
+                bool validOutput = Directory.Exists(outputQueryPath.Text);
+                if (!validInput)
                 {
-                    model.setQueryInputPath(inputFileQueryPath.Text);
-                    model.setQueryOutPutPath(outputQueryPath.Text);
-                    model.RunFileQueries(inputFileQueryPath.Text, AddCitiesToFilter());
-                    var toShow = new Dictionary<string, double>();
-                    foreach (Query q in model.m_searcher.m_toShowQueries)
-                    {
-                        ShowSingleQueryResults(toShow, q);
-                    }
-                    queryResultsListBox.ItemsSource = toShow;
-                    string message = "Done searching for the query File!";
-                    string caption = "Results have written";
+                    string message = "Please enter a valid Path of Query File !";
+                    string caption = "Error Detected in Input";
                     MessageBoxButtons buttons = MessageBoxButtons.OK;
                     DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
-                    updateEntitiesListBox();
+                    return;
                 }
+                else if (!validOutput)
+                {
+                    string message = "Please enter a valid OutPut Query Path!";
+                    string caption = "Error Detected in OutPut";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                    return;
+                }
+                else if (!m_invertedIndexIsLoaded)
+                {
+                    string message = "Please load Inverted Index files!";
+                    string caption = "Error Detected in Input";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                    return;
+                }
+                else
+                {
+                    if (model._dictionaries != null)
+                    {
+                        model.setQueryInputPath(inputFileQueryPath.Text);
+                        model.setQueryOutPutPath(outputQueryPath.Text);
+                        model.RunFileQueries(inputFileQueryPath.Text, AddCitiesToFilter());
+                        var toShow = new Dictionary<string, double>();
+                        foreach (Query q in model.m_searcher.m_toShowQueries)
+                        {
+                            ShowSingleQueryResults(toShow, q);
+                        }
+                        queryResultsListBox.ItemsSource = toShow;
+                        string message = "Done searching for the query File!";
+                        string caption = "Results have written";
+                        MessageBoxButtons buttons = MessageBoxButtons.OK;
+                        DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+                        updateEntitiesListBox();
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine();
             }
         }
 
@@ -578,13 +663,20 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void browseOutputQueryButton_Click(object sender, RoutedEventArgs e)
         {
-            using (var fbd = new FolderBrowserDialog())
+            try
             {
-                DialogResult result = fbd.ShowDialog();
-                if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                using (var fbd = new FolderBrowserDialog())
                 {
-                    outputQueryPath.Text = fbd.SelectedPath;
+                    DialogResult result = fbd.ShowDialog();
+                    if (result.ToString().Equals("OK") && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+                    {
+                        outputQueryPath.Text = fbd.SelectedPath;
+                    }
                 }
+            }
+            catch (Exception exception)
+            {
+                Console.WriteLine();
             }
         }
 
@@ -595,30 +687,67 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void resetQueryButton_Click(object sender, RoutedEventArgs e)
         {
-            queryResultsListBox.ItemsSource = null;
-            queryResultsListBox.Items.Clear();
-            EntitiesListBox.ItemsSource = null;
-            EntitiesComboBox.Items.Clear();
-            EntitiesComboBox.Items.Insert(0, "Choose...");
-            EntitiesComboBox.SelectedIndex = 0;
-            SearchEntitiesButton.IsEnabled = false;
-            if (!Directory.Exists(outputQueryPath.Text))
+            try
             {
-                string message2 = "Your output path is invalid. Please Try again!";
-                string caption2 = "Error in reset";
-                MessageBoxButtons buttons2 = MessageBoxButtons.OK;
-                DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
-                return;
+                queryResultsListBox.ItemsSource = null;
+                queryResultsListBox.Items.Clear();
+                EntitiesListBox.ItemsSource = null;
+                EntitiesComboBox.Items.Clear();
+                EntitiesComboBox.Items.Insert(0, "Choose...");
+                EntitiesComboBox.SelectedIndex = 0;
+                languagesComboBox.Items.Clear();
+                languagesComboBox.Items.Insert(0, "Choose...");
+                languagesComboBox.SelectedIndex = 0;
+                SearchEntitiesButton.IsEnabled = false;
+                if (!Directory.Exists(outputQueryPath.Text))
+                {
+                    string message2 = "Your output path is invalid. Please Try again!";
+                    string caption2 = "Error in reset";
+                    MessageBoxButtons buttons2 = MessageBoxButtons.OK;
+                    DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
+                    return;
+                }
+                string pathResults = System.IO.Path.Combine(outputQueryPath.Text, "results.txt");
+                if (File.Exists(pathResults))
+                {
+                    File.Delete(pathResults);
+                }
+                string message = "Queries were reset successfuly!";
+                string caption = "Reset Search Engine Process";
+                MessageBoxButtons buttons = MessageBoxButtons.OK;
+                DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
             }
-            string pathResults = System.IO.Path.Combine(outputQueryPath.Text, "results.txt");
-            if (File.Exists(pathResults))
+            catch (Exception exception)
             {
-                File.Delete(pathResults);
+                Console.WriteLine();
             }
-            string message = "Queries were reset successfuly!";
-            string caption = "Reset Search Engine Process";
-            MessageBoxButtons buttons = MessageBoxButtons.OK;
-            DialogResult result = System.Windows.Forms.MessageBox.Show(message, caption, buttons);
+        }
+
+        /// <summary>
+        /// method to load languages
+        /// </summary>
+        private void LoadLanguages()
+        {
+            try
+            {
+                string[] AllLines;
+                if (StemmingCheckBox.IsChecked == true)
+                {
+                    AllLines = File.ReadAllLines(System.IO.Path.Combine(System.IO.Path.Combine(outputPathText.Text, "WithStem"), "Languages.txt"));
+                }
+                else
+                {
+                    AllLines = File.ReadAllLines(System.IO.Path.Combine(System.IO.Path.Combine(outputPathText.Text, "WithOutStem"), "Languages.txt"));
+                }
+                for (int i = 1, j = 0; j < AllLines.Length; i++, j++)
+                {
+                    languagesComboBox.Items.Insert(i, AllLines[j]);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine();
+            }
         }
 
         /// <summary>
@@ -626,30 +755,37 @@ namespace SearchEngine
         /// </summary>
         private void LoadCitiesToFilter()
         {
-            string[] AllLines, cityData;
-            List<ComboBoxItem> citiesFilter = new List<ComboBoxItem>();
-            if (StemmingCheckBox.IsChecked == true)
+            try
             {
-                AllLines = File.ReadAllLines(System.IO.Path.Combine(System.IO.Path.Combine(outputPathText.Text, "WithStem"), "Cities.txt"));
-            }
-            else
-            {
-                AllLines = File.ReadAllLines(System.IO.Path.Combine(System.IO.Path.Combine(outputPathText.Text, "WithOutStem"), "Cities.txt"));
-            }
-            foreach (string line in AllLines)
-            {
-                cityData = line.Split(new string[] { "(#)" }, StringSplitOptions.None);
-                if (cityData.Length >= 1)
+                string[] AllLines, cityData;
+                List<ComboBoxItem> citiesFilter = new List<ComboBoxItem>();
+                if (StemmingCheckBox.IsChecked == true)
                 {
-                    citiesFilter.Add(new ComboBoxItem(false, cityData[0]));
+                    AllLines = File.ReadAllLines(System.IO.Path.Combine(System.IO.Path.Combine(outputPathText.Text, "WithStem"), "Cities.txt"));
+                }
+                else
+                {
+                    AllLines = File.ReadAllLines(System.IO.Path.Combine(System.IO.Path.Combine(outputPathText.Text, "WithOutStem"), "Cities.txt"));
+                }
+                foreach (string line in AllLines)
+                {
+                    cityData = line.Split(new string[] { "(#)" }, StringSplitOptions.None);
+                    if (cityData.Length >= 1)
+                    {
+                        citiesFilter.Add(new ComboBoxItem(false, cityData[0]));
+                    }
+                }
+                cityComboBox.ItemsSource = null;
+                cityComboBox.Items.Clear();
+                cityComboBox.ItemsSource = citiesFilter;
+                if (cityComboBox.Items.Count >= 1)
+                {
+                    cityComboBox.SelectedIndex = 0;
                 }
             }
-            cityComboBox.ItemsSource = null;
-            cityComboBox.Items.Clear();
-            cityComboBox.ItemsSource = citiesFilter;
-            if (cityComboBox.Items.Count >= 1)
+            catch (Exception e)
             {
-                cityComboBox.SelectedIndex = 0;
+                Console.WriteLine();
             }
         }
 
@@ -660,52 +796,60 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void LoadInvertedIndexButton_Click(object sender, RoutedEventArgs e)
         {
-            model.m_searcher = null;
-            model.ClearDocumentsInformation();
-            if (string.IsNullOrEmpty(inputPathText.Text) || string.IsNullOrEmpty(outputPathText.Text))
+            try
             {
-                string message1 = "Please fill the input and output paths!";
-                string caption1 = "Error Detected in InPut\\Output";
-                MessageBoxButtons buttons1 = MessageBoxButtons.OK;
-                DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
-                return;
+                model.m_searcher = null;
+                model.ClearDocumentsInformation();
+                if (string.IsNullOrEmpty(inputPathText.Text) || string.IsNullOrEmpty(outputPathText.Text))
+                {
+                    string message1 = "Please fill the input and output paths!";
+                    string caption1 = "Error Detected in InPut\\Output";
+                    MessageBoxButtons buttons1 = MessageBoxButtons.OK;
+                    DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
+                    return;
+                }
+                if (!Directory.Exists(inputPathText.Text))
+                {
+                    string message1 = "The directory in the input is not valid!";
+                    string caption1 = "Error Detected in InPut";
+                    MessageBoxButtons buttons1 = MessageBoxButtons.OK;
+                    DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
+                    return;
+                }
+                if (!Directory.Exists(outputPathText.Text))
+                {
+                    string message1 = "The directory in the output is not valid!";
+                    string caption1 = "Error Detected in OutPut";
+                    MessageBoxButtons buttons1 = MessageBoxButtons.OK;
+                    DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
+                    return;
+                }
+                model.setInputPath(inputPathText.Text);
+                model.setOutPutPath(outputPathText.Text);
+                if (!model.CheckFilesExists(outputPathText.Text))
+                {
+                    string message1 = "Not all index files are exist in the outPut file.";
+                    string caption1 = "Error Detected in Load";
+                    MessageBoxButtons buttons1 = MessageBoxButtons.OK;
+                    DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
+                    return;
+                }
+                model.SetPostingLines();
+                LoadCitiesToFilter();
+                LoadLanguages();
+                model.LoadDictionary();
+                model.LoadDocumentsInformation();
+                m_invertedIndexIsLoaded = true;
+                string message2 = "Load Inverted Index files is done!";
+                string caption2 = "Load Finished";
+                MessageBoxButtons buttons2 = MessageBoxButtons.OK;
+                DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
+                EnablePart2Buttons(true);
             }
-            if (!Directory.Exists(inputPathText.Text))
+            catch (Exception exception)
             {
-                string message1 = "The directory in the input is not valid!";
-                string caption1 = "Error Detected in InPut";
-                MessageBoxButtons buttons1 = MessageBoxButtons.OK;
-                DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
-                return;
+                Console.WriteLine();
             }
-            if (!Directory.Exists(outputPathText.Text))
-            {
-                string message1 = "The directory in the output is not valid!";
-                string caption1 = "Error Detected in OutPut";
-                MessageBoxButtons buttons1 = MessageBoxButtons.OK;
-                DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
-                return;
-            }
-            model.setInputPath(inputPathText.Text);
-            model.setOutPutPath(outputPathText.Text);
-            if (!model.CheckFilesExists(outputPathText.Text))
-            {
-                string message1 = "Not all index files are exist in the outPut file.";
-                string caption1 = "Error Detected in Load";
-                MessageBoxButtons buttons1 = MessageBoxButtons.OK;
-                DialogResult result1 = System.Windows.Forms.MessageBox.Show(message1, caption1, buttons1);
-                return;
-            }
-            model.SetPostingLines();
-            LoadCitiesToFilter();
-            model.LoadDictionary();
-            model.LoadDocumentsInformation();
-            m_invertedIndexIsLoaded = true;
-            string message2 = "Load Inverted Index files is done!";
-            string caption2 = "Load Finished";
-            MessageBoxButtons buttons2 = MessageBoxButtons.OK;
-            DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
-            EnablePart2Buttons(true);
         }
 
         /// <summary>
@@ -747,15 +891,23 @@ namespace SearchEngine
         /// <returns></returns>
         private Dictionary<string, string> AddCitiesToFilter()
         {
-            Dictionary<string, string> filter = new Dictionary<string, string>();
-            foreach (ComboBoxItem city in cityComboBox.ItemContainerGenerator.Items)
+            try
             {
-                if (city.IsChecked)
+                Dictionary<string, string> filter = new Dictionary<string, string>();
+                foreach (ComboBoxItem city in cityComboBox.ItemContainerGenerator.Items)
                 {
-                    filter.Add(city.CityName, "");
+                    if (city.IsChecked)
+                    {
+                        filter.Add(city.CityName, "");
+                    }
                 }
+                return filter;
             }
-            return filter;
+            catch (Exception exception)
+            {
+                Console.WriteLine();
+                return new Dictionary<string, string>();
+            }
         }
 
         /// <summary>
@@ -765,20 +917,28 @@ namespace SearchEngine
         /// <param name="e"></param>
         private void SearchEntitiesButton_Click(object sender, RoutedEventArgs e)
         {
-            if (EntitiesComboBox.SelectedIndex == 0)
+            try
             {
-                string message2 = "Please Choose Document!";
-                string caption2 = "Invalid Choice";
-                MessageBoxButtons buttons2 = MessageBoxButtons.OK;
-                DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
-                EnablePart2Buttons(true);
-                return;
+                if (EntitiesComboBox.SelectedIndex == 0)
+                {
+                    string message2 = "Please Choose Document!";
+                    string caption2 = "Invalid Choice";
+                    MessageBoxButtons buttons2 = MessageBoxButtons.OK;
+                    DialogResult result2 = System.Windows.Forms.MessageBox.Show(message2, caption2, buttons2);
+                    EnablePart2Buttons(true);
+                    return;
+                }
+                EntitiesListBox.ItemsSource = null;
+                string docno = EntitiesComboBox.SelectedItem.ToString();
+                var res = model.m_searcher.docInformation[docno].m_Entities.ToDictionary(pair => pair.Key, pair => pair.Value);
+                res = res.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
+                EntitiesListBox.ItemsSource = res;
             }
-            EntitiesListBox.ItemsSource = null;
-            string docno = EntitiesComboBox.SelectedItem.ToString();
-            var res = model.m_searcher.docInformation[docno].m_Entities.ToDictionary(pair => pair.Key, pair => pair.Value);
-            res = res.OrderByDescending(j => j.Value).ToDictionary(p => p.Key, p => p.Value);
-            EntitiesListBox.ItemsSource = res;
+            catch (Exception exception)
+            {
+                Console.WriteLine();
+            }
+
         }
     }
 }

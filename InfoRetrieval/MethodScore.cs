@@ -14,7 +14,7 @@ namespace InfoRetrieval
         /// <summary>
         /// fields of MethodScore
         /// </summary>
-        private const double factor = 0.1;
+        private const double factor = 0.33;
         private double BM25;
         private double InnerProduct;
         private double totalScore;

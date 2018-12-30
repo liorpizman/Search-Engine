@@ -543,7 +543,7 @@ namespace InfoRetrieval
             StringBuilder extendQuery = new StringBuilder();
             if (partOfSpeech != null)
             {
-                for (int i = 0; i < 5 && i < partOfSpeech.Length; i++)
+                for (int i = 0; i < 1 && i < partOfSpeech.Length; i++)
                 {
                     extendQuery.Append(" " + partOfSpeech[i]);
                 }
